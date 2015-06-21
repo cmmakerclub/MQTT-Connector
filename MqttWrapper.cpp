@@ -17,12 +17,23 @@ void MqttWrapper::initConfig(const char* host, int port) {
 
     connOpts = NULL;
     client = NULL;
+
+    JsonObject& r = jsonBuffer.createObject();
+    JsonObject& d = jsonBuffer.createObject();
+
+    r["d"] = d;
+
+    this->root = &r;
+    this->d = &d;
+
+    root->printTo(Serial);
 }
 
 MqttWrapper::MqttWrapper(const char* host, int port, cmmc_config_t config_hook)
 {
     initConfig(host, port);
     _user_hook_config = config_hook;
+
 }
 
 

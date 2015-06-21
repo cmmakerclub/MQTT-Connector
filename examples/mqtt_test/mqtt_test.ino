@@ -18,8 +18,8 @@ JsonObject& root = jsonBuffer.createObject();
 
 void callback(const MQTT::Publish& pub) {
     Serial.print(pub.topic());
-    Serial.print(" => ");
-    Serial.println(pub.payload_string());
+    // Serial.print(" => ");
+    // Serial.println(pub.payload_string());
 }
 
 void connectWifi()
@@ -37,27 +37,21 @@ void connectWifi()
     Serial.println("WIFI CONNECTED ");
 }
 
-void hook_before_publish(char** dataPtr) {
-    Serial.println("INO BEFORE PUB");
-    String s = "HELLO WORLD";
-    *dataPtr = "HELLO";
-
-    static char payload[800];
-    static long counter = 0;
-    root["counter"] = ++counter;
-
-    root.printTo(payload, sizeof(payload));
-
-    *dataPtr = payload;
+void hook_before_publish(JsonObject** root) {
+  (*(*root))["d"]["myName"] = "NAT";
 }
 
-void hook_config(MqttWrapper::Config config) {
+void hook_publish_data(char** dataPtr) {
+}
+
+void hook_before_connect(MqttWrapper::Config config) {
     Serial.println("+++++++++++++++++++");
     Serial.println("IN HOOK CONFIG INO");
     Serial.print("CLIENT ID: ");
     Serial.println(*(config.clientId));
+    Serial.println(*(config.topic_sub));
+    *(config.topic_pub) = "CMMC";
 
-    Serial.println(config.client->server_hostname);
     Serial.println("-------------------");
 }
 
@@ -70,7 +64,7 @@ void setup() {
 
     connectWifi();
 
-    mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
+    mqtt = new MqttWrapper("128.199.104.122", 1883, hook_before_connect);
     mqtt->connect(callback);
     mqtt->set_before_publish_hook(hook_before_publish);
 }

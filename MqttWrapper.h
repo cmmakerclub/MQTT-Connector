@@ -3,6 +3,8 @@
 
 #include "PubSubClient.h"
 // #include <Arduino.h>
+#include <ArduinoJson.h>
+#include "ESP8266WiFi.h"
 #include <functional>
 #define DEBUG_MODE
 
@@ -31,12 +33,16 @@ public:
         MQTT::Connect *connOpts;
         PubSubClient *client;
         String* clientId;
+        String* topic_sub;
+        String* topic_pub;
     } Config;
+
+    StaticJsonBuffer<200> jsonBuffer;
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
-    typedef std::function<void(char** payloadPtr)> publish_hook_t;
+    typedef std::function<void(JsonObject** )> publish_hook_t;
 
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
@@ -66,6 +72,9 @@ public:
         _config.connOpts = connOpts;
         _config.client = client;
         _config.clientId = &(this->clientId);
+        _config.topic_sub = &(this->topic_sub);
+        _config.topic_pub = &(this->topic_pub);
+
 
         Serial.println("DOING HOOKCONFIG");
         if (_user_hook_config != NULL) {
@@ -103,7 +112,18 @@ protected:
     void setDefaultClientId() {
         clientId = ESP.getChipId();
         topic_sub = "esp8266-18:fe:34:a0:7e:58/data";
-        topic_pub = "sampleTopic";
+
+        uint8_t mac[6];
+        WiFi.macAddress(mac);
+        String result;
+        for (int i = 0; i < 6; ++i)
+        {
+            result += String(mac[i], 16);
+            if (i < 5)
+                result += ':';
+        }        
+        topic_pub = String("esp8266-") + result;
+
     }
 
     const char* getClientId()
@@ -113,9 +133,13 @@ protected:
 
     void beforePublish(char** ptr) {
         DEBUG_PRINTLN("__BEFORE__");
+        // static char payload[800];
+
+        static long counter = 0;
+        (*d)["counter"] = ++counter;
         if (_user_hook_before_publish != NULL) {
             DEBUG_PRINTLN("__BEFORE__OK___");
-            _user_hook_before_publish(ptr);
+            _user_hook_before_publish(&d);
         }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
@@ -125,8 +149,9 @@ protected:
     }
 
     void doPublish() {
-        char *dataPtr;
+        char *dataPtr = "";
         if (millis() - prev_millis > 3000) {
+            // prepareJson(&dataPtr);
             beforePublish(&dataPtr);
             prev_millis = millis();
             DEBUG_PRINT("DO PUBLISH --> ");
@@ -151,6 +176,7 @@ private:
 
     String _mqtt_host = "x";
     int _mqtt_port = 0;
+    int _publish_interval = 3000;
     Config _config;
 
     String clientId;
@@ -163,7 +189,11 @@ private:
     PubSubClient::callback_t _user_callback;
 
     unsigned long prev_millis;
+    JsonObject *root;
+    JsonObject *d;
 
+
+    // JsonObject& root = 
 
     void _connect() {
         DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
