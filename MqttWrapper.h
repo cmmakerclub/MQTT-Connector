@@ -10,7 +10,7 @@
 
 #ifdef DEBUG_MODE
 #ifndef DEBUG_PRINTER
-    #define DEBUG_PRINTER Serial
+#define DEBUG_PRINTER Serial
 #endif
 #define PRODUCTION_MODE
 
@@ -27,7 +27,7 @@
 class MqttWrapper
 {
 public:
-    typedef struct { 
+    typedef struct {
         MQTT::Connect *connOpts;
         PubSubClient *client;
         String* clientId;
@@ -70,7 +70,7 @@ public:
         Serial.println("DOING HOOKCONFIG");
         if (_user_hook_config != NULL) {
             Serial.println("IN HOOK CONFIG");
-           _user_hook_config(_config);
+            _user_hook_config(_config);
         }
         else {
             Serial.println("NOT IN NOT IN HOOK CONFIG");
@@ -91,7 +91,7 @@ public:
         {
             doPublish();
         }
-        else 
+        else
         {
             DEBUG_PRINTLN("MQTT DISCONNECTED");
             _connect();
@@ -163,7 +163,7 @@ private:
     PubSubClient::callback_t _user_callback;
 
     unsigned long prev_millis;
- 
+
 
     void _connect() {
         DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");

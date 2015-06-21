@@ -16,10 +16,10 @@ MqttWrapper *mqtt;
 static StaticJsonBuffer<800> jsonBuffer;
 JsonObject& root = jsonBuffer.createObject();
 
-void callback(const MQTT::Publish& pub) { 
-  Serial.print(pub.topic());
-  Serial.print(" => ");
-  Serial.println(pub.payload_string());
+void callback(const MQTT::Publish& pub) {
+    Serial.print(pub.topic());
+    Serial.print(" => ");
+    Serial.println(pub.payload_string());
 }
 
 void connectWifi()
@@ -29,7 +29,7 @@ void connectWifi()
     int retries = 0;
     while ((WiFi.status() != WL_CONNECTED))
     {
-      Serial.print(".");
+        Serial.print(".");
         retries++;
         delay(500);
     }
@@ -38,43 +38,43 @@ void connectWifi()
 }
 
 void hook_before_publish(char** dataPtr) {
-  Serial.println("INO BEFORE PUB");
-  String s = "HELLO WORLD";
-  *dataPtr = "HELLO";
+    Serial.println("INO BEFORE PUB");
+    String s = "HELLO WORLD";
+    *dataPtr = "HELLO";
 
-  static char payload[800];
-  static long counter = 0;
-  root["counter"] = ++counter;
+    static char payload[800];
+    static long counter = 0;
+    root["counter"] = ++counter;
 
-  root.printTo(payload, sizeof(payload));  
+    root.printTo(payload, sizeof(payload));
 
-  *dataPtr = payload;
+    *dataPtr = payload;
 }
 
 void hook_config(MqttWrapper::Config config) {
-  Serial.println("+++++++++++++++++++");
-  Serial.println("IN HOOK CONFIG INO");
-  Serial.print("CLIENT ID: ");
-  Serial.println(*(config.clientId));
+    Serial.println("+++++++++++++++++++");
+    Serial.println("IN HOOK CONFIG INO");
+    Serial.print("CLIENT ID: ");
+    Serial.println(*(config.clientId));
 
-  Serial.println(config.client->server_hostname);
-  Serial.println("-------------------");
+    Serial.println(config.client->server_hostname);
+    Serial.println("-------------------");
 }
 
 
 
 void setup() {
-  Serial.begin(115200);
-  delay(10);
-  Serial.println("GO");
+    Serial.begin(115200);
+    delay(10);
+    Serial.println("GO");
 
-  connectWifi();
+    connectWifi();
 
-  mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
-  mqtt->connect(callback);
-  mqtt->set_before_publish_hook(hook_before_publish);
+    mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
+    mqtt->connect(callback);
+    mqtt->set_before_publish_hook(hook_before_publish);
 }
 
 void loop() {
-  mqtt->loop();
+    mqtt->loop();
 }
