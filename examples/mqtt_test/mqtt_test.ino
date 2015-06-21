@@ -13,13 +13,11 @@ const char* pass = "click2499";
 
 MqttWrapper *mqtt;
 
-static StaticJsonBuffer<800> jsonBuffer;
-JsonObject& root = jsonBuffer.createObject();
 
 void callback(const MQTT::Publish& pub) {
     Serial.print(pub.topic());
-    // Serial.print(" => ");
-    // Serial.println(pub.payload_string());
+    Serial.print(" => ");
+    Serial.println(pub.payload_string());
 }
 
 void connectWifi()
@@ -38,7 +36,9 @@ void connectWifi()
 }
 
 void hook_before_publish(JsonObject** root) {
-  (*(*root))["d"]["myName"] = "NAT";
+  JsonObject& data = (*(*root))["d"];
+  
+  data["myName"] = "NAT";
 }
 
 void hook_publish_data(char** dataPtr) {

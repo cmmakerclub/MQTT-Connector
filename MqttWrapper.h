@@ -6,10 +6,8 @@
 #include <ArduinoJson.h>
 #include "ESP8266WiFi.h"
 #include <functional>
+
 #define DEBUG_MODE
-
-
-
 #ifdef DEBUG_MODE
 #ifndef DEBUG_PRINTER
 #define DEBUG_PRINTER Serial
@@ -37,7 +35,6 @@ public:
         String* topic_pub;
     } Config;
 
-    StaticJsonBuffer<200> jsonBuffer;
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
@@ -50,7 +47,7 @@ public:
 
     void initConfig(const char*, int);
     void connect(PubSubClient::callback_t callback) {
-        Serial.println("BEGIN Wrapper");
+        DEBUG_PRINTLN("BEGIN Wrapper");
 
         setDefaultClientId();
 
@@ -76,13 +73,13 @@ public:
         _config.topic_pub = &(this->topic_pub);
 
 
-        Serial.println("DOING HOOKCONFIG");
+        DEBUG_PRINTLN("DOING HOOKCONFIG");
         if (_user_hook_config != NULL) {
-            Serial.println("IN HOOK CONFIG");
+            DEBUG_PRINTLN("IN HOOK CONFIG");
             _user_hook_config(_config);
         }
         else {
-            Serial.println("NOT IN NOT IN HOOK CONFIG");
+            DEBUG_PRINTLN("NOT IN NOT IN HOOK CONFIG");
         }
     }
 
@@ -135,11 +132,9 @@ protected:
         DEBUG_PRINTLN("__BEFORE__");
         // static char payload[800];
 
-        static long counter = 0;
-        (*d)["counter"] = ++counter;
         if (_user_hook_before_publish != NULL) {
             DEBUG_PRINTLN("__BEFORE__OK___");
-            _user_hook_before_publish(&d);
+            _user_hook_before_publish(&root);
         }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
@@ -149,13 +144,20 @@ protected:
     }
 
     void doPublish() {
+        static long counter = 0;
         char *dataPtr = "";
-        if (millis() - prev_millis > 3000) {
+        if (millis() - prev_millis > _publish_interval) {
             // prepareJson(&dataPtr);
             beforePublish(&dataPtr);
+            (*d)["counter"] = ++counter;
+            (*d)["heap"] = ESP.getFreeHeap();
+            (*d)["seconds"] = millis()/1000;            
+
+            root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));    
+            dataPtr = jsonStrbuffer;
             prev_millis = millis();
             DEBUG_PRINT("DO PUBLISH --> ");
-            while (!client->publish(topic_pub, dataPtr))
+            while (!client->publish(topic_pub, jsonStrbuffer))
             {
                 DEBUG_PRINTLN("PUBLISHED ERROR.");
             }
@@ -189,11 +191,15 @@ private:
     PubSubClient::callback_t _user_callback;
 
     unsigned long prev_millis;
+
+    // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
+
+    StaticJsonBuffer<512> jsonBuffer;
+    char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
 
 
-    // JsonObject& root = 
 
     void _connect() {
         DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
