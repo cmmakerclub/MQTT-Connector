@@ -2,25 +2,14 @@
 
 MqttWrapper::MqttWrapper(const char* host, int port)
 {
-
-    prev_millis = millis();
-
-    _mqtt_host = String(host);
-    _mqtt_port = port;
-
-    connOpts = NULL;
-    client = NULL;
-
-
+    initConfig(host, port);
     Serial.println("----------- Wrapper CONSTRUCTOR ---------");
     Serial.println(_mqtt_host);
     Serial.println(_mqtt_port);
     Serial.println("---------- /Wrapper CONSTRUCTOR ---------");
 }
 
-
-MqttWrapper::MqttWrapper(const char* host, int port, cmmc_config_t config_hook)
-{
+void MqttWrapper::initConfig(const char* host, int port) {
     prev_millis = millis();
 
     _mqtt_host = String(host);
@@ -28,8 +17,11 @@ MqttWrapper::MqttWrapper(const char* host, int port, cmmc_config_t config_hook)
 
     connOpts = NULL;
     client = NULL;
+}
 
-
+MqttWrapper::MqttWrapper(const char* host, int port, cmmc_config_t config_hook)
+{
+    initConfig(host, port);
     _user_hook_config = config_hook;
 }
 

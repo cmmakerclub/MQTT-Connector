@@ -57,9 +57,7 @@ void setup() {
   connectWifi();
 
   mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
-  mqtt->begin();
-  mqtt->set_callback(callback);
-  
+  mqtt->begin(callback);
 
   mqtt->connect();
   

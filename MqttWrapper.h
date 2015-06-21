@@ -36,16 +36,13 @@ public:
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
-    typedef std::function<void(const MqttWrapper::Config&)> cmmc_config_t;
+    typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
 
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
     ~MqttWrapper();
-
-    void set_callback(PubSubClient::callback_t callback) {
-        _user_callback = callback;
-    }
-
+    
+    void initConfig(const char*, int);
     void connect() {
         DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
         DEBUG_PRINT("HOST: ");
@@ -69,11 +66,13 @@ public:
 
     }
 
-    void begin() {
+    void begin(PubSubClient::callback_t callback) {
         Serial.println("BEGIN Wrapper");
+
         setDefaultClientId();
         client = new PubSubClient(_mqtt_host, _mqtt_port);
         connOpts = new MQTT::Connect(clientId);
+        _user_callback = callback;
 
         client->set_callback([&](const MQTT::Publish& pub) {
             DEBUG_PRINTLN("DEFAULT CALL BACK .MqttWrapper.");
@@ -86,15 +85,14 @@ public:
     }
 
     void hook_config() {
-        Config c;
-        c.connOpts = connOpts;
-        c.client = client;
-        c.clientId = &(this->clientId);
+        _config.connOpts = connOpts;
+        _config.client = client;
+        _config.clientId = &(this->clientId);
 
         Serial.println("DOING HOOKCONFIG");
         if (_user_hook_config != NULL) {
             Serial.println("IN HOOK CONFIG");
-           _user_hook_config(c);
+           _user_hook_config(_config);
         }
         else {
             Serial.println("NOT IN NOT IN HOOK CONFIG");
@@ -157,6 +155,7 @@ protected:
 private:
     String _mqtt_host = "x";
     int _mqtt_port = 0;
+    Config _config;
 };
 
 
