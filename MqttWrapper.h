@@ -41,32 +41,9 @@ public:
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
     ~MqttWrapper();
-    
+
     void initConfig(const char*, int);
-    void connect() {
-        DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
-        DEBUG_PRINT("HOST: ");
-        DEBUG_PRINT(_mqtt_host);
-        DEBUG_PRINT(" PORT: ");
-        DEBUG_PRINT(_mqtt_port);
-
-        while(!client->connect(*connOpts)) {
-            DEBUG_PRINTLN("connecting...");
-            delay(100);
-        }
-
-        DEBUG_PRINTLN("CONNECTED");
-
-        while(!client->subscribe("inTopic")) {
-            DEBUG_PRINTLN("subscribing...");
-            delay(100);
-        };
-
-        DEBUG_PRINTLN("subscribeed");
-
-    }
-
-    void begin(PubSubClient::callback_t callback) {
+    void connect(PubSubClient::callback_t callback) {
         Serial.println("BEGIN Wrapper");
 
         setDefaultClientId();
@@ -112,7 +89,7 @@ public:
         else 
         {
             DEBUG_PRINTLN("MQTT DISCONNECTED");
-            connect();
+            _connect();
         }
 
     }
@@ -145,8 +122,6 @@ protected:
     MQTT::Connect *connOpts;
     PubSubClient *client;
 
-
-
     PubSubClient::callback_t _callback;
     PubSubClient::callback_t _user_callback;
 
@@ -156,6 +131,30 @@ private:
     String _mqtt_host = "x";
     int _mqtt_port = 0;
     Config _config;
+
+    void _connect() {
+        DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
+        DEBUG_PRINT("HOST: ");
+        DEBUG_PRINT(_mqtt_host);
+        DEBUG_PRINT(" PORT: ");
+        DEBUG_PRINT(_mqtt_port);
+
+        while(!client->connect(*connOpts)) {
+            DEBUG_PRINTLN("connecting...");
+            delay(100);
+        }
+
+        DEBUG_PRINTLN("CONNECTED");
+
+        while(!client->subscribe("inTopic")) {
+            DEBUG_PRINTLN("subscribing...");
+            delay(100);
+        };
+
+        DEBUG_PRINTLN("subscribeed");
+
+    }
+    
 };
 
 
