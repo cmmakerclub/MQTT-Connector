@@ -33,7 +33,17 @@ void connectWifi()
         delay(500);
     }
 
-    Serial.println(" WIFI CONNECTED ");
+    Serial.println("WIFI CONNECTED ");
+}
+
+void hook_config(MqttWrapper::Config config) {
+  Serial.println("+++++++++++++++++++");
+  Serial.println("IN HOOK CONFIG INO");
+  Serial.print("CLIENT ID: ");
+  Serial.println(*(config.clientId));
+
+  Serial.println(config.client->server_hostname);
+  Serial.println("-------------------");
 }
 
 
@@ -46,10 +56,10 @@ void setup() {
 
   connectWifi();
 
-  mqtt = new MqttWrapper("128.199.104.122");
-
+  mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
   mqtt->begin();
   mqtt->set_callback(callback);
+  
 
   mqtt->connect();
   
