@@ -15,7 +15,6 @@ MqttWrapper *mqtt;
 
 
 void callback(const MQTT::Publish& pub) { 
-  Serial.println("CALLBACK FRoM INO");
   Serial.print(pub.topic());
   Serial.print(" => ");
   Serial.println(pub.payload_string());

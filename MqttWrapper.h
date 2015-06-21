@@ -1,7 +1,6 @@
 #ifndef MQTT_WRAPPER_H
 #define MQTT_WRAPPER_H
 
-#include "ArduinoJson.h"
 #include "PubSubClient.h"
 // #include <Arduino.h>
 #include <functional>
@@ -37,6 +36,7 @@ public:
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
+    typedef std::function<void(const char* payload)> publish_hook;
 
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
@@ -47,12 +47,13 @@ public:
         Serial.println("BEGIN Wrapper");
 
         setDefaultClientId();
+
         client = new PubSubClient(_mqtt_host, _mqtt_port);
         connOpts = new MQTT::Connect(clientId);
+
         _user_callback = callback;
 
         client->set_callback([&](const MQTT::Publish& pub) {
-            DEBUG_PRINTLN("DEFAULT CALL BACK .MqttWrapper.");
             if (_user_callback != NULL) {
                 _user_callback(pub);
             }
@@ -97,6 +98,7 @@ public:
 protected:
     void setDefaultClientId() {
         clientId = ESP.getChipId();
+        topicId = "sampleTopic";
     }
 
     const char* getClientId()
@@ -104,17 +106,39 @@ protected:
         return clientId.c_str();
     }
 
+    void beforePublish() {
+        // DEBUG_PRINTLN("BEFORE PUBLISH");
+    }
+
+    void afterPublish() {
+        // DEBUG_PRINTLN("AFTER PUBLISH");
+    }
+
     void doPublish() {
+        char *dataPtr;
         if (millis() - prev_millis > 3000) {
+            beforePublish();
             prev_millis = millis();
-            DEBUG_PRINTLN("DO PUBLISH");
+            DEBUG_PRINT("DO PUBLISH --> ");
+            while (!client->publish(topicId, dataPtr))
+            {
+                DEBUG_PRINTLN("PUBLISHED ERROR.");
+            }
+            afterPublish();
         }
     }
 
 
 
+
 protected:
+
+private:
     cmmc_config_t _user_hook_config;
+
+    String _mqtt_host = "x";
+    int _mqtt_port = 0;
+    Config _config;
 
     String clientId;
     String topicId;
@@ -122,15 +146,10 @@ protected:
     MQTT::Connect *connOpts;
     PubSubClient *client;
 
-    PubSubClient::callback_t _callback;
     PubSubClient::callback_t _user_callback;
 
     unsigned long prev_millis;
-
-private:
-    String _mqtt_host = "x";
-    int _mqtt_port = 0;
-    Config _config;
+ 
 
     void _connect() {
         DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
@@ -146,15 +165,19 @@ private:
 
         DEBUG_PRINTLN("CONNECTED");
 
-        while(!client->subscribe("inTopic")) {
-            DEBUG_PRINTLN("subscribing...");
+        DEBUG_PRINT("SUBSCRIBING...");
+        DEBUG_PRINTLN(topicId);
+
+        while(!client->subscribe(topicId)) {
+            DEBUG_PRINT("subscribing...");
+            DEBUG_PRINTLN(topicId);
             delay(100);
         };
 
         DEBUG_PRINTLN("subscribeed");
 
     }
-    
+
 };
 
 
