@@ -48,13 +48,15 @@ public:
     void initConfig(const char*, int);
     void connect(PubSubClient::callback_t callback) {
         DEBUG_PRINTLN("BEGIN Wrapper");
-
         setDefaultClientId();
+        
+        hook_config();
 
         client = new PubSubClient(_mqtt_host, _mqtt_port);
         connOpts = new MQTT::Connect(clientId);
 
         _user_callback = callback;
+
 
         client->set_callback([&](const MQTT::Publish& pub) {
             if (_user_callback != NULL) {
@@ -62,7 +64,8 @@ public:
             }
         });
 
-        hook_config();
+        _connect();
+
     }
 
     void hook_config() {
@@ -219,11 +222,11 @@ private:
         DEBUG_PRINT("SUBSCRIBING...");
         DEBUG_PRINTLN(topic_sub);
 
-        while(!client->subscribe(topic_sub)) {
-            DEBUG_PRINT("subscribing...");
-            DEBUG_PRINTLN(topic_sub);
-            delay(100);
-        };
+        // while(!client->subscribe(topic_sub)) {
+        //     DEBUG_PRINT("subscribing...");
+        //     DEBUG_PRINTLN(topic_sub);
+        //     delay(100);
+        // };
 
         DEBUG_PRINTLN("subscribeed");
 
