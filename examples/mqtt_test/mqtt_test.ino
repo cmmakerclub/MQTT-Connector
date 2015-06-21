@@ -35,6 +35,12 @@ void connectWifi()
     Serial.println("WIFI CONNECTED ");
 }
 
+void hook_before_publish(char** dataPtr) {
+  Serial.println("INO BEFORE PUB");
+  String s = "HELLO WORLD";
+  *dataPtr = "HELLO";
+}
+
 void hook_config(MqttWrapper::Config config) {
   Serial.println("+++++++++++++++++++");
   Serial.println("IN HOOK CONFIG INO");
@@ -57,6 +63,7 @@ void setup() {
 
   mqtt = new MqttWrapper("128.199.104.122", 1883, hook_config);
   mqtt->connect(callback);
+  mqtt->set_before_publish_hook(hook_before_publish);
 }
 
 void loop() {

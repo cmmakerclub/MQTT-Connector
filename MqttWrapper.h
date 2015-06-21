@@ -36,7 +36,7 @@ public:
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
-    typedef std::function<void(const char* payload)> publish_hook;
+    typedef std::function<void(char** payloadPtr)> publish_hook_t;
 
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
@@ -81,6 +81,10 @@ public:
         _user_hook_config = func;
     }
 
+    void set_before_publish_hook(publish_hook_t func) {
+        _user_hook_before_publish = func;
+    }
+
 
     void loop() {
         if (client->loop())
@@ -98,7 +102,8 @@ public:
 protected:
     void setDefaultClientId() {
         clientId = ESP.getChipId();
-        topicId = "sampleTopic";
+        topic_sub = "esp8266-18:fe:34:a0:7e:58/data";
+        topic_pub = "sampleTopic";
     }
 
     const char* getClientId()
@@ -106,7 +111,12 @@ protected:
         return clientId.c_str();
     }
 
-    void beforePublish() {
+    void beforePublish(char** ptr) {
+        DEBUG_PRINTLN("__BEFORE__");
+        if (_user_hook_before_publish != NULL) {
+            DEBUG_PRINTLN("__BEFORE__OK___");
+            _user_hook_before_publish(ptr);
+        }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
@@ -117,13 +127,15 @@ protected:
     void doPublish() {
         char *dataPtr;
         if (millis() - prev_millis > 3000) {
-            beforePublish();
+            beforePublish(&dataPtr);
             prev_millis = millis();
             DEBUG_PRINT("DO PUBLISH --> ");
-            while (!client->publish(topicId, dataPtr))
+            while (!client->publish(topic_pub, dataPtr))
             {
                 DEBUG_PRINTLN("PUBLISHED ERROR.");
             }
+            DEBUG_PRINT(dataPtr);
+            DEBUG_PRINTLN(" PUBLISHED!");
             afterPublish();
         }
     }
@@ -135,13 +147,15 @@ protected:
 
 private:
     cmmc_config_t _user_hook_config;
+    publish_hook_t _user_hook_before_publish;
 
     String _mqtt_host = "x";
     int _mqtt_port = 0;
     Config _config;
 
     String clientId;
-    String topicId;
+    String topic_sub;
+    String topic_pub;
 
     MQTT::Connect *connOpts;
     PubSubClient *client;
@@ -166,11 +180,11 @@ private:
         DEBUG_PRINTLN("CONNECTED");
 
         DEBUG_PRINT("SUBSCRIBING...");
-        DEBUG_PRINTLN(topicId);
+        DEBUG_PRINTLN(topic_sub);
 
-        while(!client->subscribe(topicId)) {
+        while(!client->subscribe(topic_sub)) {
             DEBUG_PRINT("subscribing...");
-            DEBUG_PRINTLN(topicId);
+            DEBUG_PRINTLN(topic_sub);
             delay(100);
         };
 
