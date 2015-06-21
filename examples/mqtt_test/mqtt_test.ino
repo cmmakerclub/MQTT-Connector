@@ -13,6 +13,8 @@ const char* pass = "click2499";
 
 MqttWrapper *mqtt;
 
+static StaticJsonBuffer<800> jsonBuffer;
+JsonObject& root = jsonBuffer.createObject();
 
 void callback(const MQTT::Publish& pub) { 
   Serial.print(pub.topic());
@@ -39,6 +41,14 @@ void hook_before_publish(char** dataPtr) {
   Serial.println("INO BEFORE PUB");
   String s = "HELLO WORLD";
   *dataPtr = "HELLO";
+
+  static char payload[800];
+  static long counter = 0;
+  root["counter"] = ++counter;
+
+  root.printTo(payload, sizeof(payload));  
+
+  *dataPtr = payload;
 }
 
 void hook_config(MqttWrapper::Config config) {
@@ -54,7 +64,6 @@ void hook_config(MqttWrapper::Config config) {
 
 
 void setup() {
-
   Serial.begin(115200);
   delay(10);
   Serial.println("GO");

@@ -120,7 +120,7 @@ protected:
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
-    void afterPublish() {
+    void afterPublish(char** ptr) {
         // DEBUG_PRINTLN("AFTER PUBLISH");
     }
 
@@ -136,7 +136,7 @@ protected:
             }
             DEBUG_PRINT(dataPtr);
             DEBUG_PRINTLN(" PUBLISHED!");
-            afterPublish();
+            afterPublish(&dataPtr);
         }
     }
 
@@ -172,6 +172,7 @@ private:
         DEBUG_PRINT(" PORT: ");
         DEBUG_PRINT(_mqtt_port);
 
+        // client->set_max_retries(50);
         while(!client->connect(*connOpts)) {
             DEBUG_PRINTLN("connecting...");
             delay(100);
