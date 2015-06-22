@@ -23,8 +23,8 @@ const char* pass = "5k,skrijv',7'sik";
 MqttWrapper *mqtt;
 DHT *dht;
 
-void initDht(DHT **dht, uint8_t pin, uint8_t dht_type);
-void readDht(DHT *dht, float *temp, float *humid);
+void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type);
+void read_dht(DHT *dht, float *temp, float *humid);
 
 static float t_dht;
 static float h_dht; 
@@ -35,7 +35,7 @@ void callback(const MQTT::Publish& pub) {
     Serial.println(pub.payload_string());
 }
 
-void connectWifi()
+void connect_wifi()
 {
     WiFi.begin(ssid, pass);
 
@@ -52,7 +52,7 @@ void connectWifi()
 
 void hook_before_publish(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
-  readDht(dht, &t_dht, &h_dht);
+  read_dht(dht, &t_dht, &h_dht);
 
   data["myName"] = "NAT";
   data["temp"] = t_dht;
@@ -80,9 +80,6 @@ void hook_before_connect(MqttWrapper::Config config) {
         //     result += ':';
     }
     
-    // topic_pub = String("esp8266-") + result;
-
-
     *(config.clientId) = String("d:quickstart:arduino:") + (result);
     *(config.topic_pub) = "iot-2/evt/status/fmt/json";
 
@@ -98,9 +95,9 @@ void setup() {
     delay(10);
     Serial.println("GO");
 
-    initDht(&dht, DHTPIN, DHTTYPE);
+    init_dht(&dht, DHTPIN, DHTTYPE);
 
-    connectWifi();
+    connect_wifi();
 
     // mqtt = new MqttWrapper("128.199.104.122", 1883, hook_before_connect);
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_before_connect);
@@ -113,7 +110,7 @@ void loop() {
 }
 
 
-void initDht(DHT **dht, uint8_t pin, uint8_t dht_type) {
+void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type) {
     // Connect pin 1 (on the left) of the sensor to +5V
     // NOTE: If using a board with 3.3V logic like an Arduino Due connect pin 1
     // to 3.3V instead of 5V!
@@ -137,10 +134,10 @@ void initDht(DHT **dht, uint8_t pin, uint8_t dht_type) {
 }
 
 
-void readDht(DHT *dht, float *temp, float *humid) {
+void read_dht(DHT *dht, float *temp, float *humid) {
 
     if (dht == NULL) {
-        DEBUG_PRINTLN(F("[dht22] is not initialised. please call initDht() first."));
+        DEBUG_PRINTLN(F("[dht22] is not initialised. please call init_dht() first."));
         return;
     }
 
