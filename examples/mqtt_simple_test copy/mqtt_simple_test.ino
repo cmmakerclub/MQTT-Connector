@@ -32,6 +32,7 @@ DHT *dht;
 
 
 
+
 void connect_wifi()
 {
     WiFi.begin(ssid, pass);
@@ -46,6 +47,14 @@ void connect_wifi()
 
     Serial.println("WIFI CONNECTED ");
 }
+
+void reconnect_wifi_if_link_down() {
+    if (WiFi.status() != WL_CONNECTED) {
+        DEBUG_PRINTLN("WIFI DISCONNECTED");
+        connect_wifi();
+    }
+}
+
 
 void callback(const MQTT::Publish& pub) {
     if (pub.payload_string() == "0") {
@@ -87,13 +96,6 @@ void setup() {
     mqtt = new MqttWrapper("128.199.104.122");
     mqtt->connect(callback);
     mqtt->set_prepare_publish_data_hook(hook_before_publish, 5000);
-}
-
-void reconnect_wifi_if_link_down() {
-    if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTLN("WIFI DISCONNECTED");
-        connect_wifi();
-    }
 }
 
 void loop() {

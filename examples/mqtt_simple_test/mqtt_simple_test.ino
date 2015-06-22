@@ -18,12 +18,8 @@ const char* pass = "5k,skrijv',7'sik";
 // const char* ssid     = "Opendream";
 // const char* pass = "gfkgvkgv'2015!!!!";
 
-
-
 #define WIFI_MAX_RETRIES 1500
 #define WIFI_CONNECT_DELAY_MS 20
-
-
 
 MqttWrapper *mqtt;
 DHT *dht;
