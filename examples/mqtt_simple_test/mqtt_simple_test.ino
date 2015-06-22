@@ -30,9 +30,22 @@ const char* pass = "gfkgvkgv'2015!!!!";
 MqttWrapper *mqtt;
 DHT *dht;
 
-void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type);
-void read_dht(DHT *dht, float *temp, float *humid);
 
+
+void connect_wifi()
+{
+    WiFi.begin(ssid, pass);
+
+    int retries = 0;
+    while ((WiFi.status() != WL_CONNECTED))
+    {
+        Serial.print(".");
+        retries++;
+        delay(500);
+    }
+
+    Serial.println("WIFI CONNECTED ");
+}
 
 void callback(const MQTT::Publish& pub) {
     if (pub.payload_string() == "0") {
@@ -50,21 +63,6 @@ void callback(const MQTT::Publish& pub) {
     }
 }
 
-void connect_wifi()
-{
-    WiFi.begin(ssid, pass);
-
-    int retries = 0;
-    while ((WiFi.status() != WL_CONNECTED))
-    {
-        Serial.print(".");
-        retries++;
-        delay(500);
-    }
-
-    Serial.println("WIFI CONNECTED ");
-}
-
 void hook_before_publish(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
@@ -80,11 +78,11 @@ void hook_before_publish(JsonObject** root) {
 
 void setup() {
     Serial.begin(115200);
+    pinMode(0, INPUT_PULLUP);
     delay(10);
 
-    init_dht(&dht, DHTPIN, DHTTYPE);
-
     connect_wifi();
+    init_dht(&dht, DHTPIN, DHTTYPE);
 
     mqtt = new MqttWrapper("128.199.104.122");
     mqtt->connect(callback);
@@ -94,7 +92,12 @@ void setup() {
 void loop() {
     mqtt->loop();
 
-    if (millis() % 12000 == 0) {
+    if (digitalRead(0) == LOW) {
+        while(digitalRead(0) == LOW) { 
+            mqtt->loop();
+            yield(); 
+        }
         mqtt->sync_pub(String("0"));
     }
+
 }
