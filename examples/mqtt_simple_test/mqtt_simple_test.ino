@@ -5,8 +5,6 @@
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
-#include <DHT.h>
-#include "dht_helper.h"
 
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
@@ -65,11 +63,6 @@ void callback(const MQTT::Publish& pub) {
 
 void hook_before_publish(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
-
-  static float t_dht;
-  static float h_dht; 
-
-  read_dht(dht, &t_dht, &h_dht);
 
   data["myName"] = "NAT";
   data["temp"] = t_dht;
