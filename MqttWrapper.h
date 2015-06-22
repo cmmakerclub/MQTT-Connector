@@ -7,7 +7,6 @@
 #include "ESP8266WiFi.h"
 #include <functional>
 
-#define DEBUG_MODE
 #ifdef DEBUG_MODE
 #ifndef DEBUG_PRINTER
 #define DEBUG_PRINTER Serial
@@ -97,8 +96,9 @@ public:
         _user_hook_config = func;
     }
 
-    void set_prepare_publish_data_hook(publish_hook_t func) {
+    void set_prepare_publish_data_hook(publish_hook_t func, unsigned long publish_interval = 3000) {
         _user_hook_before_publish = func;
+        _publish_interval = publish_interval;
     }
 
 
@@ -132,8 +132,8 @@ protected:
         DEBUG_PRINT("MAC ADDR: ");
         DEBUG_PRINTLN(result);
 
-        topicSub = String("esp8266-") + result + String("/data");
-        topicPub = String("esp8266-") + result;
+        topicSub = String("esp8266-") + result + String("/command");
+        topicPub = String("esp8266-") + result + String("/status");
 
     }
 
@@ -172,6 +172,7 @@ protected:
             DEBUG_PRINT("__DO PUBLISH --> ");
             while (!client->publish(topicPub, jsonStrbuffer))
             {
+                delay(500);
                 DEBUG_PRINTLN("__PUBLISHED ERROR.");
             }
             DEBUG_PRINT(dataPtr);
