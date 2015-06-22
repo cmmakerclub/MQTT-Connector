@@ -7,8 +7,11 @@
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
 
-const char* ssid     = "MAKERCLUB-CM";
-const char* pass = "welcomegogogo";
+// const char* ssid     = "MAKERCLUB-CM";
+// const char* pass = "welcomegogogo";
+
+const char* ssid     = "Opendream Play";
+const char* pass = "5k,skrijv',7'sik";
 
 #define WIFI_MAX_RETRIES 1500
 #define WIFI_CONNECT_DELAY_MS 20
@@ -49,6 +52,7 @@ void connectWifi()
 
 void hook_before_publish(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
+  readDht(dht, &t_dht, &h_dht);
 
   data["myName"] = "NAT";
   data["temp"] = t_dht;
@@ -65,9 +69,25 @@ void hook_before_connect(MqttWrapper::Config config) {
     Serial.println(*(config.clientId));
     Serial.println(*(config.topic_sub));
 
-    *(config.clientId) = "d:quickstart:arduino:18fe34a07e58";
+
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    String result;
+    for (int i = 0; i < 6; ++i)
+    {
+        result += String(mac[i], 16);
+        // if (i < 5)
+        //     result += ':';
+    }
+    
+    // topic_pub = String("esp8266-") + result;
+
+
+    *(config.clientId) = String("d:quickstart:arduino:") + (result);
     *(config.topic_pub) = "iot-2/evt/status/fmt/json";
 
+
+    Serial.println(*(config.clientId));
     Serial.println("-------------------");
 }
 
@@ -89,7 +109,6 @@ void setup() {
 }
 
 void loop() {
-    readDht(dht, &t_dht, &h_dht);
     mqtt->loop();
 }
 

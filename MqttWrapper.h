@@ -49,7 +49,7 @@ public:
     void connect(PubSubClient::callback_t callback) {
         DEBUG_PRINTLN("BEGIN Wrapper");
         setDefaultClientId();
-        
+
         hook_config();
 
         client = new PubSubClient(_mqtt_host, _mqtt_port);
@@ -111,7 +111,6 @@ public:
 protected:
     void setDefaultClientId() {
         clientId = ESP.getChipId();
-        topic_sub = "esp8266-18:fe:34:a0:7e:58/data";
 
         uint8_t mac[6];
         WiFi.macAddress(mac);
@@ -121,7 +120,11 @@ protected:
             result += String(mac[i], 16);
             if (i < 5)
                 result += ':';
-        }        
+        }
+
+        DEBUG_PRINT("MAC ADDR: ");
+        DEBUG_PRINTLN(result);
+        topic_sub = String("esp8266-") + result + String("/data");
         topic_pub = String("esp8266-") + result;
 
     }
@@ -132,11 +135,10 @@ protected:
     }
 
     void beforePublish(char** ptr) {
-        DEBUG_PRINTLN("__BEFORE__");
-        // static char payload[800];
+        DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
         if (_user_hook_before_publish != NULL) {
-            DEBUG_PRINTLN("__BEFORE__OK___");
+            DEBUG_PRINTLN("__USER_HOOK_BEFORE_PUBLISH()");
             _user_hook_before_publish(&root);
         }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
@@ -159,10 +161,10 @@ protected:
             root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));    
             dataPtr = jsonStrbuffer;
             prev_millis = millis();
-            DEBUG_PRINT("DO PUBLISH --> ");
+            DEBUG_PRINT("__DO PUBLISH --> ");
             while (!client->publish(topic_pub, jsonStrbuffer))
             {
-                DEBUG_PRINTLN("PUBLISHED ERROR.");
+                DEBUG_PRINTLN("__PUBLISHED ERROR.");
             }
             DEBUG_PRINT(dataPtr);
             DEBUG_PRINTLN(" PUBLISHED!");
