@@ -31,8 +31,8 @@ public:
         MQTT::Connect *connOpts;
         PubSubClient *client;
         String* clientId;
-        String* topic_sub;
-        String* topic_pub;
+        String* topicSub;
+        String* topicPub;
     } Config;
 
 
@@ -46,34 +46,41 @@ public:
     ~MqttWrapper();
 
     void initConfig(const char*, int);
-    void connect(PubSubClient::callback_t callback) {
+
+    void connect(PubSubClient::callback_t callback = NULL) {
         DEBUG_PRINTLN("BEGIN Wrapper");
         setDefaultClientId();
 
-        hook_config();
+        _hook_config();
 
         client = new PubSubClient(_mqtt_host, _mqtt_port);
         connOpts = new MQTT::Connect(clientId);
 
-        _user_callback = callback;
 
+        if (callback != NULL) {
+            DEBUG_PRINTLN("__USER REGISTER SUBSCRIOTION CALLBACK");
+            _user_callback = callback;
 
-        client->set_callback([&](const MQTT::Publish& pub) {
-            if (_user_callback != NULL) {
-                _user_callback(pub);
-            }
-        });
+            client->set_callback([&](const MQTT::Publish& pub) {
+                if (_user_callback != NULL) {
+                    _user_callback(pub);
+                }
+            });
+        }
+        else {
+            DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIOTION CALLBACk");
+        }
 
         _connect();
 
     }
 
-    void hook_config() {
+    void _hook_config() {
         _config.connOpts = connOpts;
         _config.client = client;
         _config.clientId = &(this->clientId);
-        _config.topic_sub = &(this->topic_sub);
-        _config.topic_pub = &(this->topic_pub);
+        _config.topicSub = &(this->topicSub);
+        _config.topicPub = &(this->topicPub);
 
 
         DEBUG_PRINTLN("DOING HOOKCONFIG");
@@ -86,11 +93,11 @@ public:
         }
     }
 
-    void set_config_hook(cmmc_config_t func) {
+    void set_configuration_hook(cmmc_config_t func) {
         _user_hook_config = func;
     }
 
-    void set_before_publish_hook(publish_hook_t func) {
+    void set_prepare_publish_data_hook(publish_hook_t func) {
         _user_hook_before_publish = func;
     }
 
@@ -124,8 +131,9 @@ protected:
 
         DEBUG_PRINT("MAC ADDR: ");
         DEBUG_PRINTLN(result);
-        topic_sub = String("esp8266-") + result + String("/data");
-        topic_pub = String("esp8266-") + result;
+
+        topicSub = String("esp8266-") + result + String("/data");
+        topicPub = String("esp8266-") + result;
 
     }
 
@@ -156,13 +164,13 @@ protected:
             beforePublish(&dataPtr);
             (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
-            (*d)["seconds"] = millis()/1000;            
+            (*d)["seconds"] = millis()/1000;
 
-            root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));    
+            root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
             dataPtr = jsonStrbuffer;
             prev_millis = millis();
             DEBUG_PRINT("__DO PUBLISH --> ");
-            while (!client->publish(topic_pub, jsonStrbuffer))
+            while (!client->publish(topicPub, jsonStrbuffer))
             {
                 DEBUG_PRINTLN("__PUBLISHED ERROR.");
             }
@@ -187,8 +195,8 @@ private:
     Config _config;
 
     String clientId;
-    String topic_sub;
-    String topic_pub;
+    String topicSub;
+    String topicPub;
 
     MQTT::Connect *connOpts;
     PubSubClient *client;
@@ -207,13 +215,18 @@ private:
 
 
     void _connect() {
-        DEBUG_PRINTLN("Wrapper.connect(); CONNECT WITH OPTIONS = ");
+        DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
         DEBUG_PRINT("HOST: ");
-        DEBUG_PRINT(_mqtt_host);
-        DEBUG_PRINT(" PORT: ");
-        DEBUG_PRINT(_mqtt_port);
+        DEBUG_PRINTLN(_mqtt_host);
+        DEBUG_PRINT("PORT: ");
+        DEBUG_PRINTLN(_mqtt_port);
+        // DEBUG_PRINT("topicSub: ");
+        // DEBUG_PRINTLN(_mqtt_port);
+        DEBUG_PRINT("clientId: ");
+        DEBUG_PRINTLN(clientId);
+        
 
-        // client->set_max_retries(50);
+        client->set_max_retries(150);
         while(!client->connect(*connOpts)) {
             DEBUG_PRINTLN("connecting...");
             delay(100);
@@ -221,17 +234,17 @@ private:
 
         DEBUG_PRINTLN("CONNECTED");
 
-        DEBUG_PRINT("SUBSCRIBING...");
-        DEBUG_PRINTLN(topic_sub);
 
-        // while(!client->subscribe(topic_sub)) {
-        //     DEBUG_PRINT("subscribing...");
-        //     DEBUG_PRINTLN(topic_sub);
-        //     delay(100);
-        // };
-
-        DEBUG_PRINTLN("subscribeed");
-
+        if (_user_callback != NULL) {
+            DEBUG_PRINT("SUBSCRIBING...");
+            DEBUG_PRINTLN(topicSub);
+            while(!client->subscribe(topicSub)) {
+                DEBUG_PRINT("subscribing...");
+                DEBUG_PRINTLN(topicSub);
+                delay(100);
+            };
+            DEBUG_PRINTLN("subscribeed");
+        }
     }
 
 };

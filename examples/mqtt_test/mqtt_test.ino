@@ -10,8 +10,12 @@
 // const char* ssid     = "MAKERCLUB-CM";
 // const char* pass = "welcomegogogo";
 
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
+// const char* ssid     = "Opendream Play";
+// const char* pass = "5k,skrijv',7'sik";
+
+const char* ssid     = "Opendream";
+const char* pass = "gfkgvkgv'2015!!!!";
+
 
 #define WIFI_MAX_RETRIES 1500
 #define WIFI_CONNECT_DELAY_MS 20
@@ -62,14 +66,7 @@ void hook_before_publish(JsonObject** root) {
 void hook_publish_data(char** dataPtr) {
 }
 
-void hook_before_connect(MqttWrapper::Config config) {
-    Serial.println("+++++++++++++++++++");
-    Serial.println("IN HOOK CONFIG INO");
-    Serial.print("CLIENT ID: ");
-    Serial.println(*(config.clientId));
-    Serial.println(*(config.topic_sub));
-
-
+void hook_configuration(MqttWrapper::Config config) {
     uint8_t mac[6];
     WiFi.macAddress(mac);
     String result;
@@ -80,11 +77,17 @@ void hook_before_connect(MqttWrapper::Config config) {
         //     result += ':';
     }
     
-    *(config.clientId) = String("d:quickstart:arduino:") + (result);
-    *(config.topic_pub) = "iot-2/evt/status/fmt/json";
+    *(config.clientId) = String("d:quickstart:arduino:") + result;
+    *(config.topicPub) = "iot-2/evt/status/fmt/json";
 
 
+    Serial.println("+++++++++++++++++++");
     Serial.println(*(config.clientId));
+    Serial.println("IN HOOK CONFIG INO");
+    Serial.print("CLIENT ID: --> ");
+    Serial.println(*(config.clientId));
+    Serial.print("topicPub: --> ");
+    Serial.println(*(config.topicPub));
     Serial.println("-------------------");
 }
 
@@ -99,10 +102,10 @@ void setup() {
 
     connect_wifi();
 
-    // mqtt = new MqttWrapper("128.199.104.122", 1883, hook_before_connect);
-    mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_before_connect);
+    // mqtt = new MqttWrapper("128.199.104.122", 1883, hook_configuration);
+    mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
     mqtt->connect(callback);
-    mqtt->set_before_publish_hook(hook_before_publish);
+    mqtt->set_prepare_publish_data_hook(hook_before_publish);
 }
 
 void loop() {
