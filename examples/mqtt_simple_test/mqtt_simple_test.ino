@@ -9,11 +9,11 @@
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
 
-// const char* ssid     = "MAKERCLUB-CM";
-// const char* pass = "welcomegogogo";
+const char* ssid     = "MAKERCLUB-CM";
+const char* pass = "welcomegogogo";
 
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
+// const char* ssid     = "Opendream Play";
+// const char* pass = "5k,skrijv',7'sik";
 
 // const char* ssid     = "Opendream";
 // const char* pass = "gfkgvkgv'2015!!!!";
@@ -22,7 +22,6 @@ const char* pass = "5k,skrijv',7'sik";
 #define WIFI_CONNECT_DELAY_MS 20
 
 MqttWrapper *mqtt;
-DHT *dht;
 
 
 
@@ -39,6 +38,13 @@ void connect_wifi()
     }
 
     Serial.println("WIFI CONNECTED ");
+}
+
+void reconnect_wifi_if_link_down() {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("WIFI DISCONNECTED");
+        connect_wifi();
+    }
 }
 
 void callback(const MQTT::Publish& pub) {
@@ -61,8 +67,6 @@ void hook_before_publish(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
   data["myName"] = "NAT";
-  data["temp"] = t_dht;
-  data["humid"] = h_dht;
 }
 
 void setup() {
@@ -71,19 +75,13 @@ void setup() {
     delay(10);
 
     connect_wifi();
-    init_dht(&dht, DHTPIN, DHTTYPE);
 
     mqtt = new MqttWrapper("128.199.104.122");
     mqtt->connect(callback);
     mqtt->set_prepare_publish_data_hook(hook_before_publish, 5000);
 }
 
-void reconnect_wifi_if_link_down() {
-    if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTLN("WIFI DISCONNECTED");
-        connect_wifi();
-    }
-}
+
 
 void loop() {
     reconnect_wifi_if_link_down();
