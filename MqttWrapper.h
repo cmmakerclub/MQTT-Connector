@@ -45,6 +45,10 @@ public:
     ~MqttWrapper();
 
     void initConfig(const char*, int);
+    void sync_pub(String payload) {
+        MQTT::Publish newpub(topicSub, (uint8_t*)payload.c_str(), payload.length());
+        client->publish(newpub);        
+    }
 
     void connect(PubSubClient::callback_t callback = NULL) {
         DEBUG_PRINTLN("BEGIN Wrapper");
