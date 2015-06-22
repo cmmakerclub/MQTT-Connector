@@ -32,6 +32,8 @@ public:
         String* clientId;
         String* topicSub;
         String* topicPub;
+        String* username;
+        String* password;
     } Config;
 
 
@@ -56,10 +58,6 @@ public:
 
         _hook_config();
 
-        client = new PubSubClient(_mqtt_host, _mqtt_port);
-        connOpts = new MQTT::Connect(clientId);
-
-
         if (callback != NULL) {
             DEBUG_PRINTLN("__USER REGISTER SUBSCRIOTION CALLBACK");
             _user_callback = callback;
@@ -80,13 +78,15 @@ public:
 
     void _hook_config() {
         _config.connOpts = connOpts;
-        _config.client = client;
+        // _config.client = client;
         _config.clientId = &(this->clientId);
         _config.topicSub = &(this->topicSub);
         _config.topicPub = &(this->topicPub);
-
+        _config.username = &(this->_username);
+        _config.password = &(this->_password);
 
         DEBUG_PRINTLN("DOING HOOKCONFIG");
+
         if (_user_hook_config != NULL) {
             DEBUG_PRINTLN("IN HOOK CONFIG");
             _user_hook_config(_config);
@@ -94,6 +94,10 @@ public:
         else {
             DEBUG_PRINTLN("NOT IN NOT IN HOOK CONFIG");
         }
+
+        connOpts = new MQTT::Connect(clientId);
+        client = new PubSubClient(_mqtt_host, _mqtt_port);
+        connOpts->set_auth(_username, _password);
     }
 
     void set_configuration_hook(cmmc_config_t func) {
@@ -163,17 +167,22 @@ protected:
     void doPublish() {
         static long counter = 0;
         char *dataPtr = "";
-        if (millis() - prev_millis > _publish_interval) {
+        if (millis() - prev_millis > _publish_interval && client->connected()) {
             // prepareJson(&dataPtr);
             beforePublish(&dataPtr);
             (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
             (*d)["seconds"] = millis()/1000;
 
+
             root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
             dataPtr = jsonStrbuffer;
             prev_millis = millis();
-            DEBUG_PRINT("__DO PUBLISH --> ");
+            DEBUG_PRINTLN("__DO PUBLISH ");
+            DEBUG_PRINT("___ TOPIC: -->");
+            DEBUG_PRINTLN(topicPub);
+            DEBUG_PRINT("___ CONTENT: -->");
+            DEBUG_PRINTLN(jsonStrbuffer);
             while (!client->publish(topicPub, jsonStrbuffer))
             {
                 delay(500);
@@ -202,6 +211,8 @@ private:
     String clientId;
     String topicSub;
     String topicPub;
+    String _username = "";
+    String _password = "";
 
     MQTT::Connect *connOpts;
     PubSubClient *client;
