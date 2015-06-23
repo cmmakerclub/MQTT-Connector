@@ -1,4 +1,5 @@
 #define DEBUG_MODE
+#define DEBUG_LEVEL_VERBOSE 
 
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
@@ -80,9 +81,9 @@ void hook_configuration(MqttWrapper::Config config) {
     }
 
     *(config.clientId) = String("d:quickstart:arduino:") + result;
-    *(config.username) = String("test");
-    *(config.password) = String("test");
-    *(config.channelId) = String("esp8266/");
+    // *(config.username) = String("test");
+    // *(config.password) = String("test");
+    // *(config.channelId) = String("esp8266/");
     *(config.topicPub) = "iot-2/evt/status/fmt/json";
 }
 
@@ -109,16 +110,4 @@ void setup() {
 void loop() {
     reconnect_wifi_if_link_down();
     mqtt->loop();
-
-    // ตรวจจับการกด Switch
-    if (digitalRead(0) == LOW) {
-        // วนลูปจนกว่าจะเอาปล่อย Switch
-        while(digitalRead(0) == LOW) { 
-            mqtt->loop();
-            yield(); 
-        }
-        String status = "0";
-        mqtt->sync_pub(status);
-    }
-
 }
