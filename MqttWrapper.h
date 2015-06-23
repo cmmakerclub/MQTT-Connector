@@ -85,18 +85,18 @@ public:
         _hook_config();
 
         if (callback != NULL) {
-            DEBUG_PRINTLN("__USER REGISTER SUBSCRIOTION CALLBACK");
+            DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
             _user_callback = callback;
 
             client->set_callback([&](const MQTT::Publish& pub) {
                 if (_user_callback != NULL) {
-                    DEBUG_PRINTLN("CALLING USER SUBDCRIPTON CALLBACK...");
+                    DEBUG_PRINTLN("CALLING USER SUBSCRIPTION CALLBACK...");
                     _user_callback(pub);
                 }
             });
         }
         else {
-            DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIOTION CALLBACk");
+            DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
         }
 
         _connect();
@@ -126,8 +126,21 @@ public:
         }
 
 
-        topicSub = channelId + topicSub;
-        topicPub = channelId + topicPub;
+
+        topicSub = channelId + _mac + String("/command");
+        topicPub = channelId + _mac + String("/status");
+
+        INFO_PRINT("__SUBSCRIPTION TOPIC -> ")
+        DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ")
+
+        INFO_PRINTLN(topicSub)
+        DEBUG_PRINTLN(topicSub)
+
+        INFO_PRINT("__PUBLICATION TOPIC -> ")
+        DEBUG_PRINT("__PUBLICATION TOPIC -> ")
+
+        INFO_PRINTLN(topicPub)
+        DEBUG_PRINTLN(topicPub)
 
         connOpts = new MQTT::Connect(clientId);
         client = new PubSubClient(_mqtt_host, _mqtt_port);
@@ -177,9 +190,8 @@ protected:
         DEBUG_PRINT("MAC ADDR: ");
         DEBUG_PRINTLN(result);
 
-        channelId = "esp8266-";
-        topicSub = channelId + result + String("/command");
-        topicPub = channelId + result + String("/status");
+        channelId = "esp8266/";
+        _mac = result;
 
     }
 
@@ -263,6 +275,7 @@ private:
 
     String _username = "";
     String _password = "";
+    String _mac = "";
 
     MQTT::Connect *connOpts;
     PubSubClient *client;
@@ -294,7 +307,7 @@ private:
 
         client->set_max_retries(150);
         while(!client->connect(*connOpts)) {
-            DEBUG_PRINTLN("connecting...");
+            DEBUG_PRINTLN("KEEP CONNECTING...");
             // INFO_PRINTLN("connecting...");
             delay(100);
         }
@@ -304,21 +317,25 @@ private:
 
 
         if (_user_callback != NULL) {
-            DEBUG_PRINT("SUBSCRIBING...");
+            DEBUG_PRINT("__SUBSCRIBING...");
             DEBUG_PRINTLN(topicSub);
 
-            INFO_PRINT("SUBSCRIBING...");
+            INFO_PRINT("__SUBSCRIBING...");
             INFO_PRINTLN(topicSub);
             while(!client->subscribe(topicSub)) {
-                DEBUG_PRINT("subscribing...");
+                DEBUG_PRINT("KEEP SUBSCRIBING...");
                 DEBUG_PRINTLN(topicSub);
 
-                INFO_PRINT("subscribing...");
+                INFO_PRINT("KEEP SUBSCRIBING...");
                 INFO_PRINTLN(topicSub);
-                delay(100);
+                delay(500);
             };
-            DEBUG_PRINTLN("subscribeed");
-            INFO_PRINTLN("subscribeed");
+            DEBUG_PRINTLN("__SUBSCRIBED !");
+            INFO_PRINTLN ("__SUBSCRIBED !");
+        }
+        else {
+            DEBUG_PRINTLN("__ SUBSCRIPTION");
+            INFO_PRINTLN ("__SUBSCRIBED !");
         }
     }
 

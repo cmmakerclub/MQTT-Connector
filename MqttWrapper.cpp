@@ -3,10 +3,11 @@
 MqttWrapper::MqttWrapper(const char* host, int port)
 {
     init_config(host, port);
-    Serial.println("----------- Wrapper CONSTRUCTOR ---------");
-    Serial.println(_mqtt_host);
-    Serial.println(_mqtt_port);
-    Serial.println("---------- /Wrapper CONSTRUCTOR ---------");
+    DEBUG_PRINTLN("----------- Wrapper CONSTRUCTOR ---------");
+    DEBUG_PRINT(_mqtt_host);
+    DEBUG_PRINT(" - ");
+    DEBUG_PRINT(_mqtt_port);
+    DEBUG_PRINTLN("---------- /Wrapper CONSTRUCTOR ---------");
 }
 
 void MqttWrapper::init_config(const char* host, int port) {
