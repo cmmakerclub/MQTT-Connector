@@ -11,13 +11,31 @@
     #define DEBUG_PRINTER Serial
 #endif
 
+
 #ifdef DEBUG_MODE
-    #define PRODUCTION_MODE
-    #define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-    #define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+    #ifdef DEBUG_LEVEL_VERBOSE
+        #define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+        #define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+
+        #define INFO_PRINT(...) { }
+        #define INFO_PRINTLN(...) { }
+    #else
+        #define DEBUG_LEVEL_INFO
+    #endif
+
+    #ifdef DEBUG_LEVEL_INFO
+        #define DEBUG_PRINT(...) {}
+        #define DEBUG_PRINTLN(...) {}
+
+        #define INFO_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+        #define INFO_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+    #endif
 #else
     #define DEBUG_PRINT(...) {}
     #define DEBUG_PRINTLN(...) {}
+
+    #define INFO_PRINT(...) { }
+    #define INFO_PRINTLN(...) { }
 #endif
 
 
@@ -48,16 +66,21 @@ public:
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
     ~MqttWrapper();
 
-    void initConfig(const char*, int);
+    void init_config(const char*, int);
     void sync_pub(String payload) {
+        DEBUG_PRINT("SYNC PUB.... -> ");
+        INFO_PRINT("SYNC PUB.... -> ");
+        DEBUG_PRINTLN(payload.c_str());
+        INFO_PRINTLN(payload.c_str());
         MQTT::Publish newpub(topicSub, (uint8_t*)payload.c_str(), payload.length());
+        newpub.set_retain(true);
         client->publish(newpub);        
     }
 
     void connect(PubSubClient::callback_t callback = NULL) {
         DEBUG_PRINTLN("BEGIN Wrapper");
 
-        setDefaultClientId();
+        _set_default_client_id();
 
         _hook_config();
 
@@ -67,6 +90,7 @@ public:
 
             client->set_callback([&](const MQTT::Publish& pub) {
                 if (_user_callback != NULL) {
+                    DEBUG_PRINTLN("CALLING USER SUBDCRIPTON CALLBACK...");
                     _user_callback(pub);
                 }
             });
@@ -82,6 +106,7 @@ public:
     void _hook_config() {
         _config.connOpts = connOpts;
         // _config.client = client;
+
         _config.clientId  = &(this->clientId);
         _config.topicSub  = &(this->topicSub);
         _config.topicPub  = &(this->topicPub);
@@ -89,14 +114,15 @@ public:
         _config.username  = &(this->_username);
         _config.password  = &(this->_password);
 
-        DEBUG_PRINTLN("DOING HOOKCONFIG");
 
         if (_user_hook_config != NULL) {
-            DEBUG_PRINTLN("IN HOOK CONFIG");
+            DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
+            INFO_PRINTLN("OVERRIDE CONFIG IN _hook_config");
             _user_hook_config(_config);
         }
         else {
-            DEBUG_PRINTLN("NOT IN NOT IN HOOK CONFIG");
+            DEBUG_PRINTLN("HOOK CONFIG SKIPPED.");
+            INFO_PRINTLN("HOOK CONFIG SKIPPED.");
         }
 
 
@@ -135,7 +161,7 @@ public:
     }
 
 protected:
-    void setDefaultClientId() {
+    void _set_default_client_id() {
         clientId = ESP.getChipId();
 
         uint8_t mac[6];
@@ -162,7 +188,7 @@ protected:
         return clientId.c_str();
     }
 
-    void beforePublish(char** ptr) {
+    void _prepare_data_hook(char** ptr) {
         DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
         if (_user_hook_prepare_data != NULL) {
@@ -172,7 +198,7 @@ protected:
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
-    void afterPublish(char** ptr) {
+    void _hook_after_publish(char** ptr) {
         // DEBUG_PRINTLN("AFTER PUBLISH");
     }
 
@@ -180,8 +206,8 @@ protected:
         static long counter = 0;
         char *dataPtr = NULL; 
         if (millis() - prev_millis > _publish_interval && client->connected()) {
-            // prepareJson(&dataPtr);
-            beforePublish(&dataPtr);
+
+            _prepare_data_hook(&dataPtr);
             (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
             (*d)["seconds"] = millis()/1000;
@@ -190,23 +216,28 @@ protected:
             root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
             dataPtr = jsonStrbuffer;
             prev_millis = millis();
+
+            INFO_PRINT("PUBLISH DATA --> ");
+            INFO_PRINTLN(jsonStrbuffer);
             DEBUG_PRINTLN("__DO PUBLISH ");
-            DEBUG_PRINT("___ TOPIC: -->");
+            DEBUG_PRINT("______________ TOPIC: -->");
             DEBUG_PRINTLN(topicPub);
-            DEBUG_PRINT("___ CONTENT: -->");
+            DEBUG_PRINT("______________ CONTENT: -->");
             DEBUG_PRINTLN(jsonStrbuffer);
+
             if (_user_hook_publish_data != NULL) {
                 _user_hook_publish_data(dataPtr);
             }
 
             while (!client->publish(topicPub, jsonStrbuffer))
             {
+                DEBUG_PRINTLN("__PUBLISHED KEEP TRYING...");
+                INFO_PRINTLN("__PUBLISHED KEEP TRYING...");
                 delay(500);
-                DEBUG_PRINTLN("__PUBLISHED ERROR.");
             }
             DEBUG_PRINT(dataPtr);
             DEBUG_PRINTLN(" PUBLISHED!");
-            afterPublish(&dataPtr);
+            _hook_after_publish(&dataPtr);
         }
     }
 
@@ -250,13 +281,13 @@ private:
 
 
     void _connect() {
+
+        INFO_PRINTLN("_connect()");
         DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
         DEBUG_PRINT("HOST: ");
         DEBUG_PRINTLN(_mqtt_host);
         DEBUG_PRINT("PORT: ");
         DEBUG_PRINTLN(_mqtt_port);
-        // DEBUG_PRINT("topicSub: ");
-        // DEBUG_PRINTLN(_mqtt_port);
         DEBUG_PRINT("clientId: ");
         DEBUG_PRINTLN(clientId);
         
@@ -264,21 +295,30 @@ private:
         client->set_max_retries(150);
         while(!client->connect(*connOpts)) {
             DEBUG_PRINTLN("connecting...");
+            // INFO_PRINTLN("connecting...");
             delay(100);
         }
 
         DEBUG_PRINTLN("CONNECTED");
+        // INFO_PRINTLN("CONNECTED");
 
 
         if (_user_callback != NULL) {
             DEBUG_PRINT("SUBSCRIBING...");
             DEBUG_PRINTLN(topicSub);
+
+            INFO_PRINT("SUBSCRIBING...");
+            INFO_PRINTLN(topicSub);
             while(!client->subscribe(topicSub)) {
                 DEBUG_PRINT("subscribing...");
                 DEBUG_PRINTLN(topicSub);
+
+                INFO_PRINT("subscribing...");
+                INFO_PRINTLN(topicSub);
                 delay(100);
             };
             DEBUG_PRINTLN("subscribeed");
+            INFO_PRINTLN("subscribeed");
         }
     }
 
