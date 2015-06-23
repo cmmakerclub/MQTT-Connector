@@ -62,11 +62,12 @@ public:
     typedef std::function<void(JsonObject** )> prepare_data_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
 
-    MqttWrapper(const char* , int port = 1883);
-    MqttWrapper(const char* , int port, cmmc_config_t config_hook);
+    MqttWrapper(const char* , uint16_t port = 1883);
+    MqttWrapper(const char* , uint16_t port, cmmc_config_t config_hook);
     ~MqttWrapper();
 
-    void init_config(const char*, int);
+    void init_config(const char*, uint16_t);
+
     void sync_pub(String payload) {
         DEBUG_PRINT("SYNC PUB.... -> ");
         INFO_PRINT("SYNC PUB.... -> ");
@@ -121,29 +122,33 @@ public:
             _user_hook_config(_config);
         }
         else {
-            DEBUG_PRINTLN("HOOK CONFIG SKIPPED.");
-            INFO_PRINTLN("HOOK CONFIG SKIPPED.");
+            topicSub = channelId + _mac + String("/command");
+            topicPub = channelId + _mac + String("/status");
+            DEBUG_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
+            INFO_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
         }
 
 
 
-        topicSub = channelId + _mac + String("/command");
-        topicPub = channelId + _mac + String("/status");
+        if (_user_callback != NULL) {
+            INFO_PRINT("__SUBSCRIPTION TOPIC -> ");
+            DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
+            INFO_PRINTLN(topicSub)
+            DEBUG_PRINTLN(topicSub)
+        }
+        else {
+        }
 
-        INFO_PRINT("__SUBSCRIPTION TOPIC -> ")
-        DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ")
 
-        INFO_PRINTLN(topicSub)
-        DEBUG_PRINTLN(topicSub)
-
-        INFO_PRINT("__PUBLICATION TOPIC -> ")
-        DEBUG_PRINT("__PUBLICATION TOPIC -> ")
+        INFO_PRINT("__PUBLICATION TOPIC -> ");
+        DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
         INFO_PRINTLN(topicPub)
         DEBUG_PRINTLN(topicPub)
 
         connOpts = new MQTT::Connect(clientId);
-        client = new PubSubClient(_mqtt_host, _mqtt_port);
+        client = new PubSubClient();
+        client->set_server(_mqtt_host, _mqtt_port);
         connOpts->set_auth(_username, _password);
     }
 
@@ -220,8 +225,7 @@ protected:
         if (millis() - prev_millis > _publish_interval && client->connected()) {
 
             _prepare_data_hook();
-            ++counter;
-            // (*d)["counter"] = ++counter;
+            (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
             (*d)["seconds"] = millis()/1000;
 
@@ -243,7 +247,10 @@ protected:
                 _user_hook_publish_data(dataPtr);
             }
 
-            while (!client->publish(topicPub, jsonStrbuffer))
+            MQTT::Publish newpub(topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
+            newpub.set_retain(false);
+
+            while (!client->publish(newpub))
             {
                 DEBUG_PRINTLN("__PUBLISHED KEEP TRYING...");
                 INFO_PRINTLN("__PUBLISHED KEEP TRYING...");
@@ -266,7 +273,7 @@ private:
     publish_data_hook_t _user_hook_publish_data = NULL;
 
     String _mqtt_host = "x";
-    int _mqtt_port = 0;
+    uint16_t _mqtt_port = 0;
     int _publish_interval = 3000;
     Config _config;
 
@@ -336,8 +343,8 @@ private:
             INFO_PRINTLN ("__SUBSCRIBED !");
         }
         else {
-            DEBUG_PRINTLN("__ SUBSCRIPTION");
-            INFO_PRINTLN ("__SUBSCRIBED !");
+            DEBUG_PRINTLN("__ PUBLISH ONLY MODE");
+            INFO_PRINTLN("__ PUBLISH ONLY MODE");
         }
     }
 
