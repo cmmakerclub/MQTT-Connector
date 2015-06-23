@@ -120,6 +120,14 @@ public:
             DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
             INFO_PRINTLN("OVERRIDE CONFIG IN _hook_config");
             _user_hook_config(_config);
+            if (topicPub.length() == 0 ) {
+                topicPub = channelId + _mac + String("/status");
+            }
+
+            if (topicSub.length() == 0) {
+                topicSub = channelId + _mac + String("/command");
+            }
+
         }
         else {
             topicSub = channelId + _mac + String("/command");
@@ -277,19 +285,19 @@ private:
     int _publish_interval = 3000;
     Config _config;
 
-    String clientId;
-    String topicSub;
-    String topicPub;
-    String channelId;
+    String clientId = "";
+    String topicSub = "";
+    String topicPub = "";
+    String channelId = "";
 
     String _username = "";
     String _password = "";
     String _mac = "";
 
-    MQTT::Connect *connOpts;
-    PubSubClient *client;
+    MQTT::Connect *connOpts = NULL;
+    PubSubClient *client = NULL;
 
-    PubSubClient::callback_t _user_callback;
+    PubSubClient::callback_t _user_callback = NULL;
 
     unsigned long prev_millis;
 
@@ -326,10 +334,10 @@ private:
 
 
         if (_user_callback != NULL) {
-            DEBUG_PRINT("__SUBSCRIBING...");
+            DEBUG_PRINT("__SUBSCRIBING... ->");
             DEBUG_PRINTLN(topicSub);
 
-            INFO_PRINT("__SUBSCRIBING...");
+            INFO_PRINT("__SUBSCRIBING... ->");
             INFO_PRINTLN(topicSub);
             while(!client->subscribe(topicSub)) {
                 DEBUG_PRINT("KEEP SUBSCRIBING...");
