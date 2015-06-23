@@ -220,7 +220,8 @@ protected:
         if (millis() - prev_millis > _publish_interval && client->connected()) {
 
             _prepare_data_hook(&dataPtr);
-            (*d)["counter"] = ++counter;
+            ++counter;
+            // (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
             (*d)["seconds"] = millis()/1000;
 
@@ -241,7 +242,7 @@ protected:
                 _user_hook_publish_data(dataPtr);
             }
 
-            while (!client->publish(topicPub, jsonStrbuffer))
+            while (!client->publish(topicPub, String(jsonStrbuffer)))
             {
                 DEBUG_PRINTLN("__PUBLISHED KEEP TRYING...");
                 INFO_PRINTLN("__PUBLISHED KEEP TRYING...");
