@@ -1,5 +1,5 @@
 #define DEBUG_MODE
-#define DEBUG_LEVEL_VERBOSE 
+// #define DEBUG_LEVEL_VERBOSE 
 
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
@@ -77,11 +77,20 @@ void hook_configuration(MqttWrapper::Config config) {
         result += String(mac[i], 16);
     }
 
-    *(config.clientId) = String("d:quickstart:arduino:") + result;
+    *(config.clientId) = String("d:quickstart:esp8266:") + result;
+
+    // uncomment when user & password is required.
     // *(config.username) = String("test");
     // *(config.password) = String("test");
     // *(config.channelId) = String("esp8266/");
+
     *(config.topicPub) = "iot-2/evt/status/fmt/json";
+    Serial.println(
+        String("https://quickstart.internetofthings.") +
+                "ibmcloud.com/#/device/"+
+                result +"/sensor/"
+              );
+ 
 }
 
 void hook_publish_data(char* data) {
