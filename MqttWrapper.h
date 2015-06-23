@@ -200,7 +200,7 @@ protected:
         return clientId.c_str();
     }
 
-    void _prepare_data_hook(char** ptr) {
+    void _prepare_data_hook() {
         DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
         if (_user_hook_prepare_data != NULL) {
@@ -219,13 +219,14 @@ protected:
         char *dataPtr = NULL; 
         if (millis() - prev_millis > _publish_interval && client->connected()) {
 
-            _prepare_data_hook(&dataPtr);
+            _prepare_data_hook();
             ++counter;
             // (*d)["counter"] = ++counter;
             (*d)["heap"] = ESP.getFreeHeap();
             (*d)["seconds"] = millis()/1000;
 
 
+            strcpy(jsonStrbuffer, "");
             root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
             dataPtr = jsonStrbuffer;
             prev_millis = millis();
@@ -242,7 +243,7 @@ protected:
                 _user_hook_publish_data(dataPtr);
             }
 
-            while (!client->publish(topicPub, String(jsonStrbuffer)))
+            while (!client->publish(topicPub, jsonStrbuffer))
             {
                 DEBUG_PRINTLN("__PUBLISHED KEEP TRYING...");
                 INFO_PRINTLN("__PUBLISHED KEEP TRYING...");
