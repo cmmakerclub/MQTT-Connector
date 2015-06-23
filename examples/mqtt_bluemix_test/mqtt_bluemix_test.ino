@@ -1,4 +1,3 @@
-
 #define DEBUG_MODE
 
 #include <ESP8266WiFi.h>
@@ -21,17 +20,8 @@ const char* pass = "5k,skrijv',7'sik";
 // const char* pass = "gfkgvkgv'2015!!!!";
 
 
-
-#define WIFI_MAX_RETRIES 1500
-#define WIFI_CONNECT_DELAY_MS 20
-
-
-
 MqttWrapper *mqtt;
 DHT *dht;
-
-
-
 
 void connect_wifi()
 {
@@ -72,17 +62,12 @@ void callback(const MQTT::Publish& pub) {
     }
 }
 
-void hook_before_publish(JsonObject** root) {
+void hook_prepare_data(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
-  static float t_dht;
-  static float h_dht; 
-
-  read_dht(dht, &t_dht, &h_dht);
-
   data["myName"] = "NAT";
-  data["temp"] = t_dht;
-  data["humid"] = h_dht;
+  data["adc"] = analogRead(A0);;
+
 }
 
 void hook_configuration(MqttWrapper::Config config) {
@@ -92,48 +77,48 @@ void hook_configuration(MqttWrapper::Config config) {
     for (int i = 0; i < 6; ++i)
     {
         result += String(mac[i], 16);
-        // if (i < 5)
-        //     result += ':';
     }
 
     *(config.clientId) = String("d:quickstart:arduino:") + result;
+    *(config.username) = String("test");
+    *(config.password) = String("test");
+    *(config.channelId) = String("esp8266/");
     *(config.topicPub) = "iot-2/evt/status/fmt/json";
-
-
-    Serial.println("+++++++++++++++++++");
-    Serial.println(*(config.clientId));
-    Serial.println("IN HOOK CONFIG INO");
-    Serial.print("CLIENT ID: --> ");
-    Serial.println(*(config.clientId));
-    Serial.print("topicPub: --> ");
-    Serial.println(*(config.topicPub));
-    Serial.println("-------------------");
 }
+
+void hook_publish_data(char* data) {
+    Serial.print("PUBLISH: ->");
+    Serial.println(data);
+}
+
 void setup() {
     Serial.begin(115200);
     pinMode(0, INPUT_PULLUP);
     delay(10);
+    Serial.println();
+    Serial.println();
 
     connect_wifi();
-    init_dht(&dht, DHTPIN, DHTTYPE);
 
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
-    // mqtt = new MqttWrapper("128.199.104.122");
     mqtt->connect();
-    // mqtt->connect(callback);
-    mqtt->set_prepare_publish_data_hook(hook_before_publish, 5000);
+    mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
+    mqtt->set_publish_data_hook(hook_publish_data);
 }
 
 void loop() {
     reconnect_wifi_if_link_down();
     mqtt->loop();
 
+    // ตรวจจับการกด Switch
     if (digitalRead(0) == LOW) {
+        // วนลูปจนกว่าจะเอาปล่อย Switch
         while(digitalRead(0) == LOW) { 
             mqtt->loop();
             yield(); 
         }
-        mqtt->sync_pub(String("0"));
+        String status = "0";
+        mqtt->sync_pub(status);
     }
 
 }
