@@ -1,4 +1,4 @@
-#define DEBUG_MODE
+// #define DEBUG_MODE
 // #define DEBUG_LEVEL_VERBOSE 
 
 #include <ESP8266WiFi.h>
@@ -44,22 +44,6 @@ void reconnect_wifi_if_link_down() {
 }
 
 
-void callback(const MQTT::Publish& pub) {
-    if (pub.payload_string() == "0") {
-        Serial.print(" => ");
-        Serial.println(pub.payload_string());
-    }
-    else if(pub.payload_string() == "1") {
-        Serial.print(" => ");
-        Serial.println(pub.payload_string());
-    }
-    else {
-        Serial.print(pub.topic());
-        Serial.print(" => ");
-        Serial.println(pub.payload_string());
-    }
-}
-
 void hook_prepare_data(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
@@ -78,13 +62,8 @@ void hook_configuration(MqttWrapper::Config config) {
     }
 
     *(config.clientId) = String("d:quickstart:esp8266:") + result;
-
-    // uncomment when user & password is required.
-    // *(config.username) = String("test");
-    // *(config.password) = String("test");
-    // *(config.channelId) = String("esp8266/");
-
     *(config.topicPub) = "iot-2/evt/status/fmt/json";
+
     Serial.println(
         String("https://quickstart.internetofthings.") +
                 "ibmcloud.com/#/device/"+
@@ -109,7 +88,7 @@ void setup() {
 
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
     mqtt->connect();
-    mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
+    mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
     mqtt->set_publish_data_hook(hook_publish_data);
 }
 
