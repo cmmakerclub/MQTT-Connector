@@ -1,4 +1,5 @@
 #define DEBUG_MODE
+// #define DEBUG_LEVEL_VERBOSE
 
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>

@@ -5,8 +5,6 @@
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
-#include <DHT.h>
-#include "dht_helper.h"
 
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
@@ -22,7 +20,6 @@ const char* pass = "5k,skrijv',7'sik";
 
 
 MqttWrapper *mqtt;
-DHT *dht;
 
 void connect_wifi()
 {

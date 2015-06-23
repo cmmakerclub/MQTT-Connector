@@ -4,8 +4,6 @@
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
-#include <DHT.h>
-#include "dht_helper.h"
 
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
@@ -21,7 +19,6 @@ const char* pass = "5k,skrijv',7'sik";
 
 
 MqttWrapper *mqtt;
-DHT *dht;
 
 void connect_wifi()
 {
@@ -65,14 +62,8 @@ void callback(const MQTT::Publish& pub) {
 void hook_prepare_data(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
-  static float t_dht;
-  static float h_dht;
-
-  read_dht(dht, &t_dht, &h_dht);
-
   data["myName"] = "NAT";
-  data["temp"] = t_dht;
-  data["humid"] = h_dht;
+  data["adc"] = analogRead(A0);;
 
 }
 
@@ -88,8 +79,9 @@ void hook_configuration(MqttWrapper::Config config) {
     *(config.clientId) = String("d:quickstart:arduino:") + result;
     *(config.username) = String("test");
     *(config.password) = String("test");
-    *(config.channelId) = String("esp8266/");
-    *(config.topicPub) = "iot-2/evt/status/fmt/json";
+    // *(config.channelId) = String("esp8266/");
+    // *(config.topicPub) = "iot-2/evt/status/fmt/json";
+    // *(config.topicSub) = "iot-2/evt/status/fmt/json";
 }
 
 void hook_publish_data(char* data) {
