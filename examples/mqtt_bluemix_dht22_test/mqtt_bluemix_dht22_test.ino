@@ -1,10 +1,13 @@
 #define DEBUG_MODE
 // #define DEBUG_LEVEL_VERBOSE 
 
+#include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
+#include <DHT.h>
+#include "dht_helper.h"
 
 // const char* ssid     = "OpenWrt_NAT_500GP.101";
 // const char* pass = "activegateway";
@@ -20,6 +23,7 @@ const char* pass = "5k,skrijv',7'sik";
 
 
 MqttWrapper *mqtt;
+DHT *dht;
 
 void connect_wifi()
 {
@@ -63,8 +67,16 @@ void callback(const MQTT::Publish& pub) {
 void hook_prepare_data(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
 
-  data["myName"] = "NAT";
-  data["adc"] = analogRead(A0);;
+  static float t_dht;
+  static float h_dht;
+  read_dht(dht, &t_dht, &h_dht);
+
+
+  data["myName"] = "SIMPLE-DHT22-TEST";
+  data["temp"] = t_dht;
+  data["humid"] = h_dht;
+  // data["adc"] = analogRead(A0);
+  // delay(2);
 
 }
 
@@ -105,6 +117,7 @@ void setup() {
     Serial.println();
     Serial.println();
 
+    init_dht(&dht, DHTPIN, DHTTYPE);    
     connect_wifi();
 
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
