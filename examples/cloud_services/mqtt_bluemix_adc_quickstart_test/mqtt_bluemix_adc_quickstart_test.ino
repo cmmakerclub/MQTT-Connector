@@ -6,18 +6,8 @@
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
 
-// const char* ssid     = "OpenWrt_NAT_500GP.101";
-// const char* pass = "activegateway";
-
-// const char* ssid     = "MAKERCLUB-CM";
-// const char* pass = "welcomegogogo";
-
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
-
-// const char* ssid     = "Opendream";
-// const char* pass = "gfkgvkgv'2015!!!!";
-
+const char* ssid     = "CMMC.47";
+const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
 
@@ -33,7 +23,10 @@ void connect_wifi()
         delay(500);
     }
 
-    Serial.println("WIFI CONNECTED ");
+    Serial.println("");
+    Serial.println("WiFi connected");  
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());    
 }
 
 void reconnect_wifi_if_link_down() {

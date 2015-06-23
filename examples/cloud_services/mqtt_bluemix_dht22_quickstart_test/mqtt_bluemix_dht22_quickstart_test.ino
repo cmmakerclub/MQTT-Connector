@@ -9,18 +9,8 @@
 #include <DHT.h>
 #include "dht_helper.h"
 
-// const char* ssid     = "OpenWrt_NAT_500GP.101";
-// const char* pass = "activegateway";
-
-// const char* ssid     = "MAKERCLUB-CM";
-// const char* pass = "welcomegogogo";
-
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
-
-// const char* ssid     = "Opendream";
-// const char* pass = "gfkgvkgv'2015!!!!";
-
+const char* ssid     = "CMMC.47";
+const char* pass = "guestnetwork";
 
 MqttWrapper *mqtt;
 DHT *dht;
@@ -52,11 +42,10 @@ void hook_prepare_data(JsonObject** root) {
 
   static float t_dht;
   static float h_dht;
+
   read_dht(dht, &t_dht, &h_dht);
 
-
-
-  data["myName"] = "SIMPLE-DHT22-TEST";
+  data["myName"] = "NAT-DHT22-TEST";
   data["temp"] = t_dht;
   data["humid"] = h_dht;
 
