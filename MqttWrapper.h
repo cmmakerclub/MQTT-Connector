@@ -7,17 +7,17 @@
 #include "ESP8266WiFi.h"
 #include <functional>
 
-#ifdef DEBUG_MODE
 #ifndef DEBUG_PRINTER
-#define DEBUG_PRINTER Serial
+    #define DEBUG_PRINTER Serial
 #endif
-#define PRODUCTION_MODE
 
-#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+#ifdef DEBUG_MODE
+    #define PRODUCTION_MODE
+    #define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+    #define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
 #else
-#define DEBUG_PRINT(...) {}
-#define DEBUG_PRINTLN(...) {}
+    #define DEBUG_PRINT(...) {}
+    #define DEBUG_PRINTLN(...) {}
 #endif
 
 
@@ -30,6 +30,7 @@ public:
         MQTT::Connect *connOpts;
         PubSubClient *client;
         String* clientId;
+        String* channelId;
         String* topicSub;
         String* topicPub;
         String* username;
@@ -40,7 +41,8 @@ public:
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
-    typedef std::function<void(JsonObject** )> publish_hook_t;
+    typedef std::function<void(JsonObject** )> prepare_data_hook_t;
+    typedef std::function<void(char* )> publish_data_hook_t;
 
     MqttWrapper(const char* , int port = 1883);
     MqttWrapper(const char* , int port, cmmc_config_t config_hook);
@@ -54,6 +56,7 @@ public:
 
     void connect(PubSubClient::callback_t callback = NULL) {
         DEBUG_PRINTLN("BEGIN Wrapper");
+
         setDefaultClientId();
 
         _hook_config();
@@ -79,11 +82,12 @@ public:
     void _hook_config() {
         _config.connOpts = connOpts;
         // _config.client = client;
-        _config.clientId = &(this->clientId);
-        _config.topicSub = &(this->topicSub);
-        _config.topicPub = &(this->topicPub);
-        _config.username = &(this->_username);
-        _config.password = &(this->_password);
+        _config.clientId  = &(this->clientId);
+        _config.topicSub  = &(this->topicSub);
+        _config.topicPub  = &(this->topicPub);
+        _config.channelId = &(this->channelId);        
+        _config.username  = &(this->_username);
+        _config.password  = &(this->_password);
 
         DEBUG_PRINTLN("DOING HOOKCONFIG");
 
@@ -95,6 +99,10 @@ public:
             DEBUG_PRINTLN("NOT IN NOT IN HOOK CONFIG");
         }
 
+
+        topicSub = channelId + topicSub;
+        topicPub = channelId + topicPub;
+
         connOpts = new MQTT::Connect(clientId);
         client = new PubSubClient(_mqtt_host, _mqtt_port);
         connOpts->set_auth(_username, _password);
@@ -104,11 +112,14 @@ public:
         _user_hook_config = func;
     }
 
-    void set_prepare_publish_data_hook(publish_hook_t func, unsigned long publish_interval = 3000) {
-        _user_hook_before_publish = func;
+    void set_prepare_data_hook(prepare_data_hook_t func, unsigned long publish_interval = 3000) {
+        _user_hook_prepare_data = func;
         _publish_interval = publish_interval;
     }
 
+    void  set_publish_data_hook(publish_data_hook_t func) {
+        _user_hook_publish_data = func;
+    }
 
     void loop() {
         if (client->loop())
@@ -140,8 +151,9 @@ protected:
         DEBUG_PRINT("MAC ADDR: ");
         DEBUG_PRINTLN(result);
 
-        topicSub = String("esp8266-") + result + String("/command");
-        topicPub = String("esp8266-") + result + String("/status");
+        channelId = "esp8266-";
+        topicSub = channelId + result + String("/command");
+        topicPub = channelId + result + String("/status");
 
     }
 
@@ -153,9 +165,9 @@ protected:
     void beforePublish(char** ptr) {
         DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
-        if (_user_hook_before_publish != NULL) {
-            DEBUG_PRINTLN("__USER_HOOK_BEFORE_PUBLISH()");
-            _user_hook_before_publish(&root);
+        if (_user_hook_prepare_data != NULL) {
+            DEBUG_PRINTLN("__user_hook_prepare_data()");
+            _user_hook_prepare_data(&root);
         }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
@@ -166,7 +178,7 @@ protected:
 
     void doPublish() {
         static long counter = 0;
-        char *dataPtr = "";
+        char *dataPtr = NULL; 
         if (millis() - prev_millis > _publish_interval && client->connected()) {
             // prepareJson(&dataPtr);
             beforePublish(&dataPtr);
@@ -183,6 +195,10 @@ protected:
             DEBUG_PRINTLN(topicPub);
             DEBUG_PRINT("___ CONTENT: -->");
             DEBUG_PRINTLN(jsonStrbuffer);
+            if (_user_hook_publish_data != NULL) {
+                _user_hook_publish_data(dataPtr);
+            }
+
             while (!client->publish(topicPub, jsonStrbuffer))
             {
                 delay(500);
@@ -200,8 +216,9 @@ protected:
 protected:
 
 private:
-    cmmc_config_t _user_hook_config;
-    publish_hook_t _user_hook_before_publish;
+    cmmc_config_t _user_hook_config = NULL;
+    prepare_data_hook_t _user_hook_prepare_data = NULL;
+    publish_data_hook_t _user_hook_publish_data = NULL;
 
     String _mqtt_host = "x";
     int _mqtt_port = 0;
@@ -211,6 +228,8 @@ private:
     String clientId;
     String topicSub;
     String topicPub;
+    String channelId;
+
     String _username = "";
     String _password = "";
 
