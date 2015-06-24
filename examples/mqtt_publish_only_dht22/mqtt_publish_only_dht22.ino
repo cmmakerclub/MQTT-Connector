@@ -55,17 +55,20 @@ void init_mqtt() {
     mqtt->set_prepare_data_hook(hook_prepare_data);    
 }
 
-void setup() {
+void init_hardware() {
     Serial.begin(115200);
+    pinMode(0, INPUT_PULLUP);
     delay(10);
     Serial.println();
     Serial.println();
+    
+    init_dht(&dht, DHTPIN, DHTTYPE);
+}
 
+void setup() {
+    init_hardware();
     init_wifi();
     init_mqtt();
-    init_dht(&dht, DHTPIN, DHTTYPE);
-
-
 }
 
 void loop() {

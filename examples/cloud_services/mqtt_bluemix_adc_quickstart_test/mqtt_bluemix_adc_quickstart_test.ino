@@ -56,7 +56,6 @@ void init_wifi() {
 }
 
 void init_mqtt() {
-
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
     mqtt->connect();
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
@@ -65,13 +64,16 @@ void init_mqtt() {
 
 
 
-void setup() {
+void init_hardware() {
     Serial.begin(115200);
     pinMode(0, INPUT_PULLUP);
     delay(10);
     Serial.println();
     Serial.println();
+}
 
+void setup() {
+    init_hardware();
     init_wifi();
     init_mqtt();
 

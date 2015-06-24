@@ -73,16 +73,18 @@ void init_mqtt() {
   mqtt->set_publish_data_hook(hook_publish_data);
 }
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(0, INPUT_PULLUP);
-  delay(10);
-  Serial.println();
-  Serial.println();
+void init_hardware() {
+    Serial.begin(115200);
+    pinMode(0, INPUT_PULLUP);
+    delay(10);
+    Serial.println();
+    Serial.println();
+}
 
+void setup() {
+  init_hardware();
   init_wifi();
   init_mqtt();
-
 }
 
 void loop() {
