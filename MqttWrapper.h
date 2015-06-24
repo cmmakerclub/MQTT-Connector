@@ -145,7 +145,6 @@ public:
             topicSub = channelId + _mac + String("/command");
             topicPub = channelId + _mac + String("/status");
             DEBUG_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
-            INFO_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
         }
 
 
@@ -167,6 +166,12 @@ public:
 
         INFO_PRINTLN(topicPub)
         DEBUG_PRINTLN(topicPub)
+
+        INFO_PRINT("__SUBSCRIPTION TOPIC -> ");
+        DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
+
+        INFO_PRINTLN(topicSub);
+        DEBUG_PRINTLN(topicSub);
 
         connOpts = new MQTT::Connect(clientId);
         client = new PubSubClient();
@@ -338,7 +343,6 @@ private:
     void _connect()
     {
 
-        INFO_PRINTLN("_connect()");
         DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
         DEBUG_PRINT("HOST: ");
         DEBUG_PRINTLN(_mqtt_host);
@@ -365,8 +369,6 @@ private:
             DEBUG_PRINT("__SUBSCRIBING... ->");
             DEBUG_PRINTLN(topicSub);
 
-            INFO_PRINT("__SUBSCRIBING... ->");
-            INFO_PRINTLN(topicSub);
             while(!client->subscribe(topicSub))
             {
                 DEBUG_PRINT("KEEP SUBSCRIBING...");
@@ -376,8 +378,10 @@ private:
                 INFO_PRINTLN(topicSub);
                 delay(500);
             };
-            DEBUG_PRINTLN("__SUBSCRIBED !");
-            INFO_PRINTLN ("__SUBSCRIBED !");
+            DEBUG_PRINT("__SUBSCRIBED TO ");
+            INFO_PRINT("__SUBSCRIBED TO ");
+            INFO_PRINTLN(topicSub);
+            DEBUG_PRINTLN(topicSub);
         }
         else
         {
