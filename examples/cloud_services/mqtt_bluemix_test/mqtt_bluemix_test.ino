@@ -1,23 +1,13 @@
 #define DEBUG_MODE
-// #define DEBUG_LEVEL_VERBOSE 
+#define DEBUG_LEVEL_VERBOSE 
 
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
 
-// const char* ssid     = "OpenWrt_NAT_500GP.101";
-// const char* pass = "activegateway";
-
-// const char* ssid     = "MAKERCLUB-CM";
-// const char* pass = "welcomegogogo";
-
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
-
-// const char* ssid     = "Opendream";
-// const char* pass = "gfkgvkgv'2015!!!!";
-
+const char* ssid     = "CMMC.32";
+const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
 
@@ -60,14 +50,15 @@ void hook_configuration(MqttWrapper::Config config) {
         result += String(mac[i], 16);
     }
 
-    *(config.clientId) = String("d:quickstart:esp8266:") + result;
+    *(config.clientId) = String("a:r6crrd:") + result;
+    Serial.println(*(config.clientId));
 
     // uncomment when user & password is required.
-    // *(config.username) = String("test");
-    // *(config.password) = String("test");
+    *(config.username) = String("a-r6crrd-3gsgqcadid");
+    *(config.password) = String("KRE*0rxt0rilV!2tD@");
     // *(config.channelId) = String("esp8266/");
 
-    *(config.topicPub) = "iot-2/evt/status/fmt/json";
+    *(config.topicPub) = String("iot-2/type/") + String("esp8266/id/") + result + String("/evt/dw.mini/fmt/json");
     Serial.println(
         String("https://quickstart.internetofthings.") +
                 "ibmcloud.com/#/device/"+
@@ -90,7 +81,7 @@ void setup() {
 
     connect_wifi();
 
-    mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
+    mqtt = new MqttWrapper("r6crrd.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
     mqtt->connect();
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
     mqtt->set_publish_data_hook(hook_publish_data);
