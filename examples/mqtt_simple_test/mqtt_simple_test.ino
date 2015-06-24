@@ -47,9 +47,8 @@ void init_mqtt()
     mqtt->connect(callback);
     mqtt->set_prepare_data_hook([](JsonObject** root)
     {
-        JsonObject& data = (*(*root))["d"];
+        JsonObject& data = (*root)->at("d");
         data["myName"] = "SIMPLE-TEST";
-        data["adc"] = analogRead(A0);;
     });
 }
 
