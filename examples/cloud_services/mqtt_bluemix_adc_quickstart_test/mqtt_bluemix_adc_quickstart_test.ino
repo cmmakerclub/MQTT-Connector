@@ -4,37 +4,14 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
+#include <WiFiHelper.h>
 #include <PubSubClient.h>
 
 const char* ssid     = "CMMC.47";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
-
-void connect_wifi()
-{
-    WiFi.begin(ssid, pass);
-
-    int retries = 0;
-    while ((WiFi.status() != WL_CONNECTED))
-    {
-        Serial.print(".");
-        retries++;
-        delay(500);
-    }
-
-    Serial.println("");
-    Serial.println("WiFi connected");  
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());    
-}
-
-void reconnect_wifi_if_link_down() {
-    if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTLN("WIFI DISCONNECTED");
-        connect_wifi();
-    }
-}
+WiFiHelper *wifi;
 
 
 void hook_prepare_data(JsonObject** root) {
@@ -70,14 +47,15 @@ void hook_publish_data(char* data) {
     Serial.println(data);
 }
 
-void setup() {
-    Serial.begin(115200);
-    pinMode(0, INPUT_PULLUP);
-    delay(10);
-    Serial.println();
-    Serial.println();
 
-    connect_wifi();
+void init_wifi() {
+  wifi = new WiFiHelper(ssid, pass);
+  wifi->on_connected([](const char* message) {    Serial.println (message); });
+  wifi->on_disconnected([](const char* message) { Serial.println (message); });
+  wifi->begin();
+}
+
+void init_mqtt() {
 
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
     mqtt->connect();
@@ -85,7 +63,21 @@ void setup() {
     mqtt->set_publish_data_hook(hook_publish_data);
 }
 
+
+
+void setup() {
+    Serial.begin(115200);
+    pinMode(0, INPUT_PULLUP);
+    delay(10);
+    Serial.println();
+    Serial.println();
+
+    init_wifi();
+    init_mqtt();
+
+}
+
 void loop() {
-    reconnect_wifi_if_link_down();
+    wifi->loop();
     mqtt->loop();
 }

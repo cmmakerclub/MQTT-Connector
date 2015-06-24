@@ -5,33 +5,14 @@
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
+#include <WiFiHelper.h>
+
 
 const char* ssid     = "CMMC.32";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
-
-void connect_wifi()
-{
-    WiFi.begin(ssid, pass);
-
-    int retries = 0;
-    while ((WiFi.status() != WL_CONNECTED))
-    {
-        Serial.print(".");
-        retries++;
-        delay(500);
-    }
-
-    Serial.println("WIFI CONNECTED ");
-}
-
-void reconnect_wifi_if_link_down() {
-    if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTLN("WIFI DISCONNECTED");
-        connect_wifi();
-    }
-}
+WiFiHelper *wifi;
 
 void hook_prepare_data(JsonObject** root) {
   JsonObject& data = (*(*root))["d"];
@@ -67,6 +48,21 @@ void hook_configuration(MqttWrapper::Config config) {
  
 }
 
+void init_wifi() {
+  wifi = new WiFiHelper(ssid, pass);
+  wifi->on_connected([](const char* message) {    Serial.println (message); });
+  wifi->on_disconnected([](const char* message) { Serial.println (message); });
+  wifi->begin();
+}
+
+void init_mqtt() {
+    mqtt = new MqttWrapper("r6crrd.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
+    mqtt->connect();
+    mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
+    mqtt->set_publish_data_hook(hook_publish_data);
+}
+
+
 void hook_publish_data(char* data) {
     Serial.print("PUBLISH: ->");
     Serial.println(data);
@@ -79,15 +75,11 @@ void setup() {
     Serial.println();
     Serial.println();
 
-    connect_wifi();
-
-    mqtt = new MqttWrapper("r6crrd.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
-    mqtt->connect();
-    mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
-    mqtt->set_publish_data_hook(hook_publish_data);
+    init_wifi();
+    init_mqtt();
 }
 
 void loop() {
-    reconnect_wifi_if_link_down();
+    wifi->loop();
     mqtt->loop();
 }

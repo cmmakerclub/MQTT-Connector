@@ -4,48 +4,17 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
+#include <WiFiHelper.h>
 #include <PubSubClient.h>
 #include <DHT.h>
 #include "dht_helper.h"
 
-// const char* ssid     = "OpenWrt_NAT_500GP.101";
-// const char* pass = "activegateway";
-
-// const char* ssid     = "MAKERCLUB-CM";
-// const char* pass = "welcomegogogo";
-
-const char* ssid     = "Opendream Play";
-const char* pass = "5k,skrijv',7'sik";
-
-// const char* ssid     = "Opendream";
-// const char* pass = "gfkgvkgv'2015!!!!";
-
+const char* ssid     = "CMMC.47";
+const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
+WiFiHelper *wifi;
 DHT *dht;
-
-void connect_wifi()
-{
-    WiFi.begin(ssid, pass);
-
-    int retries = 0;
-    while ((WiFi.status() != WL_CONNECTED))
-    {
-        Serial.print(".");
-        retries++;
-        delay(500);
-    }
-
-    Serial.println("WIFI CONNECTED ");
-}
-
-void reconnect_wifi_if_link_down() {
-    if (WiFi.status() != WL_CONNECTED) {
-        DEBUG_PRINTLN("WIFI DISCONNECTED");
-        connect_wifi();
-    }
-}
-
 
 void callback(const MQTT::Publish& pub) {
     if (pub.payload_string() == "0") {
@@ -75,6 +44,19 @@ void hook_prepare_data(JsonObject** root) {
   data["humid"] = h_dht;
 }
 
+void init_wifi() {
+  wifi = new WiFiHelper(ssid, pass);
+  wifi->on_connected([](const char* message) {    Serial.println (message); });
+  wifi->on_disconnected([](const char* message) { Serial.println (message); });
+  wifi->begin();
+}
+
+void init_mqtt() {
+    mqtt = new MqttWrapper("128.199.104.122");
+    mqtt->connect(callback);
+    mqtt->set_prepare_data_hook(hook_prepare_data);
+}
+
 void setup() {
     Serial.begin(115200);
     pinMode(0, INPUT_PULLUP);
@@ -82,17 +64,14 @@ void setup() {
     Serial.println();
     Serial.println();
 
-    connect_wifi();
+    init_wifi();
+    init_mqtt();
     init_dht(&dht, DHTPIN, DHTTYPE);
-
-    mqtt = new MqttWrapper("128.199.104.122");
-    mqtt->connect(callback);
-    mqtt->set_prepare_data_hook(hook_prepare_data);
 }
 
 void loop() {
-    reconnect_wifi_if_link_down();
     mqtt->loop();
+    wifi->loop();
 
     // ตรวจจับการกด Switch
     if (digitalRead(0) == LOW) {

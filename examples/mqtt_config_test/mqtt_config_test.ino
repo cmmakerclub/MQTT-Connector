@@ -3,10 +3,10 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
-#include <PubSubClient.h>
 #include <WiFiHelper.h>
+#include <PubSubClient.h>
 
-const char* ssid     = "CMMC.32";
+const char* ssid     = "CMMC.47";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
@@ -57,6 +57,22 @@ void hook_publish_data(char* data) {
   Serial.println(data);
 }
 
+
+void init_wifi() {
+  wifi = new WiFiHelper(ssid, pass);
+  wifi->on_connected([](const char* message) {    Serial.println (message); });
+  wifi->on_disconnected([](const char* message) { Serial.println (message); });
+  wifi->begin();
+}
+
+
+void init_mqtt() {
+  mqtt = new MqttWrapper("m20.cloudmqtt.com", 19642, hook_configuration);
+  mqtt->connect(callback);
+  mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
+  mqtt->set_publish_data_hook(hook_publish_data);
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(0, INPUT_PULLUP);
@@ -64,15 +80,9 @@ void setup() {
   Serial.println();
   Serial.println();
 
-  wifi = new WiFiHelper(ssid, pass);
-  wifi->on_connected([](const char* message) {    Serial.println (message); });
-  wifi->on_disconnected([](const char* message) { Serial.println (message); });
-  wifi->begin();
+  init_wifi();
+  init_mqtt();
 
-  mqtt = new MqttWrapper("m20.cloudmqtt.com", 19642, hook_configuration);
-  mqtt->connect(callback);
-  mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
-  mqtt->set_publish_data_hook(hook_publish_data);
 }
 
 void loop() {
