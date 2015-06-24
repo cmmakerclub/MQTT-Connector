@@ -6,7 +6,8 @@ WiFiHelper::WiFiHelper(const char* ssid, const char* password)
 
 }
 
-void WiFiHelper::init_config(const char* ssid, const char* password) {
+void WiFiHelper::init_config(const char* ssid, const char* password)
+{
     prev_millis = millis();
 
     _ssid = String(ssid);

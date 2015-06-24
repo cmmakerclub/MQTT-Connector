@@ -16,7 +16,8 @@ MqttWrapper *mqtt;
 WiFiHelper *wifi;
 DHT *dht;
 
-void hook_configuration(MqttWrapper::Config config) {
+void hook_configuration(MqttWrapper::Config config)
+{
     uint8_t mac[6];
     WiFi.macAddress(mac);
     String result;
@@ -29,49 +30,61 @@ void hook_configuration(MqttWrapper::Config config) {
     *(config.channelId) = String("esp8266/vega/");
 }
 
-void hook_prepare_data(JsonObject** root) {
-  JsonObject& data = (*(*root))["d"];
+void hook_prepare_data(JsonObject** root)
+{
+    JsonObject& data = (*(*root))["d"];
 
-  static float t_dht;
-  static float h_dht;
-  read_dht(dht, &t_dht, &h_dht);
+    static float t_dht;
+    static float h_dht;
+    read_dht(dht, &t_dht, &h_dht);
 
-  data["myName"] = "vega-005";
-  data["temp"] = t_dht;
-  data["humid"] = h_dht;
+    data["myName"] = "vega-005";
+    data["temp"] = t_dht;
+    data["humid"] = h_dht;
 }
 
 
-void init_wifi() {
-  wifi = new WiFiHelper(ssid, pass);
-  wifi->on_connected([](const char* message) {    Serial.println (message); });
-  wifi->on_disconnected([](const char* message) { Serial.println (message); });
-  wifi->begin();
+void init_wifi()
+{
+    wifi = new WiFiHelper(ssid, pass);
+    wifi->on_connected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->on_disconnected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->begin();
 }
 
-void init_mqtt() {
+void init_mqtt()
+{
     mqtt = new MqttWrapper("128.199.104.122", 1883, hook_configuration);
     mqtt->connect();
-    mqtt->set_prepare_data_hook(hook_prepare_data);    
+    mqtt->set_prepare_data_hook(hook_prepare_data);
 }
 
-void init_hardware() {
+void init_hardware()
+{
     Serial.begin(115200);
     pinMode(0, INPUT_PULLUP);
     delay(10);
     Serial.println();
     Serial.println();
-    
+
     init_dht(&dht, DHTPIN, DHTTYPE);
 }
 
-void setup() {
+void setup()
+{
     init_hardware();
     init_wifi();
     init_mqtt();
 }
 
-void loop() {
+void loop()
+{
     wifi->loop();
     mqtt->loop();
 }

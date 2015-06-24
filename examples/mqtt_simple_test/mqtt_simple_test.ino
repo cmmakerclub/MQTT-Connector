@@ -13,44 +13,58 @@ MqttWrapper *mqtt;
 WiFiHelper *wifi;
 
 
-void callback(const MQTT::Publish& pub) {
-    if (pub.payload_string() == "0") {
+void callback(const MQTT::Publish& pub)
+{
+    if (pub.payload_string() == "0")
+    {
         Serial.print(" => ");
         Serial.println(pub.payload_string());
     }
-    else if(pub.payload_string() == "1") {
+    else if(pub.payload_string() == "1")
+    {
         Serial.print(" => ");
         Serial.println(pub.payload_string());
     }
-    else {
+    else
+    {
         Serial.print(pub.topic());
         Serial.print(" => ");
         Serial.println(pub.payload_string());
     }
 }
 
-void hook_prepare_data(JsonObject** root) {
-  JsonObject& data = (*(*root))["d"];
+void hook_prepare_data(JsonObject** root)
+{
+    JsonObject& data = (*(*root))["d"];
 
-  data["myName"] = "SIMPLE-TEST";
-  data["adc"] = analogRead(A0);;
+    data["myName"] = "SIMPLE-TEST";
+    data["adc"] = analogRead(A0);;
 
 }
 
-void init_wifi() {
-  wifi = new WiFiHelper(ssid, pass);
-  wifi->on_connected([](const char* message) {    Serial.println (message); });
-  wifi->on_disconnected([](const char* message) { Serial.println (message); });
-  wifi->begin();
+void init_wifi()
+{
+    wifi = new WiFiHelper(ssid, pass);
+    wifi->on_connected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->on_disconnected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->begin();
 }
 
-void init_mqtt() {
+void init_mqtt()
+{
     mqtt = new MqttWrapper("128.199.104.122");
     mqtt->connect(callback);
     mqtt->set_prepare_data_hook(hook_prepare_data);
 }
 
-void init_hardware() {
+void init_hardware()
+{
     Serial.begin(115200);
     pinMode(0, INPUT_PULLUP);
     delay(10);
@@ -58,22 +72,26 @@ void init_hardware() {
     Serial.println();
 }
 
-void setup() {
+void setup()
+{
     init_hardware();
     init_wifi();
     init_mqtt();
 }
 
-void loop() {
+void loop()
+{
     wifi->loop();
     mqtt->loop();
 
     // ตรวจจับการกด Switch
-    if (digitalRead(0) == LOW) {
+    if (digitalRead(0) == LOW)
+    {
         // วนลูปจนกว่าจะเอาปล่อย Switch
-        while(digitalRead(0) == LOW) { 
+        while(digitalRead(0) == LOW)
+        {
             mqtt->loop();
-            yield(); 
+            yield();
         }
         String status = "0";
         mqtt->sync_pub(status);

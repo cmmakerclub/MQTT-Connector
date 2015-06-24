@@ -4,7 +4,8 @@
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 
-void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type) {
+void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type)
+{
     // Connect pin 1 (on the left) of the sensor to +5V
     // NOTE: If using a board with 3.3V logic like an Arduino Due connect pin 1
     // to 3.3V instead of 5V!
@@ -28,9 +29,11 @@ void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type) {
 }
 
 
-void read_dht(DHT *dht, float *temp, float *humid) {
+void read_dht(DHT *dht, float *temp, float *humid)
+{
 
-    if (dht == NULL) {
+    if (dht == NULL)
+    {
         DEBUG_PRINTLN(F("[dht22] is not initialised. please call init_dht() first."));
         return;
     }
@@ -45,7 +48,8 @@ void read_dht(DHT *dht, float *temp, float *humid) {
     float f = dht->readTemperature(true);
 
     // Check if any reads failed and exit early (to try again).
-    if (isnan(h) || isnan(t) || isnan(f)) {
+    if (isnan(h) || isnan(t) || isnan(f))
+    {
         DEBUG_PRINTLN("Failed to read from DHT sensor!");
         return;
     }

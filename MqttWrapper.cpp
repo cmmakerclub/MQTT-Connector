@@ -10,7 +10,8 @@ MqttWrapper::MqttWrapper(const char* host, uint16_t port)
     DEBUG_PRINTLN("---------- /Wrapper CONSTRUCTOR ---------");
 }
 
-void MqttWrapper::init_config(const char* host, uint16_t port) {
+void MqttWrapper::init_config(const char* host, uint16_t port)
+{
     prev_millis = millis();
 
     _mqtt_host = String(host);
