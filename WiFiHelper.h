@@ -1,92 +1,127 @@
-#define DEBUG_MODE
+#ifndef WIFI_HELPER_H
+#define WIFI_HELPER_H
 
-#include <ESP8266WiFi.h>
-#include <ArduinoJson.h>
-#include <MqttWrapper.h>
-#include <PubSubClient.h>
-#include <WiFiHelper.h>
+#include "ESP8266WiFi.h"
+#include <functional>
 
-const char* ssid     = "CMMC.32";
-const char* pass     = "guestnetwork";
 
-MqttWrapper *mqtt;
-WiFiHelper *wifi;
 
-void callback(const MQTT::Publish& pub) {
-  if (pub.payload_string() == "0") {
-    Serial.print(" => ");
-    Serial.println(pub.payload_string());
-  }
-  else if (pub.payload_string() == "1") {
-    Serial.print(" => ");
-    Serial.println(pub.payload_string());
-  }
-  else {
-    Serial.print(pub.topic());
-    Serial.print(" => ");
-    Serial.println(pub.payload_string());
-  }
-}
+#ifdef DEBUG_MODE
+    #ifndef DEBUG_PRINTER
+        #define DEBUG_PRINTER Serial
+    #endif
+    #ifdef DEBUG_LEVEL_VERBOSE
+        #define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+        #define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
 
-void hook_prepare_data(JsonObject** root) {
-  JsonObject& data = (*(*root))["d"];
+        #define INFO_PRINT(...) { }
+        #define INFO_PRINTLN(...) { }
+    #else
+        #define DEBUG_LEVEL_INFO
+    #endif
 
-  data["myName"] = "NAT";
-  data["adc"] = analogRead(A0);;
+    #ifdef DEBUG_LEVEL_INFO
+        #define DEBUG_PRINT(...) {}
+        #define DEBUG_PRINTLN(...) {}
 
-}
+        #define INFO_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
+        #define INFO_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+    #endif
+#else
+    #define DEBUG_PRINT(...) {}
+    #define DEBUG_PRINTLN(...) {}
 
-void hook_configuration(MqttWrapper::Config config) {
-  uint8_t mac[6];
-  WiFi.macAddress(mac);
-  String result;
-  for (int i = 0; i < 6; ++i)
-  {
-    result += String(mac[i], 16);
-  }
+    #define INFO_PRINT(...) { }
+    #define INFO_PRINTLN(...) { }
+#endif
 
-  *(config.clientId) = String("d:quickstart:arduino:") + result;
-  *(config.username) = String("test");
-  *(config.password) = String("test");
-  *(config.channelId) = String("esp8266/");
-  *(config.topicPub) = "iot-2/evt/status/fmt/json";
-}
 
-void hook_publish_data(char* data) {
-  Serial.print("PUBLISH: ->");
-  Serial.println(data);
-}
 
-void setup() {
-  Serial.begin(115200);
-  pinMode(0, INPUT_PULLUP);
-  delay(10);
-  Serial.println();
-  Serial.println();
 
-  wifi->on_connected([](const char* message) {    Serial.println ("WIFI CONNECTED"); });
-  wifi->on_disconnected([](const char* message) { Serial.println ("WIFI DISCONNECTED"); });
-  wifi->begin();
+class WiFiHelper
+{
+    public: 
+        typedef std::function<void(const char*)> wifi_callback_t;
 
-  mqtt = new MqttWrapper("m20.cloudmqtt.com", 19642, hook_configuration);
-  mqtt->connect(callback);
-  mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
-  mqtt->set_publish_data_hook(hook_publish_data);
-}
+        WiFiHelper(const char* ssid, const char* password);
+        ~WiFiHelper();
 
-void loop() {
-  wifi->loop();
-  mqtt->loop();
+        void init_config(const char*, const char*);
 
-  // ตรวจจับการกด Switch
-  if (digitalRead(0) == LOW) {
-    // วนลูปจนกว่าจะเอาปล่อย Switch
-    while (digitalRead(0) == LOW) {
-      mqtt->loop();
-      yield();
-    }
-    String status = "0";
-    mqtt->sync_pub(status);
-  }
 
-}
+        void begin() {
+            _connect();
+        }
+
+        void loop() {
+            if (WiFi.status() == WL_CONNECTED) {
+                // return WiFi.status();
+            }
+            else {
+                INFO_PRINTLN("CLASS: WIFI CONNECTED...");
+                if (_user_on_disconnected != NULL) {
+                   _user_on_disconnected("class: disconnected");
+                }
+                _connect();
+            }
+        }
+
+        void on_disconnected(wifi_callback_t callback = NULL) {
+            _user_on_disconnected = callback;
+        }
+
+        void on_connected(wifi_callback_t callback = NULL) {
+            _user_on_connected = callback;
+        }
+
+        void on_connecting(wifi_callback_t callback = NULL) {
+            _user_on_connecting = callback;
+        }
+
+    protected:
+
+    private:
+        String _ssid = "";
+        String _password = "";
+        String _mac = "";
+
+        wifi_callback_t _user_on_disconnected = NULL;
+        wifi_callback_t _user_on_connected  = NULL;
+        wifi_callback_t _user_on_connecting = NULL;
+
+        unsigned long _retries = 0;
+        unsigned long prev_millis;
+
+
+        void _connect() {
+            _retries = 0;
+            WiFi.begin(_ssid.c_str(), _password.c_str());
+
+            while ((WiFi.status() != WL_CONNECTED))
+            {
+                if (_user_on_connecting != NULL) {
+                   _user_on_connecting("class: connecting");
+                }                
+
+                DEBUG_PRINT(WiFi.status());
+                DEBUG_PRINTLN(" ");
+
+                INFO_PRINT(WiFi.status());
+                INFO_PRINTLN(" ");
+                _retries++;
+                delay(500);
+            }        
+
+            INFO_PRINTLN();
+            INFO_PRINTLN("CLASS: WIFI CONNECTED...");
+
+            if (_user_on_connected != NULL) {
+               _user_on_connected("class: connected");
+            }
+
+        }
+};
+
+
+
+#endif//WIFI_HELPER_H
