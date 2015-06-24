@@ -18,7 +18,7 @@ void hook_prepare_data(JsonObject** root)
 {
     JsonObject& data = (*(*root))["d"];
 
-    data["myName"] = "CMMC TUTUROAL";
+    data["myName"] = "NAT";
     data["adc"] = analogRead(A0);;
 
 }
@@ -54,17 +54,10 @@ void hook_publish_data(char* data)
 void init_wifi()
 {
     wifi = new WiFiHelper(ssid, pass);
-    
     wifi->on_connected([](const char* message)
     {
         Serial.println (message);
     });
-
-    wifi->on_connecting([](const char* message)
-    {
-        Serial.println ("COONNNNECTIIIIINNNNGGG");
-    });
-    
     wifi->on_disconnected([](const char* message)
     {
         Serial.println (message);
