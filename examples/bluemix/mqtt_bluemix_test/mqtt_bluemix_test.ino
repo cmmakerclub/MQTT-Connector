@@ -24,34 +24,6 @@ void hook_prepare_data(JsonObject** root)
 
 }
 
-void init_wifi()
-{
-    wifi = new WiFiHelper(ssid, pass);
-    wifi->on_connected([](const char* message)
-    {
-        Serial.println (message);
-    });
-    wifi->on_disconnected([](const char* message)
-    {
-        Serial.println (message);
-    });
-    wifi->begin();
-}
-
-void init_mqtt()
-{
-    String organization = String("r6crrd");
-    String url = organization + ".messaging.internetofthings.ibmcloud.com";
-
-    mqtt = new MqttWrapper(url.c_str()  , 1883, hook_configuration);
-
-    // publish only; no callback
-    mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
-    mqtt->set_publish_data_hook(hook_publish_data);
-    mqtt->connect();
-}
-
-
 void hook_publish_data(char* data)
 {
     Serial.print("PUBLISH: ->");
@@ -65,6 +37,34 @@ void init_hardware()
     delay(10);
     Serial.println();
     Serial.println();
+}
+
+void init_wifi()
+{
+    wifi = new WiFiHelper(ssid, pass);
+    wifi->on_connected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->on_disconnected([](const char* message)
+    {
+        Serial.println (message);
+    });
+    wifi->connect();
+}
+
+void init_mqtt()
+{
+    String organization = String("r6crrd");
+    String url = organization + ".messaging.internetofthings.ibmcloud.com";
+
+    mqtt = new MqttWrapper(url.c_str()  , 1883, hook_configuration);
+
+    // publish only; no callback
+    mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
+    mqtt->set_publish_data_hook(hook_publish_data);
+
+    mqtt->connect();
 }
 
 void setup()

@@ -6,7 +6,7 @@
 #include <WiFiHelper.h>
 #include <PubSubClient.h>
 
-const char* ssid     = "CMMC.32";
+const char* ssid     = "CMMC.47";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
@@ -20,22 +20,9 @@ void on_message_arrived(const MQTT::Publish& pub)
     Serial.println(pub.payload_string());
 }
 
-void init_wifi()
-{
-    wifi = new WiFiHelper(ssid, pass);
-    wifi->connect();
-}
-
 void hook_prepare_data(JsonObject** root) {
    JsonObject& data = (*root)->at("d");
    data["myName"] = "SIMPLE-TEST"; 
-}
-
-void init_mqtt()
-{
-    mqtt = new MqttWrapper("iot.eclipse.org");
-    mqtt->set_prepare_data_hook(hook_prepare_data);
-    mqtt->connect(on_message_arrived);    
 }
 
 void init_hardware()
@@ -44,6 +31,19 @@ void init_hardware()
     delay(10);
     Serial.println();
     Serial.println();
+}
+
+void init_wifi()
+{
+    wifi = new WiFiHelper(ssid, pass);
+    wifi->connect();
+}
+
+void init_mqtt()
+{
+    mqtt = new MqttWrapper("iot.eclipse.org");
+    mqtt->set_prepare_data_hook(hook_prepare_data);
+    mqtt->connect(on_message_arrived);    
 }
 
 void setup()

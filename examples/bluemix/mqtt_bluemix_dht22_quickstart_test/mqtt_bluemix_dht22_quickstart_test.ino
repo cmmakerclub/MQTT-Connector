@@ -39,6 +39,16 @@ void hook_publish_data(char* data)
     Serial.println(data);
 }
 
+void init_hardware()
+{
+    Serial.begin(115200);
+    pinMode(0, INPUT_PULLUP);
+    delay(10);
+    Serial.println();
+    Serial.println();
+    init_dht(&dht, DHTPIN, DHTTYPE);
+}
+
 void init_wifi()
 {
     wifi = new WiFiHelper(ssid, pass);
@@ -56,7 +66,7 @@ void init_wifi()
         Serial.println(WiFi.localIP());
     });
 
-    wifi->begin();
+    wifi->connect();
 }
 
 void init_mqtt()
@@ -67,16 +77,6 @@ void init_mqtt()
     mqtt->connect();
 }
 
-
-void init_hardware()
-{
-    Serial.begin(115200);
-    pinMode(0, INPUT_PULLUP);
-    delay(10);
-    Serial.println();
-    Serial.println();
-    init_dht(&dht, DHTPIN, DHTTYPE);
-}
 
 void setup()
 {
