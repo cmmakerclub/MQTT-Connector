@@ -9,6 +9,7 @@
 #include <PubSubClient.h>
 #include <DHT.h>
 #include "dht_helper.h"
+#include "mqtt_configuration.h"
 
 const char* ssid     = "CMMC.47";
 const char* pass     = "guestnetwork";
@@ -32,35 +33,21 @@ void hook_prepare_data(JsonObject** root)
 
 }
 
-void hook_configuration(MqttWrapper::Config config)
-{
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    String macAddr;
-    for (int i = 0; i < 6; ++i)
-    {
-        macAddr += String(mac[i], 16);
-    }
-
-    *(config.clientId)  = "d:quickstart:esp8266meetup:"
-    *(config.clientId) +=macAddr 
-    *(config.topicPub)  = "iot-2/evt/status/fmt/json";
-    String url  = String("https://quickstart.internetofthings.");
-           url += "ibmcloud.com/#/device/"+ macAddr +"/sensor/";
-
-    Serial.println(url);
-}
-
 void hook_publish_data(char* data)
 {
     Serial.print("PUBLISH: ->");
     Serial.println(data);
 }
 
-
 void init_wifi()
 {
     wifi = new WiFiHelper(ssid, pass);
+
+    wifi->on_connecting([](const char* message)
+    {
+        Serial.println("connecting...");  
+    });
+    
     wifi->on_connected([](const char* message)
     {
         Serial.println("");

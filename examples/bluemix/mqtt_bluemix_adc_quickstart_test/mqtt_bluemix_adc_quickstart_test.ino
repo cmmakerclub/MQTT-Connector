@@ -6,8 +6,9 @@
 #include <MqttWrapper.h>
 #include <WiFiHelper.h>
 #include <PubSubClient.h>
+#include "mqtt_configuration.h"
 
-const char* ssid     = "CMMC.47";
+const char* ssid     = "CMMC.32";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
@@ -16,32 +17,12 @@ WiFiHelper *wifi;
 
 void hook_prepare_data(JsonObject** root)
 {
-    JsonObject& data = (*(*root))["d"];
+    JsonObject& data = (*root)->at("d");
 
     data["myName"] = "NAT";
     data["adc"] = analogRead(A0);;
 
 }
-
-void hook_configuration(MqttWrapper::Config config)
-{
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    String macAddr;
-    for (int i = 0; i < 6; ++i)
-    {
-        macAddr += String(mac[i], 16);
-    }
-
-    *(config.clientId)  = "d:quickstart:esp8266:"
-    *(config.clientId) +=macAddr 
-    *(config.topicPub)  = "iot-2/evt/status/fmt/json";
-    String url  = String("https://quickstart.internetofthings.");
-           url += "ibmcloud.com/#/device/"+ macAddr +"/sensor/";
-
-    Serial.println(url);
-}
-
 
 void hook_publish_data(char* data)
 {
@@ -53,6 +34,12 @@ void hook_publish_data(char* data)
 void init_wifi()
 {
     wifi = new WiFiHelper(ssid, pass);
+
+    wifi->on_connecting([](const char* message)
+    {
+        Serial.println("connecting...");  
+    });
+
     wifi->on_connected([](const char* message)
     {
         Serial.println("");
@@ -72,8 +59,6 @@ void init_mqtt()
     mqtt->connect();    
 }
 
-
-
 void init_hardware()
 {
     Serial.begin(115200);
@@ -81,6 +66,7 @@ void init_hardware()
     delay(10);
     Serial.println();
     Serial.println();
+    Serial.println("START..");
 }
 
 void setup()
