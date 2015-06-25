@@ -1,11 +1,12 @@
-#define DEBUG_MODE
-#define DEBUG_LEVEL_VERBOSE
+// #define DEBUG_MODE
+// #define DEBUG_LEVEL_VERBOSE
 
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttWrapper.h>
 #include <PubSubClient.h>
 #include <WiFiHelper.h>
+#include "mqtt_configuration.h"
 
 
 const char* ssid     = "CMMC.32";
@@ -20,33 +21,6 @@ void hook_prepare_data(JsonObject** root)
 
     data["myName"] = "NAT";
     data["adc"] = analogRead(A0);;
-
-}
-
-void hook_configuration(MqttWrapper::Config config)
-{
-    uint8_t mac[6];
-    WiFi.macAddress(mac);
-    String result;
-    for (int i = 0; i < 6; ++i)
-    {
-        result += String(mac[i], 16);
-    }
-
-    *(config.clientId) = String("a:r6crrd:") + result;
-    Serial.println(*(config.clientId));
-
-    // uncomment when user & password is required.
-    *(config.username) = String("a-r6crrd-3gsgqcadid");
-    *(config.password) = String("KRE*0rxt0rilV!2tD@");
-    // *(config.channelId) = String("esp8266/");
-
-    *(config.topicPub) = String("iot-2/type/") + String("esp8266/id/") + result + String("/evt/dw.mini/fmt/json");
-    Serial.println(
-        String("https://quickstart.internetofthings.") +
-        "ibmcloud.com/#/device/"+
-        result +"/sensor/"
-    );
 
 }
 
@@ -66,10 +40,15 @@ void init_wifi()
 
 void init_mqtt()
 {
-    mqtt = new MqttWrapper("r6crrd.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
-    mqtt->connect();
+    String organization = String("r6crrd");
+    String url = organization + ".messaging.internetofthings.ibmcloud.com";
+
+    mqtt = new MqttWrapper(url.c_str()  , 1883, hook_configuration);
+
+    // publish only; no callback
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
     mqtt->set_publish_data_hook(hook_publish_data);
+    mqtt->connect();
 }
 
 
