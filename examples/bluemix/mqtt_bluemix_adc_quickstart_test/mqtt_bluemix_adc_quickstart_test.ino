@@ -27,22 +27,21 @@ void hook_configuration(MqttWrapper::Config config)
 {
     uint8_t mac[6];
     WiFi.macAddress(mac);
-    String result;
+    String macAddr;
     for (int i = 0; i < 6; ++i)
     {
-        result += String(mac[i], 16);
+        macAddr += String(mac[i], 16);
     }
 
-    *(config.clientId) = String("d:quickstart:esp8266:") + result;
-    *(config.topicPub) = "iot-2/evt/status/fmt/json";
+    *(config.clientId)  = "d:quickstart:esp8266:"
+    *(config.clientId) +=macAddr 
+    *(config.topicPub)  = "iot-2/evt/status/fmt/json";
+    String url  = String("https://quickstart.internetofthings.");
+           url += "ibmcloud.com/#/device/"+ macAddr +"/sensor/";
 
-    Serial.println(
-        String("https://quickstart.internetofthings.") +
-        "ibmcloud.com/#/device/"+
-        result +"/sensor/"
-    );
-
+    Serial.println(url);
 }
+
 
 void hook_publish_data(char* data)
 {
@@ -56,21 +55,21 @@ void init_wifi()
     wifi = new WiFiHelper(ssid, pass);
     wifi->on_connected([](const char* message)
     {
-        Serial.println (message);
+        Serial.println("");
+        Serial.println("WiFi connected");  
+        Serial.println("IP address: ");
+        Serial.println(WiFi.localIP());
     });
-    wifi->on_disconnected([](const char* message)
-    {
-        Serial.println (message);
-    });
+
     wifi->begin();
 }
 
 void init_mqtt()
 {
     mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
-    mqtt->connect();
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
     mqtt->set_publish_data_hook(hook_publish_data);
+    mqtt->connect();    
 }
 
 
@@ -89,7 +88,6 @@ void setup()
     init_hardware();
     init_wifi();
     init_mqtt();
-
 }
 
 void loop()
