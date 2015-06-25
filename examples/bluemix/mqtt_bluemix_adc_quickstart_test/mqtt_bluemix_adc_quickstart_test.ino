@@ -48,12 +48,15 @@ void init_wifi()
         Serial.println(WiFi.localIP());
     });
 
-    wifi->begin();
+    wifi->connect();
 }
 
 void init_mqtt()
 {
-    mqtt = new MqttWrapper("quickstart.messaging.internetofthings.ibmcloud.com", 1883, hook_configuration);
+    String organization = String("r6crrd");
+    String url = organization + ".messaging.internetofthings.ibmcloud.com";
+
+    mqtt = new MqttWrapper(url.c_str()  , 1883, hook_configuration);
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
     mqtt->set_publish_data_hook(hook_publish_data);
     mqtt->connect();    
