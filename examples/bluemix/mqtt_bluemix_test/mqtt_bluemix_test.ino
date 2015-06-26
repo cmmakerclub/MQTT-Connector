@@ -9,7 +9,7 @@
 #include "mqtt_configuration.h"
 
 
-const char* ssid     = "CMMC.32";
+const char* ssid     = "CMMC.47";
 const char* pass     = "guestnetwork";
 
 MqttWrapper *mqtt;
@@ -37,11 +37,16 @@ void init_hardware()
     delay(10);
     Serial.println();
     Serial.println();
+    Serial.println("START");
 }
 
 void init_wifi()
 {
     wifi = new WiFiHelper(ssid, pass);
+    wifi->on_connecting([](const char* message)
+    {
+        Serial.println (message);
+    });
     wifi->on_connected([](const char* message)
     {
         Serial.println (message);
