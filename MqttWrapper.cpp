@@ -235,7 +235,7 @@ void MqttWrapper::_connect()
         DEBUG_PRINT("__SUBSCRIBING... ->");
         DEBUG_PRINTLN(topicSub);
 
-        while(!client->subscribe(topicSub))
+        while(!client->subscribe(topicSub) && client->connected())
         {
             DEBUG_PRINT("KEEP SUBSCRIBING...");
             DEBUG_PRINTLN(topicSub);
