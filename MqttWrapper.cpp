@@ -173,6 +173,7 @@ void MqttWrapper::doPublish()
         (*d)["counter"] = ++counter;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
+        (*d)["sub_counter"] = _subscription_counter;        
 
 
         strcpy(jsonStrbuffer, "");
@@ -196,7 +197,7 @@ void MqttWrapper::doPublish()
         MQTT::Publish newpub(topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
         newpub.set_retain(false);
 
-        while (!client->publish(newpub))
+        while (!client->publish(newpub) && client->connected())
         {
             DEBUG_PRINTLN("__PUBLISHED KEEP TRYING...");
             INFO_PRINTLN("__PUBLISHED KEEP TRYING...");
@@ -235,19 +236,26 @@ void MqttWrapper::_connect()
         DEBUG_PRINT("__SUBSCRIBING... ->");
         DEBUG_PRINTLN(topicSub);
 
-        while(!client->subscribe(topicSub) && client->connected())
+        while( (client->subscribe(topicSub) == false) && client->connected())
         {
             DEBUG_PRINT("KEEP SUBSCRIBING...");
-            DEBUG_PRINTLN(topicSub);
+            DEBUG_PRINT(topicSub);
+            DEBUG_PRINT(" HEAP = ");
+            DEBUG_PRINTLN(ESP.getFreeHeap());            
 
             INFO_PRINT("KEEP SUBSCRIBING...");
-            INFO_PRINTLN(topicSub);
+            INFO_PRINT(topicSub);            
+            INFO_PRINT(" HEAP = ");
+            INFO_PRINTLN(ESP.getFreeHeap());
+
             delay(500);
         };
+        
         DEBUG_PRINT("__SUBSCRIBED TO ");
         INFO_PRINT("__SUBSCRIBED TO ");
         INFO_PRINTLN(topicSub);
         DEBUG_PRINTLN(topicSub);
+        _subscription_counter++;
     }
     else
     {

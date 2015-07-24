@@ -12,34 +12,11 @@
 #endif
 
 
-#ifdef DEBUG_MODE
-#ifdef DEBUG_LEVEL_VERBOSE
 #define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
 #define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
 
 #define INFO_PRINT(...) { }
 #define INFO_PRINTLN(...) { }
-#else
-#define DEBUG_LEVEL_INFO
-#endif
-
-#ifdef DEBUG_LEVEL_INFO
-#define DEBUG_PRINT(...) {}
-#define DEBUG_PRINTLN(...) {}
-
-#define INFO_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define INFO_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-#endif
-#else
-#define DEBUG_PRINT(...) {}
-#define DEBUG_PRINTLN(...) {}
-
-#define INFO_PRINT(...) { }
-#define INFO_PRINTLN(...) { }
-#endif
-
-
-
 
 class MqttWrapper
 {
@@ -159,8 +136,12 @@ private:
     String _password = "";
     String _mac = "";
 
+    unsigned int _subscription_counter = 0;
+
     MQTT::Connect *connOpts = NULL;
     PubSubClient *client = NULL;
+    // MQTT::Subscribe()
+    //               .add_topic("topic1")
 
     PubSubClient::callback_t _user_callback = NULL;
 
@@ -172,8 +153,6 @@ private:
     char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
-
-
 
     void _connect();
 };
