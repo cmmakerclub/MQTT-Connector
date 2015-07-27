@@ -2,9 +2,9 @@
 #define MQTT_WRAPPER_H
 
 #include "PubSubClient.h"
-// #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "ESP8266WiFi.h"
+#include "WiFiConnector.h"
 #include <functional>
 
 #if defined (DEBUG_MODE)
@@ -44,16 +44,17 @@ public:
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
     ~MqttConnector();
 
-    void init_config(const char*, uint16_t);
-
-    void sync_pub(String payload);
-
-    void connect(PubSubClient::callback_t callback = NULL);
     void _hook_config();
+    void loop();
+    void loop(WiFiConnector *);    
+    void init_config(const char*, uint16_t);
+    void sync_pub(String payload);
+    void connect(PubSubClient::callback_t callback = NULL);
     void set_configuration_hook(cmmc_config_t func)
     {
         _user_hook_config = func;
     }
+    
     void set_prepare_data_hook(prepare_data_hook_t func, unsigned long publish_interval = 3000)
     {
         _user_hook_prepare_data = func;
@@ -64,8 +65,8 @@ public:
     {
         _user_hook_publish_data = func;
     }
+    
 
-    void loop();
 
 protected:
     void _set_default_client_id()
@@ -124,7 +125,6 @@ private:
 
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
-    int _publish_interval = 3000;
     Config _config;
 
     String clientId = "";
@@ -137,6 +137,7 @@ private:
     String _mac = "";
 
     unsigned int _subscription_counter = 0;
+    int _publish_interval = 3000;    
 
     MQTT::Connect *connOpts = NULL;
     PubSubClient *client = NULL;
@@ -152,6 +153,8 @@ private:
     char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
+    
+    String _version = "0.5";
 
 
     void _connect();

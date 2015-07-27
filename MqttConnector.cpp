@@ -142,18 +142,25 @@ void MqttConnector::sync_pub(String payload)
 }
 
 void MqttConnector::loop()
+{
+    if (client->loop())
     {
-        if (client->loop())
-        {
-            doPublish();
-        }
-        else
-        {
-            MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED");
-            _connect();
-        }
-
+        doPublish();
     }
+    else
+    {
+        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED");
+        _connect();
+    }
+
+}
+
+void MqttConnector::loop(WiFiConnector *wifiHelper)
+{
+    wifiHelper->loop();
+    this->loop();
+}
+
 
 
 void MqttConnector::doPublish()
@@ -167,7 +174,8 @@ void MqttConnector::doPublish()
         (*d)["counter"] = ++counter;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
-        (*d)["sub_counter"] = _subscription_counter;        
+        (*d)["sub_counter"] = _subscription_counter;     
+        (*d)["version"] = _version;                
 
 
         strcpy(jsonStrbuffer, "");

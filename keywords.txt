@@ -10,17 +10,21 @@
 # Methods and Functions (KEYWORD2)
 #######################################
 
-begin KEYWORD2
-set_callback	KEYWORD2
-connect KEYWORD2
-loop KEYWORD2
+begin 					KEYWORD2
+set_prepare_data_hook	KEYWORD2
+set_configuration_hook	KEYWORD2
+set_publish_data_hook	KEYWORD2
+sync_pub				KEYWORD2
+init_config				KEYWORD2
+connect 				KEYWORD2
+loop 					KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
 #######################################
 
-MqttConnector	KEYWORD2
-WiFiHelper KEYWORD2
+MqttConnector			KEYWORD2
+WiFiConnector 				KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
