@@ -19,7 +19,7 @@ loop KEYWORD2
 # Instances (KEYWORD2)
 #######################################
 
-MqttWrapper	KEYWORD2
+MqttConnector	KEYWORD2
 WiFiHelper KEYWORD2
 
 #######################################

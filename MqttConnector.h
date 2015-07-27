@@ -7,16 +7,16 @@
 #include "ESP8266WiFi.h"
 #include <functional>
 
-#ifndef DEBUG_PRINTER
-#define DEBUG_PRINTER Serial
+#if defined (DEBUG_MODE)
+    #ifndef MQTT_DEBUG_PRINTER
+        #define MQTT_DEBUG_PRINTER Serial
+    #endif
+    #define MQTT_DEBUG_PRINT(...) { MQTT_DEBUG_PRINTER.print(__VA_ARGS__); }
+    #define MQTT_DEBUG_PRINTLN(...) { MQTT_DEBUG_PRINTER.println(__VA_ARGS__); }
+#else
+    #define MQTT_DEBUG_PRINT(...) { }
+    #define MQTT_DEBUG_PRINTLN(...) { }
 #endif
-
-
-#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-
-#define INFO_PRINT(...) { }
-#define INFO_PRINTLN(...) { }
 
 class MqttConnector
 {
@@ -82,8 +82,8 @@ protected:
                 result += ':';
         }
 
-        DEBUG_PRINT("MAC ADDR: ");
-        DEBUG_PRINTLN(result);
+        MQTT_DEBUG_PRINT("MAC ADDR: ");
+        MQTT_DEBUG_PRINTLN(result);
 
         channelId = "esp8266/";
         _mac = result;
@@ -97,19 +97,19 @@ protected:
 
     void _prepare_data_hook()
     {
-        DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
+        MQTT_DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
         if (_user_hook_prepare_data != NULL)
         {
-            DEBUG_PRINTLN("__user_hook_prepare_data()");
+            MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
             _user_hook_prepare_data(root);
         }
-        // DEBUG_PRINTLN("BEFORE PUBLISH");
+        // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
     void _hook_after_publish(char** ptr)
     {
-        // DEBUG_PRINTLN("AFTER PUBLISH");
+        // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
     }
 
     void doPublish();
