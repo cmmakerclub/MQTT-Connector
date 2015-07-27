@@ -1,6 +1,6 @@
-#include "MqttWrapper.h"
+#include "MqttConnector.h"
 
-MqttWrapper::MqttWrapper(const char* host, uint16_t port)
+MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
     init_config(host, port);
     DEBUG_PRINTLN("----------- Wrapper CONSTRUCTOR ---------");
@@ -10,7 +10,7 @@ MqttWrapper::MqttWrapper(const char* host, uint16_t port)
     DEBUG_PRINTLN("---------- /Wrapper CONSTRUCTOR ---------");
 }
 
-void MqttWrapper::init_config(const char* host, uint16_t port)
+void MqttConnector::init_config(const char* host, uint16_t port)
 {
     prev_millis = millis();
 
@@ -19,6 +19,8 @@ void MqttWrapper::init_config(const char* host, uint16_t port)
 
     connOpts = NULL;
     client = NULL;
+    
+    _subscribe_object = NULL;
 
     JsonObject& r = jsonBuffer.createObject();
     JsonObject& d = jsonBuffer.createObject();
@@ -29,14 +31,14 @@ void MqttWrapper::init_config(const char* host, uint16_t port)
     r["d"] = d;
 }
 
-MqttWrapper::MqttWrapper(const char* host, uint16_t port, cmmc_config_t config_hook)
+MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t config_hook)
 {
     init_config(host, port);
     _user_hook_config = config_hook;
 
 }
 
-void MqttWrapper::connect(PubSubClient::callback_t callback)
+void MqttConnector::connect(PubSubClient::callback_t callback)
 {
     DEBUG_PRINTLN("BEGIN Wrapper");
 
@@ -68,7 +70,7 @@ void MqttWrapper::connect(PubSubClient::callback_t callback)
 }
 
 
-void MqttWrapper::_hook_config()
+void MqttConnector::_hook_config()
 {
     _config.connOpts = connOpts;
     // _config.client = client;
@@ -84,7 +86,6 @@ void MqttWrapper::_hook_config()
     if (_user_hook_config != NULL)
     {
         DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
-        INFO_PRINTLN("OVERRIDE CONFIG IN _hook_config");
         _user_hook_config(_config);
         if (topicPub.length() == 0 )
         {
@@ -110,7 +111,6 @@ void MqttWrapper::_hook_config()
     {
         INFO_PRINT("__SUBSCRIPTION TOPIC -> ");
         DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
-        INFO_PRINTLN(topicSub)
         DEBUG_PRINTLN(topicSub)
     }
     else
@@ -121,33 +121,31 @@ void MqttWrapper::_hook_config()
     INFO_PRINT("__PUBLICATION TOPIC -> ");
     DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
-    INFO_PRINTLN(topicPub)
     DEBUG_PRINTLN(topicPub)
 
     INFO_PRINT("__SUBSCRIPTION TOPIC -> ");
     DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
 
-    INFO_PRINTLN(topicSub);
     DEBUG_PRINTLN(topicSub);
 
     connOpts = new MQTT::Connect(clientId);
     client = new PubSubClient(wclient);
+  
     client->set_server(_mqtt_host, _mqtt_port);
     connOpts->set_auth(_username, _password);
 }
 
-void MqttWrapper::sync_pub(String payload)
+void MqttConnector::sync_pub(String payload)
 {
     DEBUG_PRINT("SYNC PUB.... -> ");
     INFO_PRINT("SYNC PUB.... -> ");
     DEBUG_PRINTLN(payload.c_str());
-    INFO_PRINTLN(payload.c_str());
     MQTT::Publish newpub(topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
     client->publish(newpub);
 }
 
-void MqttWrapper::loop()
+void MqttConnector::loop()
     {
         if (client->loop())
         {
@@ -162,7 +160,7 @@ void MqttWrapper::loop()
     }
 
 
-void MqttWrapper::doPublish()
+void MqttConnector::doPublish()
 {
     static long counter = 0;
     char *dataPtr = NULL;
@@ -182,7 +180,6 @@ void MqttWrapper::doPublish()
         prev_millis = millis();
 
         INFO_PRINT("PUBLISH DATA --> ");
-        INFO_PRINTLN(jsonStrbuffer);
         DEBUG_PRINTLN("__DO PUBLISH ");
         DEBUG_PRINT("______________ TOPIC: -->");
         DEBUG_PRINTLN(topicPub);
@@ -195,20 +192,19 @@ void MqttWrapper::doPublish()
         }
 
         MQTT::Publish newpub(topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
-        newpub.set_retain(false);
+        newpub.set_retain(true);
 
         if(!client->publish(newpub)) {
-            INFO_PRINTLN("__PUBLISHED FAILED.");
             return;
         }
-        
+
         DEBUG_PRINT(dataPtr);
         DEBUG_PRINTLN(" PUBLISHED!");
         _hook_after_publish(&dataPtr);
     }
 }
 
-void MqttWrapper::_connect()
+void MqttConnector::_connect()
 {
     DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
     DEBUG_PRINT("HOST: ");
@@ -223,18 +219,18 @@ void MqttWrapper::_connect()
     while(!client->connect(*connOpts))
     {
         DEBUG_PRINTLN("KEEP CONNECTING...");
-        // INFO_PRINTLN("connecting...");
         delay(100);
     }
 
     DEBUG_PRINTLN("CONNECTED");
-    // INFO_PRINTLN("CONNECTED");
 
     if (_user_callback != NULL)
     {
         DEBUG_PRINT("__SUBSCRIBING... ->");
         DEBUG_PRINTLN(topicSub);
-        if (client->subscribe(topicSub)) {
+        delete _subscribe_object;
+        _subscribe_object = new MQTT::Subscribe(topicSub);
+        if (client->subscribe(*_subscribe_object)) {
             _subscription_counter++;
         }
         else {
@@ -243,22 +239,22 @@ void MqttWrapper::_connect()
 
         DEBUG_PRINT("__SUBSCRIBED TO ");
         INFO_PRINT("__SUBSCRIBED TO ");
-        INFO_PRINTLN(topicSub);
         DEBUG_PRINTLN(topicSub);
         
     }
     else
     {
         DEBUG_PRINTLN("__ PUBLISH ONLY MODE");
-        INFO_PRINTLN("__ PUBLISH ONLY MODE");
     }
 }
 
 
-MqttWrapper::~MqttWrapper()
+MqttConnector::~MqttConnector()
 {
     delete connOpts;
     delete client;
+    delete _subscribe_object;
     connOpts = NULL;
     client = NULL;
+    _subscribe_object = NULL;
 }

@@ -18,7 +18,7 @@
 #define INFO_PRINT(...) { }
 #define INFO_PRINTLN(...) { }
 
-class MqttWrapper
+class MqttConnector
 {
 public:
     typedef struct
@@ -36,13 +36,13 @@ public:
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
-    typedef std::function<void(const MqttWrapper::Config)> cmmc_config_t;
-    typedef std::function<void(JsonObject** )> prepare_data_hook_t;
+    typedef std::function<void(const MqttConnector::Config)> cmmc_config_t;
+    typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
 
-    MqttWrapper(const char* , uint16_t port = 1883);
-    MqttWrapper(const char* , uint16_t port, cmmc_config_t config_hook);
-    ~MqttWrapper();
+    MqttConnector(const char* , uint16_t port = 1883);
+    MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
+    ~MqttConnector();
 
     void init_config(const char*, uint16_t);
 
@@ -102,7 +102,7 @@ protected:
         if (_user_hook_prepare_data != NULL)
         {
             DEBUG_PRINTLN("__user_hook_prepare_data()");
-            _user_hook_prepare_data(&root);
+            _user_hook_prepare_data(root);
         }
         // DEBUG_PRINTLN("BEFORE PUBLISH");
     }
@@ -122,7 +122,7 @@ private:
     prepare_data_hook_t _user_hook_prepare_data = NULL;
     publish_data_hook_t _user_hook_publish_data = NULL;
 
-    String _mqtt_host = "x";
+    String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
     int _publish_interval = 3000;
     Config _config;
@@ -140,8 +140,7 @@ private:
 
     MQTT::Connect *connOpts = NULL;
     PubSubClient *client = NULL;
-    // MQTT::Subscribe()
-    //               .add_topic("topic1")
+    MQTT::Subscribe *_subscribe_object;
 
     PubSubClient::callback_t _user_callback = NULL;
 
@@ -153,6 +152,7 @@ private:
     char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
+
 
     void _connect();
 };
