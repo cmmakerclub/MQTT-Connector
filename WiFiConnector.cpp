@@ -47,13 +47,11 @@ void WiFiConnector::loop()
     }
     else
     {
-        INFO_PRINTLN("CLASS: WIFI CONNECTED...");
         if (_user_on_disconnected != NULL)
         {
             _user_on_disconnected("wifi: WiFi disconnected.");
         }
 
-        INFO_PRINTLN("RECONNECTING WIFI...");
         _connect();
     }
 }
@@ -67,22 +65,28 @@ void WiFiConnector::_connect()
     {
         if (_user_on_connecting != NULL)
         {
-            char buf[3];
-            itoa(WiFi.status(), buf, 10);
+            char buf[20];
+            if (WiFi.status() == WL_CONNECT_FAILED) {
+                strcpy(buf, "(4) WL_CONNECT_FAILED");
+            }
+            else if (WiFi.status() == WL_DISCONNECTED) {
+                strcpy(buf, "(6) WL_DISCONNECTED");
+            }
+            else {
+                strcpy(buf, "CODE: !");
+                itoa(WiFi.status(), buf+6, 10);
+                buf[7] = '\0';
+            }
             _user_on_connecting((void*) buf);
         }
 
-        DEBUG_PRINT(WiFi.status());
-        DEBUG_PRINTLN(" ");
+        WIFI_DEBUG_PRINT(WiFi.status());
+        WIFI_DEBUG_PRINTLN(" ");
 
-        INFO_PRINT(WiFi.status());
-        INFO_PRINTLN(" ");
         _retries++;
         delay(500);
     }
 
-    INFO_PRINTLN();
-    INFO_PRINTLN("CLASS: WIFI CONNECTED...");
 
     if (_user_on_connected != NULL)
     {

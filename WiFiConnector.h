@@ -6,33 +6,13 @@
 
 
 
-#ifdef DEBUG_MODE
-#ifndef DEBUG_PRINTER
-#define DEBUG_PRINTER Serial
-#endif
-#ifdef DEBUG_LEVEL_VERBOSE
-#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-
-#define INFO_PRINT(...) { }
-#define INFO_PRINTLN(...) { }
+#ifdef WIFI_DEBUG_MODE
+    #define WIFI_DEBUG_PRINTER Serial
+    #define WIFI_DEBUG_PRINT(...) { WIFI_DEBUG_PRINTER.print(__VA_ARGS__); }
+    #define WIFI_DEBUG_PRINTLN(...) { WIFI_DEBUG_PRINTER.println(__VA_ARGS__); }
 #else
-#define DEBUG_LEVEL_INFO
-#endif
-
-#ifdef DEBUG_LEVEL_INFO
-#define DEBUG_PRINT(...) {}
-#define DEBUG_PRINTLN(...) {}
-
-#define INFO_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-#define INFO_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
-#endif
-#else
-#define DEBUG_PRINT(...) {}
-#define DEBUG_PRINTLN(...) {}
-
-#define INFO_PRINT(...) { }
-#define INFO_PRINTLN(...) { }
+    #define WIFI_DEBUG_PRINT(...) { }
+    #define WIFI_DEBUG_PRINTLN(...) { }
 #endif
 
 // TYPES

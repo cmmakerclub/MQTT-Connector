@@ -126,6 +126,7 @@ void MqttConnector::_hook_config()
     MQTT_DEBUG_PRINTLN(topicSub);
 
     connOpts = new MQTT::Connect(clientId);
+    connOpts->set_will("WILL_TOPIC", channelId + _mac, 1, true);
     client = new PubSubClient(wclient);
   
     client->set_server(_mqtt_host, _mqtt_port);
@@ -175,7 +176,7 @@ void MqttConnector::doPublish()
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
         (*d)["sub_counter"] = _subscription_counter;     
-        (*d)["version"] = _version;                
+        (*d)["version"] = _version.c_str();                
 
 
         strcpy(jsonStrbuffer, "");

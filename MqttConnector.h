@@ -7,10 +7,11 @@
 #include "WiFiConnector.h"
 #include <functional>
 
-#if defined (DEBUG_MODE)
-    #ifndef MQTT_DEBUG_PRINTER
-        #define MQTT_DEBUG_PRINTER Serial
-    #endif
+
+#define MQTT_DEBUG_MODE
+
+#ifdef MQTT_DEBUG_MODE
+#define MQTT_DEBUG_PRINTER Serial
     #define MQTT_DEBUG_PRINT(...) { MQTT_DEBUG_PRINTER.print(__VA_ARGS__); }
     #define MQTT_DEBUG_PRINTLN(...) { MQTT_DEBUG_PRINTER.println(__VA_ARGS__); }
 #else
@@ -38,6 +39,7 @@ public:
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(const MqttConnector::Config)> cmmc_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
+    typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
 
     MqttConnector(const char* , uint16_t port = 1883);
@@ -59,6 +61,11 @@ public:
     {
         _user_hook_prepare_data = func;
         _publish_interval = publish_interval;
+    }
+
+    void set_after_prepare_data_hook(after_prepare_data_hook_t func)
+    {
+        _user_hook_after_prepare_data = func;
     }
 
     void  set_publish_data_hook(publish_data_hook_t func)
@@ -105,6 +112,12 @@ protected:
             MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
             _user_hook_prepare_data(root);
         }
+
+        if (_user_hook_after_prepare_data != NULL)
+        {
+            MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
+            _user_hook_after_prepare_data(root);
+        }
         // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
@@ -119,9 +132,12 @@ protected:
 
 private:
     WiFiClient wclient;
+
+    // hooks
     cmmc_config_t _user_hook_config = NULL;
     prepare_data_hook_t _user_hook_prepare_data = NULL;
     publish_data_hook_t _user_hook_publish_data = NULL;
+    after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
 
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
@@ -154,7 +170,7 @@ private:
     JsonObject *root;
     JsonObject *d;
     
-    String _version = "0.5";
+    String _version = "0.8";
 
 
     void _connect();
