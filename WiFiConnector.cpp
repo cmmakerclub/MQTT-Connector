@@ -69,6 +69,9 @@ void WiFiConnector::_connect()
             if (WiFi.status() == WL_CONNECT_FAILED) {
                 strcpy(buf, "(4) WL_CONNECT_FAILED");
             }
+            else if (WiFi.status() == WL_NO_SSID_AVAIL) {
+                strcpy(buf, "(1) WL_NO_SSID_AVAIL");
+            }
             else if (WiFi.status() == WL_DISCONNECTED) {
                 strcpy(buf, "(6) WL_DISCONNECTED");
             }
