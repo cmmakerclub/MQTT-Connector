@@ -103,6 +103,8 @@ protected:
         return clientId.c_str();
     }
 
+    
+
     void _prepare_data_hook()
     {
         MQTT_DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
@@ -115,7 +117,7 @@ protected:
 
         if (_user_hook_after_prepare_data != NULL)
         {
-            MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
+            MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
             _user_hook_after_prepare_data(root);
         }
         // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
@@ -138,6 +140,7 @@ private:
     prepare_data_hook_t _user_hook_prepare_data = NULL;
     publish_data_hook_t _user_hook_publish_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
+    void _clear_last_will(); 
 
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;

@@ -38,6 +38,12 @@ MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t conf
 
 }
 
+void MqttConnector::_clear_last_will() {
+    MQTT::Publish newpub("LWT", '\0', 0);
+    newpub.set_retain(true);
+    client->publish(newpub);
+}
+
 void MqttConnector::connect(PubSubClient::callback_t callback)
 {
     MQTT_DEBUG_PRINTLN("BEGIN Wrapper");
@@ -126,7 +132,7 @@ void MqttConnector::_hook_config()
     MQTT_DEBUG_PRINTLN(topicSub);
 
     connOpts = new MQTT::Connect(clientId);
-    connOpts->set_will("WILL_TOPIC", channelId + _mac, 1, true);
+    connOpts->set_will("LWT", channelId + _mac, 1, true);
     client = new PubSubClient(wclient);
   
     client->set_server(_mqtt_host, _mqtt_port);
@@ -172,6 +178,7 @@ void MqttConnector::doPublish()
     {
 
         _prepare_data_hook();
+
         (*d)["counter"] = ++counter;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
@@ -199,12 +206,16 @@ void MqttConnector::doPublish()
         newpub.set_retain(true);
 
         if(!client->publish(newpub)) {
+            MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
         }
 
-        MQTT_DEBUG_PRINT(dataPtr);
-        MQTT_DEBUG_PRINTLN(" PUBLISHED!");
+        _clear_last_will();
+
         _hook_after_publish(&dataPtr);
+
+        MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
+        MQTT_DEBUG_PRINTLN("====================================");
     }
 }
 
@@ -219,7 +230,7 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN(clientId);
 
 
-    client->set_max_retries(150);
+    // client->set_max_retries(150);
     while(!client->connect(*connOpts))
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
@@ -227,6 +238,10 @@ void MqttConnector::_connect()
     }
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
+    MQTT_DEBUG_PRINTLN("====================================");
+    MQTT_DEBUG_PRINTLN("====================================");
+
+    _clear_last_will();
 
     if (_user_callback != NULL)
     {

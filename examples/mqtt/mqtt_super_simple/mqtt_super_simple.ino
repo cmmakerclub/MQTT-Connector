@@ -24,13 +24,12 @@ void on_message_arrived(const MQTT::Publish& pub)
 
 void hook_prepare_data(JsonObject* root) {
    JsonObject& data = root->at("d");
-   data["myName"] = "OD-WIFI-XYZ-TEST";
+   data["myName"] = "SIMPLE_WILL";
 }
 
 void hook_after_prepare_data(JsonObject* root)
 {
     JsonObject& data = root->at("d");
-    data["myName"] = "NAT";
     //delete data["version"];
 }
 
