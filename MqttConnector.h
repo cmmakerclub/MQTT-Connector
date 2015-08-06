@@ -61,6 +61,7 @@ public:
     {
         _user_hook_prepare_data = func;
         _publish_interval = publish_interval;
+        _timer_set(&publish_timer, publish_interval);
     }
 
     void set_after_prepare_data_hook(after_prepare_data_hook_t func)
@@ -174,6 +175,17 @@ private:
     JsonObject *d;
     
     String _version = "0.8";
+    struct timer { int start, interval; };
+    struct timer publish_timer;
+    
+    int _timer_expired(struct timer *t) {
+        return (millis() - t->start) >= t->interval; 
+    }  
+
+    void _timer_set(struct timer *t, int interval) { 
+        t->interval = interval; 
+        t->start = millis();
+    }
 
 
     void _connect();

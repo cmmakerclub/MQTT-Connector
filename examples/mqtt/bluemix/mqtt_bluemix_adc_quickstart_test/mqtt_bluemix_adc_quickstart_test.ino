@@ -44,22 +44,27 @@ void init_hardware()
 void init_wifi()
 {
     wifi = new WiFiConnector(ssid, pass);
-
+    
     wifi->on_connecting([](const void* message)
     {
-        Serial.println((char*) message);
-        Serial.println("connecting...");  
+        Serial.print("connecting ");
+        Serial.println ((char*)message);
     });
-
     wifi->on_connected([](const void* message)
     {
-        Serial.println((char*) message);
-        Serial.println("WiFi connected");  
-        Serial.println("IP address: ");
-        Serial.println(WiFi.localIP());
+        Serial.print ("WIFI CONECTED: ");
+        Serial.println ((char*)message);
+    });
+    wifi->on_disconnected([](const void* message)
+    {
+        Serial.print ("WIFI DISCONECTED: ");
+        Serial.print ("WIFI DISCONECTED: ");
+        Serial.print ("WIFI DISCONECTED: ");
+        Serial.println ((char*)message);
     });
 
     wifi->connect();
+
 }
 
 void init_mqtt()
@@ -69,6 +74,11 @@ void init_mqtt()
 
     mqtt = new MqttConnector(url.c_str()  , 1883, hook_configuration);
     mqtt->set_prepare_data_hook(hook_prepare_data, 2000);
+    mqtt->set_after_prepare_data_hook([] (JsonObject *root) -> void {
+        JsonObject& data = root->at("d");
+        //delete data["version"];
+    });
+
     mqtt->set_publish_data_hook(hook_publish_data);
 
     mqtt->connect();    

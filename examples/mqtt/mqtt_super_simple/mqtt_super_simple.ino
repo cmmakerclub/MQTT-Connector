@@ -7,6 +7,8 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
+#include <pt.h>
+
 
 const char* ssid     = "NAT.WRTNODE";
 const char* pass     = "devicenetwork";
@@ -71,7 +73,7 @@ void init_wifi()
 
 void init_mqtt()
 {
-    mqtt = new MqttConnector("cmmc.xyz");
+    mqtt = new MqttConnector("mqtt.tespa.io");
     mqtt->set_prepare_data_hook(hook_prepare_data, 5000);
     mqtt->set_after_prepare_data_hook(hook_after_prepare_data);
     mqtt->connect(on_message_arrived);

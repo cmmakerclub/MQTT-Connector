@@ -174,9 +174,11 @@ void MqttConnector::doPublish()
 {
     static long counter = 0;
     char *dataPtr = NULL;
-    if (millis() - prev_millis > _publish_interval && client->connected())
+
+    if (client->connected() && _timer_expired(&publish_timer))
     {
 
+        _timer_set(&publish_timer, _publish_interval);
         _prepare_data_hook();
 
         (*d)["counter"] = ++counter;
@@ -210,7 +212,7 @@ void MqttConnector::doPublish()
             return;
         }
 
-        _clear_last_will();
+        // _clear_last_will();
 
         _hook_after_publish(&dataPtr);
 
@@ -230,7 +232,7 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN(clientId);
 
 
-    // client->set_max_retries(150);
+    client->set_max_retries(150);
     while(!client->connect(*connOpts))
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
@@ -241,7 +243,7 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
 
-    _clear_last_will();
+    // _clear_last_will();
 
     if (_user_callback != NULL)
     {
