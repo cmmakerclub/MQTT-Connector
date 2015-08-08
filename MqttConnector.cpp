@@ -17,7 +17,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _mqtt_host = String(host);
     _mqtt_port = port;
 
-    connOpts = NULL;
+    _config.connOpts = NULL;
     client = NULL;
     
     _subscribe_object = NULL;
@@ -78,36 +78,26 @@ void MqttConnector::connect(PubSubClient::callback_t callback)
 
 void MqttConnector::_hook_config()
 {
-    _config.connOpts = connOpts;
-    // _config.client = client;
-
-    _config.clientId  = &(this->clientId);
-    _config.topicSub  = &(this->topicSub);
-    _config.topicPub  = &(this->topicPub);
-    _config.channelId = &(this->channelId);
-    _config.username  = &(this->_username);
-    _config.password  = &(this->_password);
-
 
     if (_user_hook_config != NULL)
     {
         MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
-        _user_hook_config(_config);
-        if (topicPub.length() == 0 )
+        _user_hook_config(&_config);
+        if (_config.topicPub.length() == 0 )
         {
-            topicPub = channelId + _mac + String("/status");
+            _config.topicPub = _config.channelId + _mac + String("/status");
         }
 
-        if (topicSub.length() == 0)
+        if (_config.topicSub.length() == 0)
         {
-            topicSub = channelId + _mac + String("/command");
+            _config.topicSub = _config.channelId + _mac + String("/command");
         }
 
     }
     else
     {
-        topicSub = channelId + _mac + String("/command");
-        topicPub = channelId + _mac + String("/status");
+        _config.topicSub = _config.channelId + _mac + String("/command");
+        _config.topicPub = _config.channelId + _mac + String("/status");
         MQTT_DEBUG_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
     }
 
@@ -116,7 +106,7 @@ void MqttConnector::_hook_config()
     if (_user_callback != NULL)
     {
         MQTT_DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
-        MQTT_DEBUG_PRINTLN(topicSub)
+        MQTT_DEBUG_PRINTLN(_config.topicSub)
     }
     else
     {
@@ -125,25 +115,26 @@ void MqttConnector::_hook_config()
 
     MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
-    MQTT_DEBUG_PRINTLN(topicPub)
+    MQTT_DEBUG_PRINTLN(_config.topicPub)
 
     MQTT_DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
 
-    MQTT_DEBUG_PRINTLN(topicSub);
+    MQTT_DEBUG_PRINTLN(_config.topicSub);
 
-    connOpts = new MQTT::Connect(clientId);
-    connOpts->set_will("LWT", channelId + _mac, 1, true);
-    client = new PubSubClient(wclient);
+    _config.connOpts = new MQTT::Connect(_config.clientId);
+    // connOpts->set_will("LWT", channelId + _mac, 1, true);
+    _config.client = new PubSubClient(wclient);
+    client = _config.client;
   
     client->set_server(_mqtt_host, _mqtt_port);
-    connOpts->set_auth(_username, _password);
+    _config.connOpts->set_auth(_config.username, _config.password);
 }
 
 void MqttConnector::sync_pub(String payload)
 {
     MQTT_DEBUG_PRINT("SYNC PUB.... -> ");
     MQTT_DEBUG_PRINTLN(payload.c_str());
-    MQTT::Publish newpub(topicSub, (uint8_t*)payload.c_str(), payload.length());
+    MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
     client->publish(newpub);
 }
@@ -195,7 +186,7 @@ void MqttConnector::doPublish()
 
         MQTT_DEBUG_PRINTLN("__DO PUBLISH ");
         MQTT_DEBUG_PRINT("______________ TOPIC: -->");
-        MQTT_DEBUG_PRINTLN(topicPub);
+        MQTT_DEBUG_PRINTLN(_config.topicPub);
         MQTT_DEBUG_PRINT("______________ CONTENT: -->");
         MQTT_DEBUG_PRINTLN(jsonStrbuffer);
 
@@ -204,7 +195,7 @@ void MqttConnector::doPublish()
             _user_hook_publish_data(dataPtr);
         }
 
-        MQTT::Publish newpub(topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
+        MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
         newpub.set_retain(true);
 
         if(!client->publish(newpub)) {
@@ -229,11 +220,11 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINT("PORT: ");
     MQTT_DEBUG_PRINTLN(_mqtt_port);
     MQTT_DEBUG_PRINT("clientId: ");
-    MQTT_DEBUG_PRINTLN(clientId);
+    MQTT_DEBUG_PRINTLN(_config.clientId);
 
 
     client->set_max_retries(150);
-    while(!client->connect(*connOpts))
+    while(!client->connect(*(_config.connOpts)))
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
         delay(100);
@@ -248,9 +239,9 @@ void MqttConnector::_connect()
     if (_user_callback != NULL)
     {
         MQTT_DEBUG_PRINT("__SUBSCRIBING... ->");
-        MQTT_DEBUG_PRINTLN(topicSub);
+        MQTT_DEBUG_PRINTLN(_config.topicSub);
         delete _subscribe_object;
-        _subscribe_object = new MQTT::Subscribe(topicSub);
+        _subscribe_object = new MQTT::Subscribe(_config.topicSub);
         if (client->subscribe(*_subscribe_object)) {
             _subscription_counter++;
         }
@@ -259,7 +250,7 @@ void MqttConnector::_connect()
         }
 
         MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
-        MQTT_DEBUG_PRINTLN(topicSub);
+        MQTT_DEBUG_PRINTLN(_config.topicSub);
         
     }
     else
@@ -271,10 +262,10 @@ void MqttConnector::_connect()
 
 MqttConnector::~MqttConnector()
 {
-    delete connOpts;
-    delete client;
+    delete _config.connOpts;
+    delete _config.client;
     delete _subscribe_object;
-    connOpts = NULL;
-    client = NULL;
+    _config.connOpts = NULL;
+    _config.client = NULL;
     _subscribe_object = NULL;
 }

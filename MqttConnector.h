@@ -26,18 +26,18 @@ public:
     {
         MQTT::Connect *connOpts;
         PubSubClient *client;
-        String* clientId;
-        String* channelId;
-        String* topicSub;
-        String* topicPub;
-        String* username;
-        String* password;
+        String clientId;
+        String channelId;
+        String topicSub;
+        String topicPub;
+        String username;
+        String password;
     } Config;
 
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
-    typedef std::function<void(const MqttConnector::Config)> cmmc_config_t;
+    typedef std::function<void(const MqttConnector::Config* )> cmmc_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
@@ -79,7 +79,7 @@ public:
 protected:
     void _set_default_client_id()
     {
-        clientId = ESP.getChipId();
+        _config.clientId = ESP.getChipId();
 
         uint8_t mac[6];
         WiFi.macAddress(mac);
@@ -94,14 +94,14 @@ protected:
         MQTT_DEBUG_PRINT("MAC ADDR: ");
         MQTT_DEBUG_PRINTLN(result);
 
-        channelId = "esp8266/";
+        _config.channelId = "esp8266/";
         _mac = result;
 
     }
 
     const char* getClientId()
     {
-        return clientId.c_str();
+        return _config.clientId.c_str();
     }
 
     
@@ -141,29 +141,21 @@ private:
     prepare_data_hook_t _user_hook_prepare_data = NULL;
     publish_data_hook_t _user_hook_publish_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
+    PubSubClient::callback_t _user_callback = NULL;
     void _clear_last_will(); 
 
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
+
     Config _config;
-
-    String clientId = "";
-    String topicSub = "";
-    String topicPub = "";
-    String channelId = "";
-
-    String _username = "";
-    String _password = "";
     String _mac = "";
 
     unsigned int _subscription_counter = 0;
     int _publish_interval = 3000;    
 
-    MQTT::Connect *connOpts = NULL;
-    PubSubClient *client = NULL;
     MQTT::Subscribe *_subscribe_object;
+    MQTT::Publish *_publish_object;
 
-    PubSubClient::callback_t _user_callback = NULL;
 
     unsigned long prev_millis;
 
@@ -173,8 +165,10 @@ private:
     char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
+    PubSubClient *client;
     
     String _version = "0.8";
+
     struct timer { int start, interval; };
     struct timer publish_timer;
     
