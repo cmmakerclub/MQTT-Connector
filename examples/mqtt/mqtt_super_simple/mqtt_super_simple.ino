@@ -30,19 +30,19 @@ void init_wifi()
 {
   wifi = new WiFiConnector(ssid, pass);
 
-  wifi->on_connecting([](const void* message)
+  wifi->on_connecting([&](const void* message)
   {
     Serial.print("connecting ");
     Serial.println ((char*)message);
   });
 
-  wifi->on_connected([](const void* message)
+  wifi->on_connected([&](const void* message)
   {
     Serial.print ("WIFI CONECTED: ");
     Serial.println ((char*)message);
   });
 
-  wifi->on_disconnected([](const void* message)
+  wifi->on_disconnected([&](const void* message)
   {
     Serial.print ("WIFI DISCONECTED: ");
     Serial.print ("WIFI DISCONECTED: ");
@@ -57,17 +57,23 @@ void init_wifi()
 void init_mqtt()
 {
   mqtt = new MqttConnector("cmmc.xyz");
-  mqtt->set_prepare_data_hook([] (JsonObject * root) -> void {
-    JsonObject& data = root->at("d");
-    data["myName"] = "SIMPLE_WILL";
-  }, 15000);
+  // mqtt = new MqttConnector("mqtt.tespa.io");
 
-  mqtt->set_after_prepare_data_hook([](JsonObject * root) -> void {
+  mqtt->prepare_data([&](JsonObject * root) -> void {
+    JsonObject& data = root->at("d");
+    data["myName"] = "NAT";
+  }, 8500);
+
+  mqtt->prepare_subscribe([&](MQTT::Subscribe *sub) -> void {
+    sub->add_topic("HELLO");
+  });
+
+  mqtt->after_prepare_data([&](JsonObject * root) -> void {
     JsonObject& data = root->at("d");
     //delete data["version"];
   });
  
-  mqtt->on_message([](const MQTT::Publish &pub) -> void {
+  mqtt->on_message([&](const MQTT::Publish &pub) -> void {
     Serial.print("ON MESSAGE: ");
     Serial.print(pub.topic());
     Serial.print(" => ");

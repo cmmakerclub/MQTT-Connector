@@ -9,6 +9,7 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
     };
 
     init_config(host, port);
+
     MQTT_DEBUG_PRINTLN("----------- Wrapper CONSTRUCTOR ---------");
     MQTT_DEBUG_PRINT(_mqtt_host);
     MQTT_DEBUG_PRINT(" - ");
@@ -27,6 +28,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     client = NULL;
     
     _subscribe_object = NULL;
+    _subscribe_object = new MQTT::Subscribe();
 
     JsonObject& r = jsonBuffer.createObject();
     JsonObject& d = jsonBuffer.createObject();
@@ -122,6 +124,7 @@ void MqttConnector::sync_pub(String payload)
 {
     MQTT_DEBUG_PRINT("SYNC PUB.... -> ");
     MQTT_DEBUG_PRINTLN(payload.c_str());
+
     MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
     client->publish(newpub);
@@ -146,8 +149,6 @@ void MqttConnector::loop(WiFiConnector *wifiHelper)
     wifiHelper->loop();
     this->loop();
 }
-
-
 
 void MqttConnector::doPublish()
 {
@@ -212,11 +213,17 @@ void MqttConnector::_connect()
 
 
     client->set_max_retries(150);
+    bool flag = true;
 
-    while(!client->connect(*(_config.connOpts)))
+    while(!client->connect(*(_config.connOpts)) && flag);
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
-        delay(100);
+        if (_user_hook_connecting) {
+            _user_hook_connecting(&flag);
+        }
+        else {
+            delay(100);
+        }
     }
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
@@ -228,13 +235,18 @@ void MqttConnector::_connect()
     if (_on_message_arrived != NULL)
     {
         MQTT_DEBUG_PRINT("__SUBSCRIBING... ->");
-        MQTT_DEBUG_PRINTLN(_config.topicSub);
-        delete _subscribe_object;
-        _subscribe_object = new MQTT::Subscribe(_config.topicSub);
+
+        if (_user_hook_prepare_subscribe) {
+            _user_hook_prepare_subscribe(_subscribe_object);
+        }
+
+        _subscribe_object->add_topic(_config.topicSub);
+
         if (client->subscribe(*_subscribe_object)) {
             _subscription_counter++;
         }
         else {
+            // goto loop and recheck connectiviy
             return;
         }
 

@@ -40,7 +40,9 @@ public:
     typedef std::function<void(const MqttConnector::Config* )> cmmc_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
+    typedef std::function<void(bool* )> connecting_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
+    typedef std::function<void(MQTT::Subscribe*)> prepare_subscribe_hook_t;
 
     MqttConnector(const char* , uint16_t port = 1883);
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
@@ -52,25 +54,32 @@ public:
     void init_config(const char*, uint16_t);
     void sync_pub(String payload);
     void connect();
+
     void on_message(PubSubClient::callback_t callback = NULL);
+
     void set_configuration_hook(cmmc_config_t func)
     {
         _user_hook_config = func;
     }
     
-    void set_prepare_data_hook(prepare_data_hook_t func, unsigned long publish_interval = 3000)
+    void prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 3000)
     {
         _user_hook_prepare_data = func;
         _publish_interval = publish_interval;
         _timer_set(&publish_timer, publish_interval);
     }
 
-    void set_after_prepare_data_hook(after_prepare_data_hook_t func)
+    void after_prepare_data(after_prepare_data_hook_t func)
     {
         _user_hook_after_prepare_data = func;
     }
 
-    void  set_publish_data_hook(publish_data_hook_t func)
+    void prepare_subscribe(prepare_subscribe_hook_t func)
+    {
+        _user_hook_prepare_subscribe = func;
+    }
+
+    void set_publish_data_hook(publish_data_hook_t func)
     {
         _user_hook_publish_data = func;
     }
@@ -105,8 +114,6 @@ protected:
         return _config.clientId.c_str();
     }
 
-    
-
     void _prepare_data_hook()
     {
         MQTT_DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
@@ -138,13 +145,17 @@ private:
     WiFiClient wclient;
 
     // hooks
-    cmmc_config_t _user_hook_config = NULL;
-    prepare_data_hook_t _user_hook_prepare_data = NULL;
-    publish_data_hook_t _user_hook_publish_data = NULL;
+    cmmc_config_t             _user_hook_config = NULL;
+    prepare_subscribe_hook_t  _user_hook_prepare_subscribe = NULL;
+    prepare_data_hook_t       _user_hook_prepare_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
+
+    publish_data_hook_t       _user_hook_publish_data = NULL;
+    connecting_hook_t         _user_hook_connecting = NULL;
 
     PubSubClient::callback_t _on_message_arrived = NULL;
     PubSubClient::callback_t _user_on_message_arrived = NULL;
+
     void _clear_last_will(); 
 
     String _mqtt_host = "";
@@ -157,7 +168,7 @@ private:
     int _publish_interval = 3000;    
 
     MQTT::Subscribe *_subscribe_object;
-    MQTT::Publish *_publish_object;
+    MQTT::Publish   *_publish_object;
 
 
     unsigned long prev_millis;
@@ -170,7 +181,7 @@ private:
     JsonObject *d;
     PubSubClient *client;
     
-    String _version = "0.8";
+    String _version = "0.9";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
