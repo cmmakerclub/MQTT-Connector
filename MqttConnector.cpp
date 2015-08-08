@@ -2,6 +2,12 @@
 
 MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
+    _on_message_arrived = [&](const MQTT::Publish& pub) {
+        if (_user_on_message_arrived) {
+            _user_on_message_arrived(pub);
+        }
+    };
+
     init_config(host, port);
     MQTT_DEBUG_PRINTLN("----------- Wrapper CONSTRUCTOR ---------");
     MQTT_DEBUG_PRINT(_mqtt_host);
@@ -35,7 +41,6 @@ MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t conf
 {
     init_config(host, port);
     _user_hook_config = config_hook;
-
 }
 
 void MqttConnector::_clear_last_will() {
@@ -44,32 +49,26 @@ void MqttConnector::_clear_last_will() {
     client->publish(newpub);
 }
 
-void MqttConnector::connect(PubSubClient::callback_t callback)
-{
-    MQTT_DEBUG_PRINTLN("BEGIN Wrapper");
-
-    _set_default_client_id();
-
-    _hook_config();
-
+void MqttConnector::on_message(PubSubClient::callback_t callback) {
     if (callback != NULL)
     {
         MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
-        _user_callback = callback;
-
-        client->set_callback([&](const MQTT::Publish& pub)
-        {
-            if (_user_callback != NULL)
-            {
-                MQTT_DEBUG_PRINTLN("CALLING USER SUBSCRIPTION CALLBACK...");
-                _user_callback(pub);
-            }
-        });
+        _user_on_message_arrived = callback;
     }
     else
     {
         MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
     }
+}
+
+
+void MqttConnector::connect()
+{
+    MQTT_DEBUG_PRINTLN("BEGIN Wrapper");
+
+
+    _set_default_client_id();
+    _hook_config();
 
     _connect();
 
@@ -101,18 +100,6 @@ void MqttConnector::_hook_config()
         MQTT_DEBUG_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
     }
 
-
-
-    if (_user_callback != NULL)
-    {
-        MQTT_DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
-        MQTT_DEBUG_PRINTLN(_config.topicSub)
-    }
-    else
-    {
-    }
-
-
     MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
     MQTT_DEBUG_PRINTLN(_config.topicPub)
@@ -127,6 +114,7 @@ void MqttConnector::_hook_config()
     client = _config.client;
   
     client->set_server(_mqtt_host, _mqtt_port);
+    client->set_callback(_on_message_arrived);
     _config.connOpts->set_auth(_config.username, _config.password);
 }
 
@@ -224,6 +212,7 @@ void MqttConnector::_connect()
 
 
     client->set_max_retries(150);
+
     while(!client->connect(*(_config.connOpts)))
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
@@ -236,7 +225,7 @@ void MqttConnector::_connect()
 
     // _clear_last_will();
 
-    if (_user_callback != NULL)
+    if (_on_message_arrived != NULL)
     {
         MQTT_DEBUG_PRINT("__SUBSCRIBING... ->");
         MQTT_DEBUG_PRINTLN(_config.topicSub);

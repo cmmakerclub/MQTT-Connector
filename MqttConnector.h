@@ -51,7 +51,8 @@ public:
     void loop(WiFiConnector *);    
     void init_config(const char*, uint16_t);
     void sync_pub(String payload);
-    void connect(PubSubClient::callback_t callback = NULL);
+    void connect();
+    void on_message(PubSubClient::callback_t callback = NULL);
     void set_configuration_hook(cmmc_config_t func)
     {
         _user_hook_config = func;
@@ -141,7 +142,9 @@ private:
     prepare_data_hook_t _user_hook_prepare_data = NULL;
     publish_data_hook_t _user_hook_publish_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
-    PubSubClient::callback_t _user_callback = NULL;
+
+    PubSubClient::callback_t _on_message_arrived = NULL;
+    PubSubClient::callback_t _user_on_message_arrived = NULL;
     void _clear_last_will(); 
 
     String _mqtt_host = "";
