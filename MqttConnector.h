@@ -37,7 +37,7 @@ public:
 
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
-    typedef std::function<void(const MqttConnector::Config* )> cmmc_config_t;
+    typedef std::function<void(MqttConnector::Config* )> cmmc_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
     typedef std::function<void(bool* )> connecting_hook_t;
@@ -58,6 +58,11 @@ public:
     void on_message(PubSubClient::callback_t callback = NULL);
 
     void set_configuration_hook(cmmc_config_t func)
+    {
+        _user_hook_config = func;
+    }
+
+    void prepare_configuration(cmmc_config_t func)
     {
         _user_hook_config = func;
     }
@@ -92,14 +97,8 @@ protected:
         _config.clientId = ESP.getChipId();
 
         uint8_t mac[6];
-        WiFi.macAddress(mac);
-        String result;
-        for (int i = 0; i < 6; ++i)
-        {
-            result += String(mac[i], 16);
-            if (i < 5)
-                result += ':';
-        }
+        String result = WiFi.macAddress();
+        result.toLowerCase();
 
         MQTT_DEBUG_PRINT("MAC ADDR: ");
         MQTT_DEBUG_PRINTLN(result);

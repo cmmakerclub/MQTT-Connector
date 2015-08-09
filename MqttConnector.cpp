@@ -166,6 +166,7 @@ void MqttConnector::doPublish()
         (*d)["seconds"] = millis()/1000;
         (*d)["sub_counter"] = _subscription_counter;     
         (*d)["version"] = _version.c_str();                
+        (*d)["myName"] = _mac.c_str();
 
 
         strcpy(jsonStrbuffer, "");
@@ -232,27 +233,23 @@ void MqttConnector::_connect()
 
     // _clear_last_will();
 
-    if (_on_message_arrived != NULL)
+    if (_user_hook_prepare_subscribe != NULL)
     {
-        MQTT_DEBUG_PRINT("__SUBSCRIBING... ->");
-
-        if (_user_hook_prepare_subscribe) {
-            _user_hook_prepare_subscribe(_subscribe_object);
-        }
+        MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
+        _user_hook_prepare_subscribe(_subscribe_object);
+        MQTT_DEBUG_PRINTLN("CHECK IF __SUBSCRIBING... ->");
 
         _subscribe_object->add_topic(_config.topicSub);
-
+        MQTT_DEBUG_PRINTLN("++TRY SUBSCRIBING ++");
         if (client->subscribe(*_subscribe_object)) {
             _subscription_counter++;
+            MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
+            MQTT_DEBUG_PRINTLN(_config.topicSub);
         }
         else {
             // goto loop and recheck connectiviy
             return;
         }
-
-        MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
-        MQTT_DEBUG_PRINTLN(_config.topicSub);
-        
     }
     else
     {
