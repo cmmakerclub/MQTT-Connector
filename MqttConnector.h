@@ -180,7 +180,7 @@ private:
     JsonObject *d;
     PubSubClient *client;
     
-    String _version = "0.9";
+    String _version = "0.10";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
