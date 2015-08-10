@@ -9,6 +9,12 @@
 
 #include <pt.h>
 
+#ifdef ESP8266
+extern "C" {
+#include "user_interface.h"
+}
+#endif
+
 
 const char* ssid     = "NAT.WRTNODE";
 const char* pass     = "devicenetwork";
@@ -60,7 +66,7 @@ void init_mqtt()
 
   mqtt = new MqttConnector("mqtt.tespa.io");
   mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
-    
+
   });
 
   mqtt->prepare_configuration(NULL);
@@ -69,11 +75,12 @@ void init_mqtt()
     JsonObject& data = root->at("d");
     // data["myName"] = "0x001";
     data["adc"] = analogRead(A0);
+    data["sdk"] = system_get_sdk_version();
   }, 1500);
 
 
   mqtt->prepare_subscribe(NULL);
-  mqtt->prepare_subscribe([&](MQTT::Subscribe *sub) -> void {
+  mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
     // (sub)->add_topic("HELLO");
   });
 
