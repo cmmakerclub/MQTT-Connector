@@ -84,16 +84,6 @@ void MqttConnector::_hook_config()
     {
         MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
         _user_hook_config(&_config);
-        if (_config.topicPub.length() == 0 )
-        {
-            _config.topicPub = _config.channelId + _mac + String("/status");
-        }
-
-        if (_config.topicSub.length() == 0)
-        {
-            _config.topicSub = _config.channelId + _mac + String("/command");
-        }
-
     }
     else
     {
@@ -163,6 +153,8 @@ void MqttConnector::doPublish()
         _prepare_data_hook();
 
         String flashId = String(ESP.getFlashChipId(), HEX);
+        String chipId = String(ESP.getChipId(), HEX);
+        // flashId.toUpperCase(); 
 
         (*d)["counter"] = ++counter;
         (*d)["heap"] = ESP.getFreeHeap();
@@ -174,9 +166,11 @@ void MqttConnector::doPublish()
                        '.' + String(ip[2]) + '.' + String(ip[3]);
         (*d)["flash_id"] = flashId.c_str();
         (*d)["flash_size"] = ESP.getFlashChipSize();
+        (*d)["chip_id"] = chipId.c_str();;
         (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
 
+        _after_prepare_data_hook();
 
 
         strcpy(jsonStrbuffer, "");
@@ -204,8 +198,6 @@ void MqttConnector::doPublish()
 
         // _clear_last_will();
 
-        _hook_after_publish(&dataPtr);
-
         MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
         MQTT_DEBUG_PRINTLN("====================================");
     }
@@ -213,13 +205,6 @@ void MqttConnector::doPublish()
 
 void MqttConnector::_connect()
 {
-    MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
-    MQTT_DEBUG_PRINT("HOST: ");
-    MQTT_DEBUG_PRINTLN(_mqtt_host);
-    MQTT_DEBUG_PRINT("PORT: ");
-    MQTT_DEBUG_PRINTLN(_mqtt_port);
-    MQTT_DEBUG_PRINT("clientId: ");
-    MQTT_DEBUG_PRINTLN(_config.clientId);
 
 
     client->set_max_retries(150);
@@ -232,9 +217,18 @@ void MqttConnector::_connect()
             _user_hook_connecting(&flag);
         }
         else {
+            yield();
             delay(100);
         }
     }
+
+    MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
+    MQTT_DEBUG_PRINT("HOST: ");
+    MQTT_DEBUG_PRINTLN(_mqtt_host);
+    MQTT_DEBUG_PRINT("PORT: ");
+    MQTT_DEBUG_PRINTLN(_mqtt_port);
+    MQTT_DEBUG_PRINT("clientId: ");
+    MQTT_DEBUG_PRINTLN(_config.clientId);
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");

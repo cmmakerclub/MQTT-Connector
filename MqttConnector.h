@@ -57,11 +57,6 @@ public:
 
     void on_message(PubSubClient::callback_t callback = NULL);
 
-    void set_configuration_hook(cmmc_config_t func)
-    {
-        _user_hook_config = func;
-    }
-
     void prepare_configuration(cmmc_config_t func)
     {
         _user_hook_config = func;
@@ -108,14 +103,8 @@ protected:
 
     }
 
-    const char* getClientId()
-    {
-        return _config.clientId.c_str();
-    }
-
     void _prepare_data_hook()
     {
-        MQTT_DEBUG_PRINTLN("__CALL BEFORE PUBLISH DATA");
 
         if (_user_hook_prepare_data != NULL)
         {
@@ -123,13 +112,19 @@ protected:
             _user_hook_prepare_data(root);
         }
 
+    }
+
+    void _after_prepare_data_hook()
+    {
         if (_user_hook_after_prepare_data != NULL)
         {
             MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
             _user_hook_after_prepare_data(root);
         }
+        
         // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
     }
+
 
     void _hook_after_publish(char** ptr)
     {
