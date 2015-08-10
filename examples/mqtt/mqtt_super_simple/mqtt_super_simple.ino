@@ -58,54 +58,32 @@ void init_wifi()
 void init_mqtt()
 {
 
-    String organization = String("quickstart");
-    String url = organization + ".messaging.internetofthings.ibmcloud.com";
-    // mqtt = new MqttConnector(url.c_str());
-    mqtt = new MqttConnector("cmmc.xyz");
-  // mqtt = new MqttConnector("mqtt.tespa.io");
-
-
-
-  mqtt->prepare_configuration([&](MqttConnector::Config *config) -> void {
-    String macAddress = WiFi.macAddress();
-    macAddress.toLowerCase();
-
-    config->clientId  = String("d:quickstart:cmmakerclub.com:");
-    config->clientId += macAddress;
-    config->topicPub  = "iot-2/evt/status/fmt/json";
-    String url  = String("https://quickstart.internetofthings.");
-           url += "ibmcloud.com/#/device/"+ macAddress +"/sensor/";
-
-    Serial.println(url);
-
+  mqtt = new MqttConnector("mqtt.tespa.io");
+  mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
+    
   });
 
   mqtt->prepare_configuration(NULL);
 
-  mqtt->prepare_data([&](JsonObject *root) -> void {
+  mqtt->prepare_data([&](JsonObject * root) -> void {
     JsonObject& data = root->at("d");
-     data["myName"] = "0x001";
-     data["adc"] = analogRead(A0);
+    // data["myName"] = "0x001";
+    data["adc"] = analogRead(A0);
   }, 1500);
 
-  // mqtt->prepare_subscribe(NULL);
 
+  mqtt->prepare_subscribe(NULL);
   mqtt->prepare_subscribe([&](MQTT::Subscribe *sub) -> void {
     // (sub)->add_topic("HELLO");
-    // Serial.println("WHAT?");
   });
 
-  // mqtt->manipulate_subscribe([&](MQTT::Subscribe **sub) -> void {
-  //   // (sub)->add_topic("HELLO");
-  //   // Serial.println("WHAT?");
-  // });
 
   mqtt->after_prepare_data([&](JsonObject * root) -> void {
     JsonObject& data = root->at("d");
     //delete data["version"];
   });
- 
-  mqtt->on_message([&](const MQTT::Publish &pub) -> void {
+
+  mqtt->on_message([&](const MQTT::Publish & pub) -> void {
     Serial.print("ON MESSAGE: ");
     Serial.print(pub.topic());
     Serial.print(" => ");
