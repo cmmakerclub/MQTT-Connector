@@ -85,9 +85,8 @@ void WiFiConnector::_connect()
 
         WIFI_DEBUG_PRINT(WiFi.status());
         WIFI_DEBUG_PRINTLN(" ");
-
         _retries++;
-        delay(500);
+        yield();
     }
 
 

@@ -34,6 +34,7 @@ void init_wifi()
   {
     Serial.print("connecting ");
     Serial.println ((char*)message);
+    delay(500);
   });
 
   wifi->on_connected([&](const void* message)
@@ -83,13 +84,9 @@ void init_mqtt()
 
   mqtt->prepare_data([&](JsonObject *root) -> void {
     JsonObject& data = root->at("d");
-     data["myName"] = "NAT";
-     IPAddress ip = WiFi.localIP();
-     String ipStr = String(ip[0]) + '.' + String(ip[1]) + '.' + String(ip[2]) + '.' + String(ip[3]);
+     data["myName"] = "0x001";
      data["adc"] = analogRead(A0);
-     data["ip"] = ipStr.c_str();
-     data["RSSI"] = WiFi.RSSI();
-  }, 8500);
+  }, 1500);
 
   // mqtt->prepare_subscribe(NULL);
 

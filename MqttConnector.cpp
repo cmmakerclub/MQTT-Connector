@@ -159,14 +159,24 @@ void MqttConnector::doPublish()
     {
 
         _timer_set(&publish_timer, _publish_interval);
+
         _prepare_data_hook();
+
+        String flashId = String(ESP.getFlashChipId(), HEX);
 
         (*d)["counter"] = ++counter;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
         (*d)["sub_counter"] = _subscription_counter;     
         (*d)["version"] = _version.c_str();                
-        (*d)["myName"] = _mac.c_str();
+        IPAddress ip = WiFi.localIP();
+        String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
+                       '.' + String(ip[2]) + '.' + String(ip[3]);
+        (*d)["flash_id"] = flashId.c_str();
+        (*d)["flash_size"] = ESP.getFlashChipSize();
+        (*d)["ip"] = ipStr.c_str();
+        (*d)["rssi"] = WiFi.RSSI();
+
 
 
         strcpy(jsonStrbuffer, "");
@@ -187,7 +197,6 @@ void MqttConnector::doPublish()
 
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
         newpub.set_retain(true);
-
         if(!client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
