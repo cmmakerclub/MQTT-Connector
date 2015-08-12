@@ -65,6 +65,7 @@ void init_mqtt()
 {
 
   mqtt = new MqttConnector("mqtt.tespa.io");
+
   mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
 
   });
@@ -95,6 +96,11 @@ void init_mqtt()
     Serial.print(pub.topic());
     Serial.print(" => ");
     Serial.println(pub.payload_string());
+  });
+
+  mqtt->on_connecting([&](int count, bool * flag) {
+    Serial.print("CONNECTION: ");
+    Serial.println(count);
   });
 
   mqtt->connect();
