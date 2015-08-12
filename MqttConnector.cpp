@@ -210,14 +210,15 @@ void MqttConnector::_connect()
     client->set_max_retries(150);
     bool flag = true;
 
+    uint16_t times = 0;
     while(!client->connect(*(_config.connOpts)) && flag)
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
         if (_user_hook_connecting) {
-            _user_hook_connecting(&flag);
+            _user_hook_connecting(++times, &flag);
+            yield();
         }
         else {
-            yield();
             delay(100);
         }
     }

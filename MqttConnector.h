@@ -40,7 +40,7 @@ public:
     typedef std::function<void(MqttConnector::Config* )> cmmc_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
-    typedef std::function<void(bool* )> connecting_hook_t;
+    typedef std::function<void(int, bool*)> connecting_hook_t;
     typedef std::function<void(char* )> publish_data_hook_t;
     typedef std::function<void(MQTT::Subscribe*)> prepare_subscribe_hook_t;
 
@@ -62,6 +62,10 @@ public:
         _user_hook_config = func;
     }
     
+    void on_connecting(connecting_hook_t cb) {
+        _user_hook_connecting = cb;
+    }
+
     void prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 3000)
     {
         _user_hook_prepare_data = func;
@@ -100,6 +104,13 @@ protected:
 
         _config.channelId = "esp8266/";
         _mac = result;
+
+    }
+
+    void connecting_hook(int count, bool *flag) {
+        if (_user_hook_connecting != NULL) {
+            _user_hook_connecting(count, flag);
+        }
 
     }
 
