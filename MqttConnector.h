@@ -7,6 +7,12 @@
 #include "WiFiConnector.h"
 #include <functional>
 
+#ifdef ESP8266
+extern "C" {
+#include "user_interface.h"
+}
+#endif
+
 
 #define MQTT_DEBUG_MODE
 
@@ -32,6 +38,8 @@ public:
         String topicPub;
         String username;
         String password;
+        String mqttHost;
+        uint16_t mqttPort;
     } Config;
 
 
@@ -56,6 +64,7 @@ public:
     void connect();
 
     void on_message(PubSubClient::callback_t callback = NULL);
+    void on_published(PubSubClient::callback_t callback = NULL);
 
     void prepare_configuration(cmmc_config_t func)
     {
@@ -102,7 +111,7 @@ protected:
         MQTT_DEBUG_PRINT("MAC ADDR: ");
         MQTT_DEBUG_PRINTLN(result);
 
-        _config.channelId = "esp8266/";
+        _config.channelId = "esp8266";
         _mac = result;
 
     }
@@ -111,7 +120,6 @@ protected:
         if (_user_hook_connecting != NULL) {
             _user_hook_connecting(count, flag);
         }
-
     }
 
     void _prepare_data_hook()
@@ -160,6 +168,7 @@ private:
 
     PubSubClient::callback_t _on_message_arrived = NULL;
     PubSubClient::callback_t _user_on_message_arrived = NULL;
+    PubSubClient::callback_t _user_on_published = NULL;
 
     void _clear_last_will(); 
 

@@ -63,6 +63,19 @@ void MqttConnector::on_message(PubSubClient::callback_t callback) {
     }
 }
 
+void MqttConnector::on_published(PubSubClient::callback_t callback) {
+    if (callback != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
+        _user_on_published = callback;
+    }
+    else
+    {
+        MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
+    }
+}
+
+
 
 void MqttConnector::connect()
 {
@@ -80,16 +93,15 @@ void MqttConnector::connect()
 void MqttConnector::_hook_config()
 {
 
+    _config.topicSub = _config.channelId + String("/") + _mac + String("/command");
+    _config.topicPub = _config.channelId + String("/") + _mac + String("/status");
+    _config.mqttHost = _mqtt_host;
+    _config.mqttPort = _mqtt_port;
+
     if (_user_hook_config != NULL)
     {
         MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
         _user_hook_config(&_config);
-    }
-    else
-    {
-        _config.topicSub = _config.channelId + _mac + String("/command");
-        _config.topicPub = _config.channelId + _mac + String("/status");
-        MQTT_DEBUG_PRINTLN("HOOK CONFIG SKIPPED. USE DEFAULT!");
     }
 
     MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
@@ -157,9 +169,11 @@ void MqttConnector::doPublish()
         // flashId.toUpperCase(); 
 
         (*d)["counter"] = ++counter;
+        (*d)["myName"] = _mac.c_str();;
+        (*d)["id"] = _mac.c_str();;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
-        (*d)["sub_counter"] = _subscription_counter;     
+        (*d)["subscription"] = _subscription_counter;     
         (*d)["version"] = _version.c_str();                
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
@@ -167,6 +181,8 @@ void MqttConnector::doPublish()
         (*d)["flash_id"] = flashId.c_str();
         (*d)["flash_size"] = ESP.getFlashChipSize();
         (*d)["chip_id"] = chipId.c_str();;
+
+        (*d)["sdk"] = system_get_sdk_version();
         (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
 
@@ -195,10 +211,17 @@ void MqttConnector::doPublish()
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
         }
+        else {
+            MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
+            if (_user_on_published) {
+                _user_on_published(newpub);
+            }
+
+        }
 
         // _clear_last_will();
 
-        MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
+
         MQTT_DEBUG_PRINTLN("====================================");
     }
 }
