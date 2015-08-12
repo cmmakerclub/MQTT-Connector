@@ -4,6 +4,13 @@
 #include "ESP8266WiFi.h"
 #include <functional>
 
+#ifdef ESP8266
+extern "C" {
+#include "user_interface.h"
+}
+#endif
+
+
 
 
 #ifdef WIFI_DEBUG_MODE
@@ -34,6 +41,7 @@ public:
     typedef std::function<void(const void*)> wifi_callback_t;
 
     WiFiConnector(const char* ssid, const char* password);
+    WiFiConnector();
     ~WiFiConnector();
 
     void init_config(const char*, const char*);
@@ -43,10 +51,39 @@ public:
     void begin();
     void loop();
 
+    void smartconfig_check(uint8_t pin) {
+        pinMode(pin, INPUT_PULLUP);
+        long memo = millis();
+        if (digitalRead(pin) == LOW) {
+          while (digitalRead(pin) == LOW) {
+            if (millis() - memo > 2000) {
+                enter_smartconfig_mode();
+                break;
+            }
+            yield();
+          }
+        }
+    }
+
+    void enter_smartconfig_mode() {
+        _on_smartconfig_enter();
+
+        WIFI_DEBUG_PRINTLN("BEGIN SMART CONFIG" );
+        WiFi.beginSmartConfig();
+        while (!WiFi.smartConfigDone()) {
+            yield();
+            _on_smartconfig_doing();
+        }
+        _on_smartconfig_done();
+    }
+
     // CALLBACKS
     void on_disconnected(wifi_callback_t callback = NULL);
     void on_connected(wifi_callback_t callback = NULL);
     void on_connecting(wifi_callback_t callback = NULL);
+    void on_smartconfig_doing(wifi_callback_t callback = NULL);
+    void on_smartconfig_enter(wifi_callback_t callback = NULL);
+    void on_smartconfig_done(wifi_callback_t callback = NULL);
 
 protected:
 
@@ -58,10 +95,47 @@ private:
     wifi_callback_t _user_on_disconnected = NULL;
     wifi_callback_t _user_on_connected  = NULL;
     wifi_callback_t _user_on_connecting = NULL;
+    wifi_callback_t _user_on_smartconfig_enter = NULL;
+    wifi_callback_t _user_on_smartconfig_doing = NULL;
+    wifi_callback_t _user_on_smartconfig_done = NULL;    
 
     unsigned long _retries = 0;
     unsigned long prev_millis;
 
+    void _on_smartconfig_done() {
+        if (_user_on_smartconfig_done) {
+            _user_on_smartconfig_done((void*) "done");
+        }
+        WIFI_DEBUG_PRINTLN("CONFIG SUCCESS");
+        static struct station_config conf;
+        wifi_station_get_config(&conf);
+        const char* ssid = reinterpret_cast<const char*>(conf.ssid);
+        WIFI_DEBUG_PRINT("SSID (");
+        WIFI_DEBUG_PRINT(strlen(ssid));
+        WIFI_DEBUG_PRINT("): ");
+        WIFI_DEBUG_PRINTLN(ssid);
+
+        const char* passphrase = reinterpret_cast<const char*>(conf.password);
+        WIFI_DEBUG_PRINT("Passphrase (");
+        WIFI_DEBUG_PRINT(strlen(passphrase));
+        WIFI_DEBUG_PRINT("): ");
+        WIFI_DEBUG_PRINTLN(passphrase);
+
+        init_config(ssid, passphrase);
+    }
+
+    void _on_smartconfig_doing() {
+        if (_user_on_smartconfig_doing) {
+            _user_on_smartconfig_doing((void*) "doing");
+        }
+    }
+
+
+    void _on_smartconfig_enter() {
+        if (_user_on_smartconfig_enter) {
+            _user_on_smartconfig_enter((void*) "enter");
+        }
+    }
 
     void _connect();
 };
