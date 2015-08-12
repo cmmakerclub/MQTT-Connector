@@ -11,7 +11,7 @@
 #######################################
 
 begin 					KEYWORD2
-set_prepare_data_hook	KEYWORD2
+prepare_data	KEYWORD2
 set_configuration_hook	KEYWORD2
 set_publish_data_hook	KEYWORD2
 sync_pub				KEYWORD2

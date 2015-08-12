@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 
-#define MQTT_DEBUG_MODE
+// #define MQTT_DEBUG_MODE
 
 #ifdef MQTT_DEBUG_MODE
 #define MQTT_DEBUG_PRINTER Serial

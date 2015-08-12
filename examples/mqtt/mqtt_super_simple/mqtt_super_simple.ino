@@ -25,13 +25,14 @@ void init_hardware()
 void init_wifi()
 {
   // use flash memory ssid & smartconfig
+  // wifi = new WiFiConnector(ssid, password);
   wifi = new WiFiConnector();
 
-  // wifi = new WiFiConnector(ssid, password);
 
   wifi->on_connecting([&](const void* message)
   {
-    Serial.println("connecting ");
+    Serial.println("connecting: ");
+    Serial.println(wifi->get("ssid") + ", " + wifi->get("password"));
     // Serial.println ((char*)message);
     delay(500);
   });

@@ -2,37 +2,35 @@
 #define WIFI_DEBUG_MODE
 
 #include <DHT.h>
+#include "dht_helper.h"
 #include <WiFiConnector.h>
 #include <MqttConnector.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
-#include "dht_helper.h"
-
-#include <pt.h>
-
-#ifdef ESP8266
-extern "C" {
-#include "user_interface.h"
-}
-#endif
-
-
-const char* ssid     = "CMMC.91";
-const char* pass     = "guestnetwork";
 
 
 MqttConnector *mqtt;
 WiFiConnector *wifi;
 DHT *dht;
 
+
 void init_hardware()
 {
-
-  init_dht(&dht, DHTPIN, DHTTYPE);
   Serial.begin(9600);
   delay(10);
   Serial.println();
+
+  #define DHTPIN 12    // what pin we're connected to
+  #define DHTTYPE DHT22   // DHT 22  (AM2302)
+ 
+  pinMode(13, OUTPUT);
+  pinMode(14, OUTPUT);    
+  digitalWrite(13, HIGH);
+  digitalWrite(14, LOW);    
+
+  init_dht(&dht, DHTPIN, DHTTYPE);
+
   Serial.println("BEGIN");
   Serial.println("BEGIN");
   Serial.println("BEGIN");
@@ -40,82 +38,136 @@ void init_hardware()
 
 void init_wifi()
 {
-  wifi = new WiFiConnector(ssid, pass);
+  // use flash memory ssid & smartconfig
+  // wifi = new WiFiConnector(ssid, password);
+  wifi = new WiFiConnector();
+
 
   wifi->on_connecting([&](const void* message)
   {
-    Serial.print("connecting ");
-    Serial.println ((char*)message);
+    Serial.println("connecting: ");
+    Serial.println(wifi->get("ssid") + ", " + wifi->get("password"));
+    // Serial.println ((char*)message);
     delay(500);
   });
 
   wifi->on_connected([&](const void* message)
   {
-    Serial.print ("WIFI CONECTED: ");
-    Serial.println ((char*)message);
+    Serial.println("WIFI CONECTED: ");
+    // Print the IP address
+    Serial.println(WiFi.localIP());
+    // Serial.println ((char*)message);
   });
 
   wifi->on_disconnected([&](const void* message)
   {
-    Serial.print ("WIFI DISCONECTED: ");
-    Serial.print ("WIFI DISCONECTED: ");
-    Serial.print ("WIFI DISCONECTED: ");
-    Serial.println ((char*)message);
+    Serial.println("WIFI DISCONECTED.");
+    // Serial.println ((char*)message);
+  });
+
+  wifi->on_smartconfig_enter([&](const void* message)
+  {
+    Serial.println("ENTER SMARTCONFIG.");
+  });
+
+  wifi->on_smartconfig_done([&](const void* message)
+  {
+    Serial.println("SMARTCONFIG DONE.");
+  });
+
+  wifi->on_smartconfig_doing([&](const void* message)
+  {
+    // Serial.println("CONFIGURING WIFI..");
+    // delay(500);
   });
 
   wifi->connect();
 
 }
-
 void init_mqtt()
 {
 
-  mqtt = new MqttConnector("cmmc.xyz");
-
-  mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
-
-  });
-
-  mqtt->prepare_configuration(NULL);
-
-  mqtt->prepare_data([&](JsonObject * root) -> void {
-    JsonObject& data = root->at("d");
-    // data["myName"] = "0x001";
-    static float t_dht;
-    static float h_dht;
-
-    read_dht(dht, &t_dht, &h_dht);
-
-    data["tag"] = "cityview";
-    data["sdk"] = system_get_sdk_version();
-    data["temp"] = t_dht;
-    data["humid"] = h_dht;
-
-
-  }, 5000);
-
-
-  mqtt->prepare_subscribe(NULL);
-  mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
-    // (sub)->add_topic("HELLO");
-  });
-
-
-  mqtt->after_prepare_data([&](JsonObject * root) -> void {
-    JsonObject& data = root->at("d");
-    //delete data["version"];
-  });
+  mqtt = new MqttConnector("iot.eclipse.org");
 
   mqtt->on_message([&](const MQTT::Publish & pub) -> void {
     Serial.print("ON MESSAGE: ");
     Serial.print(pub.topic());
     Serial.print(" => ");
     Serial.println(pub.payload_string());
+    if (pub.payload_string() == "15") {
+      pinMode(15  , OUTPUT);
+      digitalWrite(15 , HIGH);
+    }
+    else {
+      pinMode(15  , OUTPUT);
+      digitalWrite(15 , LOW);
+    }
+  });
+
+  mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
+    Serial.println("=========================");
+    Serial.print("HOST: ");
+    Serial.print(config->mqttHost);
+
+    Serial.print(" PORT: ");
+    Serial.println(config->mqttPort);
+    Serial.println("=========================");
+
+    
+    Serial.print("__PUBLICATION TOPIC -> ");
+    Serial.println(config->topicPub);
+    Serial.print("__SUBSCRIPTION TOPIC -> ");
+    Serial.println(config->topicSub);    
+  });
+
+  mqtt->prepare_data([&](JsonObject * root) -> void {
+    JsonObject& data = root->at("d");
+    float t_dht;
+    float h_dht;
+
+
+    data["myName"] = "NAzT";
+    data["adc"] = analogRead(A0);
+    data["tag"] = "paris";
+    data["zone"] = "1";
+
+    if (read_dht(dht, &t_dht, &h_dht)) {
+      data["temp"] = t_dht;
+      data["humid"] = h_dht;
+    }
+
+  }, 5000);
+
+
+  mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
+  });
+
+
+  mqtt->after_prepare_data([&](JsonObject * root) -> void {
+    JsonObject& data = root->at("d");
+
+    // Serial.println("DATA: ");
+    // data.printTo(Serial);
+    // Serial.println();
+    // Serial.println();
+    // Serial.println();
+
+    data.remove("version");
+    data.remove("flash_id");
+    data.remove("flash_size");
+    data.remove("chip_id");
+    data.remove("sdk");
+    data.remove("counter");
   });
 
   mqtt->on_connecting([&](int count, bool * flag) {
-    Serial.print("CONNECTION: ");
+    Serial.print("MQTT CONNECTING..: ");
     Serial.println(count);
+  });
+
+  mqtt->on_published([&](const MQTT::Publish & pub) -> void {
+    Serial.print("PUBLISHED: ");
+    Serial.println(pub.payload_string());
   });
 
   mqtt->connect();

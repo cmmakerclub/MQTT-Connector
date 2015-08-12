@@ -10,9 +10,6 @@ extern "C" {
 }
 #endif
 
-
-
-
 #ifdef WIFI_DEBUG_MODE
     #define WIFI_DEBUG_PRINTER Serial
     #define WIFI_DEBUG_PRINT(...) { WIFI_DEBUG_PRINTER.print(__VA_ARGS__); }
@@ -75,6 +72,17 @@ public:
             _on_smartconfig_doing();
         }
         _on_smartconfig_done();
+    }
+
+    String get(String key) {
+        if (key == "ssid") {
+            return _ssid;
+
+        }
+        else if (key == "password") {
+            return _password;
+        }
+
     }
 
     // CALLBACKS

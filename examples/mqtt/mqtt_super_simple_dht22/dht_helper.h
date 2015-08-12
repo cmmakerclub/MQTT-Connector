@@ -1,8 +1,5 @@
 #include "DHT.h"
 
-#define DHTPIN 12    // what pin we're connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302)
-
 
 void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type)
 {
@@ -24,22 +21,18 @@ void init_dht(DHT **dht, uint8_t pin, uint8_t dht_type)
     //DHT dht(DHTPIN, DHTTYPE, 30);
 
     *dht = new DHT(pin, dht_type);
-    pinMode(13, OUTPUT);
-    pinMode(14, OUTPUT);    
-    digitalWrite(13, HIGH);
-    digitalWrite(14, LOW);    
     (*dht)->begin();
     Serial.println(F("DHTxx test!"))  ;
 }
 
 
-void read_dht(DHT *dht, float *temp, float *humid)
+bool read_dht(DHT *dht, float *temp, float *humid)
 {
 
     if (dht == NULL)
     {
         Serial.println(F("[dht22] is not initialised. please call init_dht() first."));
-        return;
+        return false;
     }
 
     // Reading temperature or humidity takes about 250 milliseconds!
@@ -54,27 +47,29 @@ void read_dht(DHT *dht, float *temp, float *humid)
     // Check if any reads failed and exit early (to try again).
     if (isnan(h) || isnan(t) || isnan(f))
     {
-        Serial.println("Failed to read from DHT sensor!");
-        return;
+        Serial.println(F("Failed to read from DHT sensor!"));
+        return false;
     }
 
     // Compute heat index
     // Must send in temp in Fahrenheit!
     float hi = dht->computeHeatIndex(f, h);
 
-    Serial.print("Humidity: ");
-    Serial.print(h);
-    Serial.print(" %\t");
-    Serial.print("Temperature: ");
-    Serial.print(t);
-    Serial.print(" *C ");
-    Serial.print(f);
-    Serial.print(" *F\t");
-    Serial.print("Heat index: ");
-    Serial.print(hi);
-    Serial.println(" *F");
+    // Serial.print("Humidity: ");
+    // Serial.print(h);
+    // Serial.print(" %\t");
+    // Serial.print("Temperature: ");
+    // Serial.print(t);
+    // Serial.print(" *C ");
+    // Serial.print(f);
+    // Serial.print(" *F\t");
+    // Serial.print("Heat index: ");
+    // Serial.print(hi);
+    // Serial.println(" *F");
 
     *temp = t;
     *humid = f;
+
+    return true;
 
 }
