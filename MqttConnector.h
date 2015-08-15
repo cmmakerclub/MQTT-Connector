@@ -78,7 +78,7 @@ public:
         _user_hook_connecting = cb;
     }
 
-    void prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 3000)
+    void prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000)
     {
         _user_hook_prepare_data = func;
         _publish_interval = publish_interval;
@@ -153,7 +153,7 @@ protected:
         // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
     }
 
-    void doPublish();
+    void doPublish(bool force = false);
 
 protected:
 
@@ -198,7 +198,7 @@ private:
     JsonObject *d;
     PubSubClient *client;
     
-    String _version = "0.13";
+    String _version = "0.15";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

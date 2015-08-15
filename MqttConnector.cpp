@@ -162,15 +162,13 @@ void MqttConnector::loop(WiFiConnector *wifiHelper)
     this->loop();
 }
 
-void MqttConnector::doPublish()
+void MqttConnector::doPublish(bool force)
 {
     static long counter = 0;
     char *dataPtr = NULL;
 
-    if (client->connected() && _timer_expired(&publish_timer))
+    if (force || client->connected() && _timer_expired(&publish_timer))
     {
-        (*d)["myName"] = NULL;
-
         _timer_set(&publish_timer, _publish_interval);
 
         _prepare_data_hook();
@@ -282,6 +280,8 @@ void MqttConnector::_connect()
     if (_config.enableLastWill) {
         _clear_last_will();
     }
+
+    doPublish(true);
 
     if (_user_hook_prepare_subscribe != NULL)
     {

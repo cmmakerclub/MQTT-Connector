@@ -27,14 +27,14 @@ void init_hardware()
   delay(10);
   Serial.println();
 
-  #define DHTPIN 2    // what pin we're connected to
+  #define DHTPIN 12    // what pin we're connected to
   #define DHTTYPE DHT22   // DHT 22  (AM2302)
  
   pinMode(DHTPIN, INPUT_PULLUP);
-  // pinMode(14, OUTPUT);    
-  // pinMode(13, OUTPUT);    
-  // digitalWrite(13, HIGH);
-  // digitalWrite(14, LOW);    
+  pinMode(14, OUTPUT);    
+  pinMode(13, OUTPUT);    
+  digitalWrite(13, HIGH);
+  digitalWrite(14, LOW);    
 
   init_dht(&dht, DHTPIN, DHTTYPE);
 
@@ -135,10 +135,10 @@ void init_mqtt()
     float t_dht;
     float h_dht;
 
-    data["myName"] = "DHT22-173";
+    data["myName"] = "ESP8266-DEVKIT";
     data["adc"] = analogRead(A0);
-    data["tag"] = "esp01";
-    data["zone"] = "cityview";
+    data["tag"] = "devkit-02";
+    data["zone"] = "cmmc";
     data["color"] = "blue";    
     data["sensor"] = "DHT22";
 
@@ -194,5 +194,7 @@ void setup()
 void loop()
 {
   mqtt->loop(wifi);
+
+  
   //mqtt->sync_pub("0");
 }
