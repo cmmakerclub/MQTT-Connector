@@ -7,10 +7,16 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
-#include <pt.h>
-
 MqttConnector *mqtt;
 WiFiConnector *wifi;
+
+// MQTT_HOSTT
+#include "init_wifi.h"
+#include "_publish.h"
+#include "_receive.h"
+
+#define MQTT_HOST "cmmc.xyz"
+#define MQTT_PORT 1883
 
 void init_hardware()
 {
@@ -18,64 +24,29 @@ void init_hardware()
   delay(10);
   Serial.println();
   Serial.println("BEGIN");
-  Serial.println("BEGIN");
-  Serial.println("BEGIN");
 }
 
-void init_wifi()
+void setup()
 {
-  // use flash memory ssid & smartconfig
-  // wifi = new WiFiConnector(ssid, password);
-  wifi = new WiFiConnector();
-
-
-  wifi->on_connecting([&](const void* message)
-  {
-    Serial.println("connecting: ");
-    Serial.println(wifi->get("ssid") + ", " + wifi->get("password"));
-    // Serial.println ((char*)message);
-    delay(500);
-  });
-
-  wifi->on_connected([&](const void* message)
-  {
-    Serial.println("WIFI CONECTED: ");
-    // Print the IP address
-    Serial.println(WiFi.localIP());
-    // Serial.println ((char*)message);
-  });
-
-  wifi->on_disconnected([&](const void* message)
-  {
-    Serial.println("WIFI DISCONECTED.");
-    // Serial.println ((char*)message);
-  });
-
-  wifi->on_smartconfig_enter([&](const void* message)
-  {
-    Serial.println("ENTER SMARTCONFIG.");
-  });
-
-  wifi->on_smartconfig_done([&](const void* message)
-  {
-    Serial.println("SMARTCONFIG DONE.");
-  });
-
-  wifi->on_smartconfig_doing([&](const void* message)
-  {
-    // Serial.println("CONFIGURING WIFI..");
-    // delay(500);
-  });
-
-  wifi->connect();
-
+  init_hardware();
+  init_wifi();
+  init_mqtt();
 }
+
+void loop()
+{
+  mqtt->loop(wifi);
+}
+
+
+
+// MQTT INITIALIZER
 void init_mqtt()
 {
 
-  mqtt = new MqttConnector("iot.eclipse.org");
+  mqtt = new MqttConnector(MQTT_HOST, MQTT_PORT);
+
   mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
-    // do nothing.
     Serial.print("HOST: ");
     Serial.print(config->mqttHost);
 
@@ -88,13 +59,7 @@ void init_mqtt()
     Serial.println(config->topicSub);    
   });
 
-  mqtt->prepare_data([&](JsonObject * root) -> void {
-    JsonObject& data = root->at("d");
-    data["myName"] = "NAzT";
-    data["adc"] = analogRead(A0);
-    data["tag"] = "paris";
-    data["zone"] = "1";
-  }, 5000);
+  mqtt->prepare_data(on_prepare_data, 5000);
 
 
   mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
@@ -118,12 +83,7 @@ void init_mqtt()
     data.remove("counter");
   });
 
-  mqtt->on_message([&](const MQTT::Publish & pub) -> void {
-    Serial.print("ON MESSAGE: ");
-    Serial.print(pub.topic());
-    Serial.print(" => ");
-    Serial.println(pub.payload_string());
-  });
+  mqtt->on_message(on_message_arrived);
 
   mqtt->on_connecting([&](int count, bool * flag) {
     Serial.print("MQTT CONNECTING..: ");
@@ -136,17 +96,4 @@ void init_mqtt()
   });
 
   mqtt->connect();
-}
-
-void setup()
-{
-  init_hardware();
-  init_wifi();
-  init_mqtt();
-}
-
-void loop()
-{
-  mqtt->loop(wifi);
-  //mqtt->sync_pub("0");
 }

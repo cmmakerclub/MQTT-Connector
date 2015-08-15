@@ -30,6 +30,8 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _subscribe_object = NULL;
     _subscribe_object = new MQTT::Subscribe();
 
+    _config.enableLastWill = true;
+
     JsonObject& r = jsonBuffer.createObject();
     JsonObject& d = jsonBuffer.createObject();
 
@@ -46,9 +48,15 @@ MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t conf
 }
 
 void MqttConnector::_clear_last_will() {
-    MQTT::Publish newpub("LWT", '\0', 0);
+    MQTT_DEBUG_PRINTLN("__CLEAR LASTWILL");
+    MQTT_DEBUG_PRINT("WILL TOPIC: ");
+    MQTT_DEBUG_PRINTLN(_config.topicLastWill);
+    
+    uint8_t* payload = (uint8_t*)_mac.c_str();
+    MQTT::Publish newpub(_config.topicLastWill, payload, _mac.length());
     newpub.set_retain(true);
     client->publish(newpub);
+
 }
 
 void MqttConnector::on_message(PubSubClient::callback_t callback) {
@@ -95,6 +103,7 @@ void MqttConnector::_hook_config()
 
     _config.topicSub = _config.channelId + String("/") + _mac + String("/command");
     _config.topicPub = _config.channelId + String("/") + _mac + String("/status");
+    _config.topicLastWill = _config.channelId + String("/") + _mac + String("/online");
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
 
@@ -132,6 +141,7 @@ void MqttConnector::sync_pub(String payload)
     client->publish(newpub);
 }
 
+
 void MqttConnector::loop()
 {
     if (client->loop())
@@ -159,6 +169,7 @@ void MqttConnector::doPublish()
 
     if (client->connected() && _timer_expired(&publish_timer))
     {
+        (*d)["myName"] = NULL;
 
         _timer_set(&publish_timer, _publish_interval);
 
@@ -169,7 +180,6 @@ void MqttConnector::doPublish()
         // flashId.toUpperCase(); 
 
         (*d)["counter"] = ++counter;
-        (*d)["myName"] = _mac.c_str();;
         (*d)["id"] = _mac.c_str();;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
@@ -219,9 +229,6 @@ void MqttConnector::doPublish()
 
         }
 
-        // _clear_last_will();
-
-
         MQTT_DEBUG_PRINTLN("====================================");
     }
 }
@@ -234,6 +241,15 @@ void MqttConnector::_connect()
     bool flag = true;
 
     uint16_t times = 0;
+
+    if (_config.enableLastWill) {
+        // .set_will("status", "down")
+        // _clear_last_will();
+        (_config.connOpts)->set_will(_config.topicLastWill, "DEAD", 1, true);
+        (_config.connOpts)->set_clean_session(false);
+        (_config.connOpts)->set_keepalive(15);
+    }
+
     while(!client->connect(*(_config.connOpts)) && flag)
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
@@ -247,6 +263,7 @@ void MqttConnector::_connect()
     }
 
     MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
+    MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
     MQTT_DEBUG_PRINT("HOST: ");
     MQTT_DEBUG_PRINTLN(_mqtt_host);
     MQTT_DEBUG_PRINT("PORT: ");
@@ -254,11 +271,17 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINT("clientId: ");
     MQTT_DEBUG_PRINTLN(_config.clientId);
 
+    MQTT_DEBUG_PRINT("lastWill: ");
+    MQTT_DEBUG_PRINTLN(_config.enableLastWill);
+
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
 
-    // _clear_last_will();
+
+    if (_config.enableLastWill) {
+        _clear_last_will();
+    }
 
     if (_user_hook_prepare_subscribe != NULL)
     {

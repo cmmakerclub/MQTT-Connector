@@ -9,6 +9,12 @@
 #include <ArduinoJson.h>
 #include <PubSubClient.h>
 
+#ifdef ESP8266
+extern "C" {
+#include "user_interface.h"
+}
+#endif
+
 
 MqttConnector *mqtt;
 WiFiConnector *wifi;
@@ -21,13 +27,14 @@ void init_hardware()
   delay(10);
   Serial.println();
 
-  #define DHTPIN 12    // what pin we're connected to
+  #define DHTPIN 2    // what pin we're connected to
   #define DHTTYPE DHT22   // DHT 22  (AM2302)
  
-  pinMode(13, OUTPUT);
-  pinMode(14, OUTPUT);    
-  digitalWrite(13, HIGH);
-  digitalWrite(14, LOW);    
+  pinMode(DHTPIN, INPUT_PULLUP);
+  // pinMode(14, OUTPUT);    
+  // pinMode(13, OUTPUT);    
+  // digitalWrite(13, HIGH);
+  // digitalWrite(14, LOW);    
 
   init_dht(&dht, DHTPIN, DHTTYPE);
 
@@ -39,14 +46,18 @@ void init_hardware()
 void init_wifi()
 {
   // use flash memory ssid & smartconfig
-  // wifi = new WiFiConnector(ssid, password);
-  wifi = new WiFiConnector();
+   //wifi = new WiFiConnector("NAT.WRTNODE", "devicenetwork");
+   wifi = new WiFiConnector();
 
 
   wifi->on_connecting([&](const void* message)
   {
-    Serial.println("connecting: ");
+    Serial.print("connecting -> ");
+    Serial.println(wifi->counter);
     Serial.println(wifi->get("ssid") + ", " + wifi->get("password"));
+    //if (wifi->counter > 100) {
+      //wifi->enter_smartconfig_mode();
+    //}
     // Serial.println ((char*)message);
     delay(500);
   });
@@ -87,21 +98,13 @@ void init_wifi()
 void init_mqtt()
 {
 
-  mqtt = new MqttConnector("iot.eclipse.org");
+  mqtt = new MqttConnector("cmmc.xyz");
 
   mqtt->on_message([&](const MQTT::Publish & pub) -> void {
     Serial.print("ON MESSAGE: ");
     Serial.print(pub.topic());
     Serial.print(" => ");
     Serial.println(pub.payload_string());
-    if (pub.payload_string() == "15") {
-      pinMode(15  , OUTPUT);
-      digitalWrite(15 , HIGH);
-    }
-    else {
-      pinMode(15  , OUTPUT);
-      digitalWrite(15 , LOW);
-    }
   });
 
   mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
@@ -118,6 +121,13 @@ void init_mqtt()
     Serial.println(config->topicPub);
     Serial.print("__SUBSCRIPTION TOPIC -> ");
     Serial.println(config->topicSub);    
+
+
+    Serial.print(" ENABLE WILL STATUS: ");
+    config->enableLastWill = true;
+    Serial.println(config->enableLastWill);
+    Serial.println("=========================");
+
   });
 
   mqtt->prepare_data([&](JsonObject * root) -> void {
@@ -125,11 +135,12 @@ void init_mqtt()
     float t_dht;
     float h_dht;
 
-
-    data["myName"] = "NAzT";
+    data["myName"] = "DHT22-173";
     data["adc"] = analogRead(A0);
-    data["tag"] = "paris";
-    data["zone"] = "1";
+    data["tag"] = "esp01";
+    data["zone"] = "cityview";
+    data["color"] = "blue";    
+    data["sensor"] = "DHT22";
 
     if (read_dht(dht, &t_dht, &h_dht)) {
       data["temp"] = t_dht;
@@ -152,12 +163,12 @@ void init_mqtt()
     // Serial.println();
     // Serial.println();
 
-    data.remove("version");
-    data.remove("flash_id");
-    data.remove("flash_size");
-    data.remove("chip_id");
-    data.remove("sdk");
-    data.remove("counter");
+//    data.remove("version");
+//    data.remove("flash_id");
+//    data.remove("flash_size");
+//    data.remove("chip_id");
+//    data.remove("sdk");
+//    data.remove("counter");
   });
 
   mqtt->on_connecting([&](int count, bool * flag) {

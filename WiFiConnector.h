@@ -37,6 +37,7 @@ class WiFiConnector
 public:
     typedef std::function<void(const void*)> wifi_callback_t;
 
+    uint32_t counter = 0;
     WiFiConnector(const char* ssid, const char* password);
     WiFiConnector();
     ~WiFiConnector();

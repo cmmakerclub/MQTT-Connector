@@ -101,6 +101,7 @@ void WiFiConnector::_connect()
 {
     _retries = 0;
     WiFi.begin(_ssid.c_str(), _password.c_str());
+    this->counter = 0;
 
     while ((WiFi.status() != WL_CONNECTED))
     {
@@ -126,6 +127,7 @@ void WiFiConnector::_connect()
                 itoa(WiFi.status(), buf+6, 10);
                 buf[7] = '\0';
             }
+            ++this->counter;
             _user_on_connecting((void*) buf);
         }
 

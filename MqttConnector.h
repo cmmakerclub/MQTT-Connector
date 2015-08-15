@@ -36,9 +36,11 @@ public:
         String channelId;
         String topicSub;
         String topicPub;
+        String topicLastWill;
         String username;
         String password;
         String mqttHost;
+        bool enableLastWill;
         uint16_t mqttPort;
     } Config;
 
@@ -61,6 +63,7 @@ public:
     void loop(WiFiConnector *);    
     void init_config(const char*, uint16_t);
     void sync_pub(String payload);
+    void clear_last_will(String payload);
     void connect();
 
     void on_message(PubSubClient::callback_t callback = NULL);
@@ -195,7 +198,7 @@ private:
     JsonObject *d;
     PubSubClient *client;
     
-    String _version = "0.10";
+    String _version = "0.13";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

@@ -46,7 +46,7 @@ void init_wifi()
 void init_mqtt()
 {
     mqtt = new MqttConnector("cmmc.xyz");
-    mqtt->set_prepare_data_hook(hook_prepare_data, 500);
+    mqtt->prepare_data(hook_prepare_data, 500);
     mqtt->connect(on_message_arrived);
 } 
 
