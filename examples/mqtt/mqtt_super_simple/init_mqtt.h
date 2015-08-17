@@ -25,19 +25,12 @@ void init_mqtt()
 
   mqtt->after_prepare_data([&](JsonObject * root) -> void {
     JsonObject& data = root->at("d");
-
-    // Serial.println("DATA: ");
-    // data.printTo(Serial);
-    // Serial.println();
-    // Serial.println();
-    // Serial.println();
-
-    data.remove("version");
-    data.remove("flash_id");
-    data.remove("flash_size");
-    data.remove("chip_id");
-    data.remove("sdk");
-    data.remove("counter");
+    // data.remove("version");
+    // data.remove("flash_id");
+    // data.remove("flash_size");
+    // data.remove("chip_id");
+    // data.remove("sdk");
+    // data.remove("counter");
   });
 
   mqtt->on_message(on_message_arrived);
