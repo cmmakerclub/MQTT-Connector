@@ -33,8 +33,10 @@ void init_hardware()
   pinMode(DHTPIN, INPUT_PULLUP);
   pinMode(14, OUTPUT);    
   pinMode(13, OUTPUT);    
+  pinMode(16, OUTPUT);      
   digitalWrite(13, HIGH);
   digitalWrite(14, LOW);    
+  digitalWrite(16, LOW);      
 
   init_dht(&dht, DHTPIN, DHTTYPE);
 
@@ -46,8 +48,8 @@ void init_hardware()
 void init_wifi()
 {
   // use flash memory ssid & smartconfig
-   //wifi = new WiFiConnector("NAT.WRTNODE", "devicenetwork");
-   wifi = new WiFiConnector();
+   wifi = new WiFiConnector("NAT.WRTNODE", "devicenetwork");
+   //wifi = new WiFiConnector();
 
 
   wifi->on_connecting([&](const void* message)
@@ -135,17 +137,16 @@ void init_mqtt()
     float t_dht;
     float h_dht;
 
-    data["myName"] = "ESP8266-DEVKIT";
-    data["adc"] = analogRead(A0);
-    data["tag"] = "devkit-02";
-    data["zone"] = "cmmc";
-    data["color"] = "blue";    
+    data["myName"] = "DEVKIT-DHT22";
+    data["tag"] = "Nat";
+    data["board"] = "espminiv2";
     data["sensor"] = "DHT22";
 
-    if (read_dht(dht, &t_dht, &h_dht)) {
-      data["temp"] = t_dht;
-      data["humid"] = h_dht;
-    }
+    read_dht(dht, &t_dht, &h_dht);
+   
+    data["temp"] = t_dht;
+    data["humid"] = h_dht;
+   
 
   }, 5000);
 

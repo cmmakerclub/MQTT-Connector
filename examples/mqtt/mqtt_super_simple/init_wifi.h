@@ -2,8 +2,8 @@
 void init_wifi()
 {
   // use flash memory ssid & smartconfig
-  // wifi = new WiFiConnector(ssid, password);
   wifi = new WiFiConnector();
+  // wifi = new WiFiConnector("SSID", "PASSWORD");
 
 
   wifi->on_connecting([&](const void* message)

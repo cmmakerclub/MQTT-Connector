@@ -105,7 +105,18 @@ void print_display(String text) {
   display.clearDisplay();
   display.drawBitmap(0, 16,  Temperature_water_p, 32, 32, 1);
   display.drawBitmap(105, 20,  C, 24, 24, 1);
-  display.setTextSize(2); display.setTextColor(WHITE); display.setCursor(40, 24);
+  display.setTextSize(2); 
+  display.setTextColor(WHITE); 
+  display.setCursor(40, 24);
   display.print(text.c_str());
   display.display();
+}
+
+void print_text(String text) {
+  display.clearDisplay();
+  display.setTextSize(1); 
+  display.setTextColor(WHITE);   
+  display.setCursor(0,0);
+  display.print(text.c_str());
+  display.display();  
 }
