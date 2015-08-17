@@ -14,6 +14,12 @@ WiFiConnector *wifi;
 #define MQTT_HOST "cmmc.xyz"
 #define MQTT_PORT 1883
 
+#define DEVICE_NAME "NAT001"
+#define AUTHOR      "Nat Weerawan"
+#define BOARD       "dw.espmini"
+#define PROJECT     "weather station"
+#define SENSOR      "DHT22"
+
 #include "init_wifi.h"
 #include "_publish.h"
 #include "_receive.h"
