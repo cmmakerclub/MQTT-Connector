@@ -27,6 +27,7 @@ WiFiConnector::WiFiConnector(const char* ssid, const char* password)
 
 void WiFiConnector::init_config(const char* ssid, const char* password)
 {
+    pinMode(0, INPUT_PULLUP);
     prev_millis = millis();
 
     _ssid = String(ssid);
