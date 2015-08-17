@@ -11,8 +11,9 @@ MqttConnector *mqtt;
 WiFiConnector *wifi;
 
 // MQTT_HOSTT
-#define MQTT_HOST "cmmc.xyz"
-#define MQTT_PORT 1883
+#define MQTT_HOST        "cmmc.xyz"
+#define MQTT_PORT        1883
+#define PUBLISH_EVERY    15 *1000 // every 15 seconds
 
 #define DEVICE_NAME "NAT001"
 #define AUTHOR      "Nat Weerawan"

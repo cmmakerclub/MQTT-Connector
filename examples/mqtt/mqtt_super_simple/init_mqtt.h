@@ -17,7 +17,7 @@ void init_mqtt()
     Serial.println(config->topicSub);    
   });
 
-  mqtt->prepare_data(on_prepare_data, 15 *1000);
+  mqtt->prepare_data(on_prepare_data, PUBLISH_EVERY);
 
 
   mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
