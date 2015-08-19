@@ -177,11 +177,6 @@ void MqttConnector::doPublish(bool force)
         String chipId = String(ESP.getChipId(), HEX);
         // flashId.toUpperCase(); 
 
-        (*d)["counter"] = ++counter;
-        (*d)["id"] = _mac.c_str();;
-        (*d)["heap"] = ESP.getFreeHeap();
-        (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = _subscription_counter;     
         (*d)["version"] = _version.c_str();                
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
@@ -193,6 +188,12 @@ void MqttConnector::doPublish(bool force)
         (*d)["sdk"] = system_get_sdk_version();
         (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
+        (*d)["counter"] = ++counter;
+        (*d)["id"] = _mac.c_str();;
+        (*d)["heap"] = ESP.getFreeHeap();
+        (*d)["seconds"] = millis()/1000;
+        (*d)["subscription"] = _subscription_counter;     
+        
 
         _after_prepare_data_hook();
 

@@ -26,7 +26,7 @@ WiFiConnector *wifi;
 Ticker flipper;
 
 // MQTT_HOSTT
-#define MQTT_HOST "cmmc.xyz"
+#define MQTT_HOST "192.168.15.148"
 #define MQTT_PORT 1883
 
 #include "init_wifi.h"

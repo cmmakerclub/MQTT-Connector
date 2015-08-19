@@ -192,8 +192,8 @@ private:
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
 
-    StaticJsonBuffer<512> jsonBuffer;
-    char jsonStrbuffer[512];
+    StaticJsonBuffer<1024> jsonBuffer;
+    char jsonStrbuffer[1024];
     JsonObject *root;
     JsonObject *d;
     PubSubClient *client;
