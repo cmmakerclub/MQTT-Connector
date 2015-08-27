@@ -6,6 +6,7 @@
 #include "ESP8266WiFi.h"
 #include "WiFiConnector.h"
 #include <functional>
+#include <interrupts.h>
 
 #ifdef ESP8266
 extern "C" {
@@ -41,6 +42,7 @@ public:
         String password;
         String mqttHost;
         bool enableLastWill;
+        bool subscribeOnly;
         uint16_t mqttPort;
     } Config;
 
@@ -192,13 +194,17 @@ private:
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
 
-    StaticJsonBuffer<1024> jsonBuffer;
-    char jsonStrbuffer[1024];
+    StaticJsonBuffer<512> jsonBuffer;
+    StaticJsonBuffer<512> jsonInfoBuffer;
+
+    char jsonStrbuffer[512];
     JsonObject *root;
     JsonObject *d;
+    JsonObject *info;
+
     PubSubClient *client;
     
-    String _version = "0.16";
+    String _version = "0.18";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
@@ -212,6 +218,7 @@ private:
         t->start = millis();
     }
 
+    bool _pub_lock = false;
 
     void _connect();
 };

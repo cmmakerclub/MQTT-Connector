@@ -3,6 +3,7 @@
 MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
     _on_message_arrived = [&](const MQTT::Publish& pub) {
+        // InterruptLock lock;
         if (_user_on_message_arrived) {
             _user_on_message_arrived(pub);
         }
@@ -34,11 +35,25 @@ void MqttConnector::init_config(const char* host, uint16_t port)
 
     JsonObject& r = jsonBuffer.createObject();
     JsonObject& d = jsonBuffer.createObject();
+    JsonObject& info = jsonInfoBuffer.createObject();
 
     this->root = &r;
     this->d = &d;
+    this->info = &info;
 
     r["d"] = d;
+    r["info"] = info;
+
+    String flashId = String(ESP.getFlashChipId(), HEX);
+    String chipId = String(ESP.getChipId(), HEX);
+    flashId.toUpperCase();
+    chipId.toUpperCase();
+
+    (info)["flash_size"] = ESP.getFlashChipSize();
+    (info)["flash_id"] = flashId.c_str();
+    (info)["chip_id"] = chipId.c_str();;
+    (info)["sdk"] = system_get_sdk_version();
+
 }
 
 MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t config_hook)
@@ -104,6 +119,9 @@ void MqttConnector::_hook_config()
     _config.topicSub = _config.channelId + String("/") + _mac + String("/command");
     _config.topicPub = _config.channelId + String("/") + _mac + String("/status");
     _config.topicLastWill = _config.channelId + String("/") + _mac + String("/online");
+
+    (*info)["id"] = _mac.c_str();;
+
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
 
@@ -164,33 +182,25 @@ void MqttConnector::loop(WiFiConnector *wifiHelper)
 
 void MqttConnector::doPublish(bool force)
 {
+    // noInterrupts();
     static long counter = 0;
-    char *dataPtr = NULL;
 
-    if (force || client->connected() && _timer_expired(&publish_timer))
+    if (force || _timer_expired(&publish_timer))
     {
+        if (!client->connected()) return;
+        InterruptLock lock;
         _timer_set(&publish_timer, _publish_interval);
 
         _prepare_data_hook();
-
-        String flashId = String(ESP.getFlashChipId(), HEX);
-        String chipId = String(ESP.getChipId(), HEX);
-        // flashId.toUpperCase(); 
 
         (*d)["version"] = _version.c_str();                
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
                        '.' + String(ip[2]) + '.' + String(ip[3]);
-        (*d)["flash_id"] = flashId.c_str();
-        (*d)["flash_size"] = ESP.getFlashChipSize();
-        (*d)["chip_id"] = chipId.c_str();;
-
-        (*d)["sdk"] = system_get_sdk_version();
+        (*d)["heap"] = ESP.getFreeHeap();
         (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
-        (*d)["id"] = _mac.c_str();;
-        (*d)["heap"] = ESP.getFreeHeap();
         (*d)["seconds"] = millis()/1000;
         (*d)["subscription"] = _subscription_counter;     
         
@@ -200,7 +210,7 @@ void MqttConnector::doPublish(bool force)
 
         strcpy(jsonStrbuffer, "");
         root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
-        dataPtr = jsonStrbuffer;
+        // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
         MQTT_DEBUG_PRINTLN("__DO PUBLISH ");
@@ -209,13 +219,13 @@ void MqttConnector::doPublish(bool force)
         MQTT_DEBUG_PRINT("______________ CONTENT: -->");
         MQTT_DEBUG_PRINTLN(jsonStrbuffer);
 
-        if (_user_hook_publish_data != NULL)
-        {
-            _user_hook_publish_data(dataPtr);
-        }
+        // if (_user_hook_publish_data != NULL)
+        // {
+        //     _user_hook_publish_data(dataPtr);
+        // }
 
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
-        newpub.set_retain(true);
+        // newpub.set_retain(true);
         if(!client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;

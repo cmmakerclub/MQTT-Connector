@@ -14,7 +14,11 @@ void init_mqtt()
     Serial.print("__PUBLICATION TOPIC -> ");
     Serial.println(config->topicPub);
     Serial.print("__SUBSCRIPTION TOPIC -> ");
-    Serial.println(config->topicSub);    
+    Serial.println(config->topicSub);
+
+    config->username = String("test");
+    config->password = String("test");    
+    
   });
 
   mqtt->prepare_data(on_prepare_data, PUBLISH_EVERY);

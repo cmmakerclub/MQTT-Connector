@@ -10,16 +10,21 @@
 MqttConnector *mqtt;
 WiFiConnector *wifi;
 
-// MQTT_HOSTT
-#define MQTT_HOST        "cmmc.xyz"
+/* MQTT INFO */
+#define MQTT_HOST        "rabbit.cmmc.ninja"
 #define MQTT_PORT        1883
 #define PUBLISH_EVERY    15 *1000 // every 15 seconds
 
+/* SENSOR INFO */
 #define DEVICE_NAME "NAT001"
 #define AUTHOR      "Nat Weerawan"
 #define BOARD       "dw.espmini"
 #define PROJECT     "weather station"
 #define SENSOR      "DHT22"
+
+/* WIFI INFO */
+#define SSID        "WIFI SSID"
+#define PASSPHARSE  "WIFI PASS"
 
 #include "init_wifi.h"
 #include "_publish.h"
@@ -28,7 +33,7 @@ WiFiConnector *wifi;
 
 void init_hardware()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(10);
   Serial.println();
   Serial.println("BEGIN");
@@ -45,4 +50,3 @@ void loop()
 {
   mqtt->loop(wifi);
 }
-

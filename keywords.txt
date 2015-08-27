@@ -19,6 +19,22 @@ init_config				KEYWORD2
 connect 				KEYWORD2
 loop 					KEYWORD2
 
+prepare_configuration	KEYWORD2
+on_connecting			KEYWORD2
+prepare_subscribe		KEYWORD2
+after_prepare_data		KEYWORD2
+on_message				KEYWORD2
+on_published			KEYWORD2
+
+## WIFI
+
+
+on_connected			KEYWORD2
+on_disconnected			KEYWORD2
+on_smartconfig_enter	KEYWORD2
+on_smartconfig_done		KEYWORD2
+on_smartconfig_doing	KEYWORD2
+
 #######################################
 # Instances (KEYWORD2)
 #######################################
