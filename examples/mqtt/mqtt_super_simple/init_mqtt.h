@@ -28,7 +28,7 @@ void init_mqtt()
 
 
   mqtt->after_prepare_data([&](JsonObject * root) -> void {
-    JsonObject& data = root->at("d");
+    JsonObject& data = (*root)["d"];
     // data.remove("chip_id");
   });
 
