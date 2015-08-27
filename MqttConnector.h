@@ -6,7 +6,6 @@
 #include "ESP8266WiFi.h"
 #include "WiFiConnector.h"
 #include <functional>
-#include <interrupts.h>
 
 #ifdef ESP8266
 extern "C" {

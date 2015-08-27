@@ -3,7 +3,6 @@
 MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
     _on_message_arrived = [&](const MQTT::Publish& pub) {
-        // InterruptLock lock;
         if (_user_on_message_arrived) {
             _user_on_message_arrived(pub);
         }
@@ -182,13 +181,11 @@ void MqttConnector::loop(WiFiConnector *wifiHelper)
 
 void MqttConnector::doPublish(bool force)
 {
-    // noInterrupts();
     static long counter = 0;
 
     if (force || _timer_expired(&publish_timer))
     {
         if (!client->connected()) return;
-        InterruptLock lock;
         _timer_set(&publish_timer, _publish_interval);
 
         _prepare_data_hook();
