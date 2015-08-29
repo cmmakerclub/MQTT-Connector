@@ -66,8 +66,10 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    uint8_t* payload = (uint8_t*)_mac.c_str();
-    MQTT::Publish newpub(_config.topicLastWill, payload, _mac.length());
+    String willText = String("ONLINE-") + String(_mac) + "-" + (millis()/1000); 
+    uint8_t* payload = (uint8_t*) willText.c_str();
+    MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
+
     newpub.set_retain(true);
     client->publish(newpub);
 
@@ -139,7 +141,6 @@ void MqttConnector::_hook_config()
     MQTT_DEBUG_PRINTLN(_config.topicSub);
 
     _config.connOpts = new MQTT::Connect(_config.clientId);
-    // connOpts->set_will("LWT", channelId + _mac, 1, true);
     _config.client = new PubSubClient(wclient);
     client = _config.client;
   
@@ -249,10 +250,9 @@ void MqttConnector::_connect()
     uint16_t times = 0;
 
     if (_config.enableLastWill) {
-        // .set_will("status", "down")
-        // _clear_last_will();
-        (_config.connOpts)->set_will(_config.topicLastWill, "DEAD", 1, true);
-        (_config.connOpts)->set_clean_session(false);
+        String willText = String("DEAD-") + String(_mac) + "-" + (millis()/1000); 
+        (_config.connOpts)->set_will(_config.topicLastWill, willText, 1, true);
+        (_config.connOpts)->set_clean_session(true);
         (_config.connOpts)->set_keepalive(15);
     }
 

@@ -27,21 +27,18 @@ void init_mqtt()
   });
 
   mqtt->prepare_data(on_prepare_data, PUBLISH_EVERY);
-
-
   mqtt->prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
-
-
   mqtt->after_prepare_data([&](JsonObject * root) -> void {
     JsonObject& data = (*root)["d"];
     // data.remove("chip_id");
   });
 
+  // on_message_arrived located in _receive.h
   mqtt->on_message(on_message_arrived);
 
   mqtt->on_connecting([&](int count, bool * flag) {
-    Serial.print(count);
     Serial.println("MQTT CONNECTING..: ");
+    Serial.print(count);
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
