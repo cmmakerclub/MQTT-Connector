@@ -13,13 +13,17 @@ WiFiConnector *wifi;
 /* MQTT INFO */
 #define MQTT_HOST        "rabbit.cmmc.ninja"
 #define MQTT_PORT        1883
-#define PUBLISH_EVERY    15 *1000 // every 15 seconds
+#define PUBLISH_EVERY    1 *1000 // every 15 seconds
+
+/* comment ทิ้งถ้าไม่ส่ username/password */
+#define MQTT_USERNAME    "free:test" 
+#define MQTT_PASSWORD    "test"
 
 /* SENSOR INFO */
-#define DEVICE_NAME "NAT001"
+#define DEVICE_NAME "-RED-"
 #define AUTHOR      "Nat Weerawan"
-#define BOARD       "dw.espmini"
-#define PROJECT     "weather station"
+#define BOARD       "dw.mini-esp.v2"
+#define PROJECT     "POC"
 #define SENSOR      "DHT22"
 
 /* WIFI INFO */
