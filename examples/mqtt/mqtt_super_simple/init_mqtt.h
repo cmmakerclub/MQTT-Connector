@@ -5,25 +5,21 @@ void init_mqtt()
   mqtt = new MqttConnector(MQTT_HOST, MQTT_PORT);
 
   mqtt->prepare_configuration([&](MqttConnector::Config * config) -> void {
+    config->enableLastWill = true;
+    config->retainPublishMessage = false;
+
     #if defined (MQTT_USERNAME) && defined (MQTT_PASSWORD)
-      config->username = String("free:test");
-      config->password = String("test");
+      config->username = String(MQTT_USERNAME);
+      config->password = String(MQTT_PASSWORD);
     #endif
 
   });
 
   mqtt->after_prepare_configuration([&](MqttConnector::Config config) -> void {
-    Serial.print("HOST: ");
-    Serial.print(config.mqttHost);
-
-    Serial.print(" PORT: ");
-    Serial.println(config.mqttPort);
-
-    Serial.print("__PUBLICATION TOPIC .. ");
-    Serial.println(config.topicPub);
-    Serial.print("__SUBSCRIPTION TOPIC .. ");
-    Serial.println(config.topicSub);
-    
+    Serial.print(String("HOST: ") + config.mqttHost);
+    Serial.println(String(" PORT: ") + config.mqttPort);
+    Serial.println(String("__PUBLICATION TOPIC .. ") + config.topicPub);
+    Serial.println(String("__SUBSCRIPTION TOPIC .. ") + config.topicPub);
   });
 
   mqtt->prepare_data(on_prepare_data, PUBLISH_EVERY);
@@ -37,8 +33,8 @@ void init_mqtt()
   mqtt->on_message(on_message_arrived);
 
   mqtt->on_connecting([&](int count, bool * flag) {
-    Serial.println("MQTT CONNECTING..: ");
-    Serial.print(count);
+    Serial.print("MQTT CONNECTING.. ");
+    Serial.println(count);
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
