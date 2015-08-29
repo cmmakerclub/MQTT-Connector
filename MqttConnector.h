@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 
-// #define MQTT_DEBUG_MODE
+#define MQTT_DEBUG_MODE
 
 #ifdef MQTT_DEBUG_MODE
 #define MQTT_DEBUG_PRINTER Serial
@@ -49,6 +49,7 @@ public:
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
     typedef std::function<void(MqttConnector::Config* )> cmmc_config_t;
+    typedef std::function<void(MqttConnector::Config)> cmmc_after_config_t;
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(JsonObject* )> after_prepare_data_hook_t;
     typedef std::function<void(int, bool*)> connecting_hook_t;
@@ -73,6 +74,11 @@ public:
     void prepare_configuration(cmmc_config_t func)
     {
         _user_hook_config = func;
+    }
+
+    void after_prepare_configuration(cmmc_after_config_t func)
+    {
+        _user_hook_after_config = func;
     }
     
     void on_connecting(connecting_hook_t cb) {
@@ -163,6 +169,7 @@ private:
 
     // hooks
     cmmc_config_t             _user_hook_config = NULL;
+    cmmc_after_config_t       _user_hook_after_config = NULL;
     prepare_subscribe_hook_t  _user_hook_prepare_subscribe = NULL;
     prepare_data_hook_t       _user_hook_prepare_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;

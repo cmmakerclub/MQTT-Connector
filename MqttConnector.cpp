@@ -65,7 +65,7 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINTLN("__CLEAR LASTWILL");
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
-    
+
     uint8_t* payload = (uint8_t*)_mac.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, _mac.length());
     newpub.set_retain(true);
@@ -284,13 +284,6 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
 
-
-    if (_config.enableLastWill) {
-        _clear_last_will();
-    }
-
-    doPublish(true);
-
     if (_user_hook_prepare_subscribe != NULL)
     {
         MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
@@ -313,6 +306,12 @@ void MqttConnector::_connect()
     {
         MQTT_DEBUG_PRINTLN("__ PUBLISH ONLY MODE");
     }
+    
+    if (_config.enableLastWill) {
+        _clear_last_will();
+    }
+
+    doPublish(true);
 }
 
 
