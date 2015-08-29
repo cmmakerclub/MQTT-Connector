@@ -31,6 +31,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _subscribe_object = new MQTT::Subscribe();
 
     _config.enableLastWill = true;
+    _config.retainPublishMessage = false;
 
     JsonObject& r = jsonBuffer.createObject();
     JsonObject& d = jsonBuffer.createObject();
@@ -66,10 +67,9 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    String willText = String("ONLINE-") + String(_mac) + "-" + (millis()/1000); 
+    String willText = String("ONLINE|") + String(_mac) + "|" + (millis()/1000); 
     uint8_t* payload = (uint8_t*) willText.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
-
     newpub.set_retain(true);
     client->publish(newpub);
 
@@ -104,11 +104,8 @@ void MqttConnector::on_published(PubSubClient::callback_t callback) {
 void MqttConnector::connect()
 {
     MQTT_DEBUG_PRINTLN("BEGIN Wrapper");
-
-
     _set_default_client_id();
     _hook_config();
-
     _connect();
 
 }
@@ -120,6 +117,7 @@ void MqttConnector::_hook_config()
     _config.topicSub = _config.channelId + String("/") + _mac + String("/command");
     _config.topicPub = _config.channelId + String("/") + _mac + String("/status");
     _config.topicLastWill = _config.channelId + String("/") + _mac + String("/online");
+
 
     (*info)["id"] = _mac.c_str();;
 
@@ -147,6 +145,18 @@ void MqttConnector::_hook_config()
     client->set_server(_mqtt_host, _mqtt_port);
     client->set_callback(_on_message_arrived);
     _config.connOpts->set_auth(_config.username, _config.password);
+
+    if (_config.enableLastWill) {
+        MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");
+        String willText = String("DEAD|") + String(_mac) + "|" + (millis()/1000); 
+        int qos = 1;
+        int retain = true;
+        (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
+        (_config.connOpts)->set_clean_session(false);
+        (_config.connOpts)->set_keepalive(15);
+        MQTT_DEBUG_PRINTLN(_config.topicLastWill);
+    }
+
 }
 
 void MqttConnector::sync_pub(String payload)
@@ -223,7 +233,9 @@ void MqttConnector::doPublish(bool force)
         // }
 
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
-        // newpub.set_retain(true);
+        if (_config->retainPublishMessage) {
+            newpub.set_retain(true) ;
+        }
         if(!client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
@@ -242,19 +254,11 @@ void MqttConnector::doPublish(bool force)
 
 void MqttConnector::_connect()
 {
-
-
     client->set_max_retries(150);
     bool flag = true;
 
     uint16_t times = 0;
 
-    if (_config.enableLastWill) {
-        String willText = String("DEAD-") + String(_mac) + "-" + (millis()/1000); 
-        (_config.connOpts)->set_will(_config.topicLastWill, willText, 1, true);
-        (_config.connOpts)->set_clean_session(true);
-        (_config.connOpts)->set_keepalive(15);
-    }
 
     while(!client->connect(*(_config.connOpts)) && flag)
     {

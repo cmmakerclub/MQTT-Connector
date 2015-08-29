@@ -41,6 +41,7 @@ public:
         String password;
         String mqttHost;
         bool enableLastWill;
+        bool retainPublishMessage;
         bool subscribeOnly;
         uint16_t mqttPort;
     } Config;
