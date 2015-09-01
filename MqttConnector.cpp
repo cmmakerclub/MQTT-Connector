@@ -233,7 +233,7 @@ void MqttConnector::doPublish(bool force)
         // }
 
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
-        if (_config->retainPublishMessage) {
+        if (_config.retainPublishMessage) {
             newpub.set_retain(true) ;
         }
         if(!client->publish(newpub)) {
