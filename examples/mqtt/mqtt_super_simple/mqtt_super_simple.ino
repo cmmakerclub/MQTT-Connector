@@ -11,20 +11,20 @@ MqttConnector *mqtt;
 WiFiConnector *wifi;
 
 /* MQTT INFO */
-#define MQTT_HOST        "rabbit.cmmc.ninja"
+#define MQTT_HOST        "iot.eclipse.org"
 #define MQTT_PORT        1883
-#define PUBLISH_EVERY    1 *1000 // every 15 seconds
+#define PUBLISH_EVERY    2 *1000 // every 15 seconds
 
 /* comment ทิ้งถ้าไม่ส่ username/password */
-#define MQTT_USERNAME    "free:test" 
-#define MQTT_PASSWORD    "test"
+#define MQTT_USERNAME    "nat:cmmc" 
+#define MQTT_PASSWORD    "cmmc"
 
 /* SENSOR INFO */
-#define DEVICE_NAME "-RED-"
+#define DEVICE_NAME "EXPERIMENT-003"
 #define AUTHOR      "Nat Weerawan"
-#define BOARD       "dw.mini-esp.v2"
-#define PROJECT     "POC"
-#define SENSOR      "DHT22"
+#define BOARD       "espresso"
+#define PROJECT     "test"
+#define SENSOR      "-"
 
 /* WIFI INFO */
 #define SSID        "WIFI SSID"
