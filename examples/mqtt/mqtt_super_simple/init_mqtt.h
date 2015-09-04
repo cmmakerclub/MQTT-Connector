@@ -1,4 +1,6 @@
-// MQTT INITIALIZER
+// Copyright Nat Weerawan 2015-2016
+// MIT License
+
 void init_mqtt()
 {
 

@@ -1,3 +1,6 @@
+// Copyright Nat Weerawan 2015-2016
+// MIT License
+
 #define MQTT_DEBUG_MODE
 #define WIFI_DEBUG_MODE
 

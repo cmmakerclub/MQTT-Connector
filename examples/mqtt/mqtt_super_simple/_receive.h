@@ -1,3 +1,6 @@
+// Copyright Nat Weerawan 2015-2016
+// MIT License
+
 PubSubClient::callback_t on_message_arrived = 
 [&](const MQTT::Publish & pub) -> void {
     String topic = pub.topic();
