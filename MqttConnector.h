@@ -33,7 +33,7 @@ public:
         MQTT::Connect *connOpts;
         PubSubClient *client;
         String clientId;
-        String channelId;
+        String channelPrefix;
         String topicSub;
         String topicPub;
         String topicLastWill;
@@ -43,6 +43,7 @@ public:
         bool enableLastWill;
         bool retainPublishMessage;
         bool subscribeOnly;
+        bool publishOnly;
         uint16_t mqttPort;
     } Config;
 
@@ -114,7 +115,6 @@ protected:
     void _set_default_client_id()
     {
         _config.clientId = ESP.getChipId();
-
         uint8_t mac[6];
         String result = WiFi.macAddress();
         result.toLowerCase();
@@ -122,7 +122,7 @@ protected:
         MQTT_DEBUG_PRINT("MAC ADDR: ");
         MQTT_DEBUG_PRINTLN(result);
 
-        _config.channelId = "esp8266";
+        _config.channelPrefix = "esp8266";
         _mac = result;
 
     }
@@ -201,17 +201,18 @@ private:
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
 
-    StaticJsonBuffer<512> jsonBuffer;
-    StaticJsonBuffer<512> jsonInfoBuffer;
+    StaticJsonBuffer<800> jsonRootBuffer;
+    StaticJsonBuffer<512> jsonDBuffer;
+    // StaticJsonBuffer<128> jsonInfoBuffer;
 
-    char jsonStrbuffer[512];
+    char jsonStrbuffer[1024];
     JsonObject *root;
     JsonObject *d;
     JsonObject *info;
 
     PubSubClient *client;
     
-    String _version = "0.19";
+    String _version = "0.21";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

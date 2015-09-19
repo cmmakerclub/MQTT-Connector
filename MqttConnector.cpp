@@ -48,6 +48,11 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
 
 void MqttConnector::init_config(const char* host, uint16_t port)
 {
+    String flashId = String(ESP.getFlashChipId(), HEX);
+    String chipId = String(ESP.getChipId(), HEX);
+    flashId.toUpperCase();
+    chipId.toUpperCase();
+
     prev_millis = millis();
 
     _mqtt_host = String(host);
@@ -60,28 +65,31 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _subscribe_object = new MQTT::Subscribe();
 
     _config.enableLastWill = true;
+    _config.publishOnly = false;
+    _config.subscribeOnly = false;
     _config.retainPublishMessage = false;
 
-    JsonObject& r = jsonBuffer.createObject();
-    JsonObject& d = jsonBuffer.createObject();
-    JsonObject& info = jsonInfoBuffer.createObject();
+    JsonObject& r = jsonRootBuffer.createObject();
+    JsonObject& info = r.createNestedObject("info");
+    JsonObject& dd = jsonDBuffer.createObject();
 
     this->root = &r;
-    this->d = &d;
     this->info = &info;
 
-    r["d"] = d;
+    
     r["info"] = info;
+    r["d"] = dd;
+    // this->d = &((JsonObject)r["d"]);
+    this->d = &dd;
+    static struct station_config conf;
+    wifi_station_get_config(&conf);
+    const char* ssid = reinterpret_cast<const char*>(conf.ssid);
 
-    String flashId = String(ESP.getFlashChipId(), HEX);
-    String chipId = String(ESP.getChipId(), HEX);
-    flashId.toUpperCase();
-    chipId.toUpperCase();
-
-    (info)["flash_size"] = ESP.getFlashChipSize();
-    (info)["flash_id"] = flashId.c_str();
-    (info)["chip_id"] = chipId.c_str();;
-    (info)["sdk"] = system_get_sdk_version();
+    info["ssid"] =  ssid;
+    info["flash_size"] = ESP.getFlashChipSize();
+    info["flash_id"] = flashId.c_str();
+    info["chip_id"] = chipId.c_str();;
+    info["sdk"] = system_get_sdk_version();
 
 }
 
@@ -96,7 +104,7 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    String willText = String("ONLINE|") + String(_mac) + "|" + (millis()/1000); 
+    String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000); 
     uint8_t* payload = (uint8_t*) willText.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
     newpub.set_retain(true);
@@ -142,22 +150,21 @@ void MqttConnector::connect()
 
 void MqttConnector::_hook_config()
 {
-
-    _config.topicSub = _config.channelId + String("/") + _mac + String("/command");
-    _config.topicPub = _config.channelId + String("/") + _mac + String("/status");
-    _config.topicLastWill = _config.channelId + String("/") + _mac + String("/online");
-
-
-    (*info)["id"] = _mac.c_str();;
-
-    _config.mqttHost = _mqtt_host;
-    _config.mqttPort = _mqtt_port;
-
     if (_user_hook_config != NULL)
     {
         MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
         _user_hook_config(&_config);
     }
+
+    _config.topicSub = _config.channelPrefix + String("/") + _config.clientId + String("/command");
+    _config.topicPub = _config.channelPrefix + String("/") + _config.clientId + String("/status");
+    _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + String("/online");
+
+
+    (*info)["id"] = _config.clientId.c_str();;
+
+    _config.mqttHost = _mqtt_host;
+    _config.mqttPort = _mqtt_port;
 
     MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
@@ -177,7 +184,7 @@ void MqttConnector::_hook_config()
 
     if (_config.enableLastWill) {
         MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");
-        String willText = String("DEAD|") + String(_mac) + "|" + (millis()/1000); 
+        String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis()/1000); 
         int qos = 1;
         int retain = true;
         (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
@@ -239,7 +246,7 @@ void MqttConnector::doPublish(bool force)
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = _subscription_counter;     
+        (*d)["subscription"] = String(_subscription_counter).c_str();
         
 
         _after_prepare_data_hook();
@@ -310,12 +317,24 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINT("clientId: ");
     MQTT_DEBUG_PRINTLN(_config.clientId);
 
+    MQTT_DEBUG_PRINT("USER: ");
+    MQTT_DEBUG_PRINTLN(_config.username);
+    MQTT_DEBUG_PRINT("PASS: ");
+    MQTT_DEBUG_PRINTLN(_config.password);
+    MQTT_DEBUG_PRINT("clientId: ");
+    MQTT_DEBUG_PRINTLN(_config.clientId);
+
     MQTT_DEBUG_PRINT("lastWill: ");
     MQTT_DEBUG_PRINTLN(_config.enableLastWill);
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
+
+    if (_config.publishOnly == true) {
+       // delete _user_hook_prepare_subscribe;
+       _user_hook_prepare_subscribe = NULL;
+    }
 
     if (_user_hook_prepare_subscribe != NULL)
     {
@@ -325,15 +344,15 @@ void MqttConnector::_connect()
 
         _subscribe_object->add_topic(_config.topicSub);
         MQTT_DEBUG_PRINTLN("++TRY SUBSCRIBING ++");
-        if (client->subscribe(*_subscribe_object)) {
-            _subscription_counter++;
-            MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
-            MQTT_DEBUG_PRINTLN(_config.topicSub);
-        }
-        else {
-            // goto loop and recheck connectiviy
-            return;
-        }
+            if (client->subscribe(*_subscribe_object)) {
+                _subscription_counter++;
+                MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
+                MQTT_DEBUG_PRINTLN(_config.topicSub);
+            }
+            else {
+                // goto loop and recheck connectiviy
+                return;
+            }
     }
     else
     {
