@@ -10,15 +10,16 @@ MqttConnector *mqtt;
 WiFiConnector *wifi;
 DHT *dht;
 
-#define MQTT_HOST        "m20.cloudmqtt.com"
-#define MQTT_PORT        19642
-#define PUBLISH_EVERY    3*1000 // every 15 seconds
 
 /* comment ทิ้งถ้าไม่ส่ username/password */
 #define MQTT_USERNAME    "test"
 #define MQTT_PASSWORD    "test"
 #define MQTT_CLIENT_ID   "gqPFi8OlKxpnw01l"
 #define MQTT_PREFIX      "/HelloChiangMaiMakerClub/id"
+#define MQTT_HOST        "m20.cloudmqtt.com"
+#define MQTT_PORT        19642
+
+#define PUBLISH_EVERY    3*1000 // every 15 seconds
 
 /* SENSOR INFO */
 #define DEVICE_NAME "MAKER-ASIA-DHT22-001"

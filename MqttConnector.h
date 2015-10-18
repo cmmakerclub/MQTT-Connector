@@ -212,7 +212,7 @@ private:
 
     PubSubClient *client;
     
-    String _version = "0.21";
+    String _version = "0.23";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

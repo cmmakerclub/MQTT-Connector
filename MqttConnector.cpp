@@ -87,7 +87,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
 
     info["ssid"] =  ssid;
     info["flash_size"] = ESP.getFlashChipSize();
-    info["flash_id"] = flashId.c_str();
+    // info["flash_id"] = flashId.c_str();
     info["chip_id"] = chipId.c_str();;
     info["sdk"] = system_get_sdk_version();
 
@@ -180,7 +180,17 @@ void MqttConnector::_hook_config()
   
     client->set_server(_mqtt_host, _mqtt_port);
     client->set_callback(_on_message_arrived);
-    _config.connOpts->set_auth(_config.username, _config.password);
+
+    _config.username.trim();
+    _config.password.trim();
+    if(_config.username == "" ||  _config.password == "") {
+        // NO-NEED TO SET AUTH;
+        MQTT_DEBUG_PRINT("NO-AUTH Connection.");
+    }
+    else {
+        _config.connOpts->set_auth(_config.username, _config.password);
+    }
+
 
     if (_config.enableLastWill) {
         MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");

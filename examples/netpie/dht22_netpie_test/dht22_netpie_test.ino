@@ -24,14 +24,14 @@ DHT *dht;
 #define MQTT_PREFIX "/test999/gearname"
 
 /* SENSOR INFO */
-#define DEVICE_NAME "OPENDREAM-TEST-001"
+#define DEVICE_NAME "DEEPSLEEP-001"
 #define AUTHOR      "Nat Weerawan"
-#define BOARD       "NODEMCU V0.9"
+#define BOARD       "NODEMCU V1.0"
 #define SENSOR      "DHT22"
 
 /* WIFI INFO */
-//#define WIFI_SSID        "Nat"
-//#define WIFI_PASSPHARSE  "guestguest"
+#define WIFI_SSID        ""
+#define WIFI_PASSPHARSE  ""
 
 #include "init_wifi.h"
 #include "_publish.h"
