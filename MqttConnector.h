@@ -69,6 +69,7 @@ public:
     void sync_pub(String payload);
     void clear_last_will(String payload);
     void connect();
+    void disconnect() { client->disconnect(); MQTT_DEBUG_PRINTLN("DISCONNECTED"); };
 
     void on_message(PubSubClient::callback_t callback = NULL);
     void on_published(PubSubClient::callback_t callback = NULL);
