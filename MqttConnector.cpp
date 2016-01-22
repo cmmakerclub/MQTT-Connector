@@ -48,10 +48,6 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
 
 void MqttConnector::init_config(const char* host, uint16_t port)
 {
-    String flashId = String(ESP.getFlashChipId(), HEX);
-    String chipId = String(ESP.getChipId(), HEX);
-    flashId.toUpperCase();
-    chipId.toUpperCase();
 
     prev_millis = millis();
 
@@ -87,8 +83,8 @@ void MqttConnector::init_config(const char* host, uint16_t port)
 
     info["ssid"] =  ssid;
     info["flash_size"] = ESP.getFlashChipSize();
-    // info["flash_id"] = flashId.c_str();
-    info["chip_id"] = chipId.c_str();;
+    info["flash_id"] = String(ESP.getFlashChipId(), HEX);
+    info["chip_id"] = String(ESP.getChipId(), HEX);
     info["sdk"] = system_get_sdk_version();
 
 }
@@ -103,7 +99,6 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINTLN("__CLEAR LASTWILL");
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
-
     String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000); 
     uint8_t* payload = (uint8_t*) willText.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
