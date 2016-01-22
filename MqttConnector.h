@@ -64,7 +64,6 @@ public:
 
     void _hook_config();
     void loop();
-    void loop(WiFiConnector *);    
     void init_config(const char*, uint16_t);
     void sync_pub(String payload);
     void clear_last_will(String payload);

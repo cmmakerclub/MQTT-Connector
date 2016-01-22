@@ -151,12 +151,13 @@ void MqttConnector::_hook_config()
         _user_hook_config(&_config);
     }
 
-    _config.topicSub = _config.channelPrefix + String("/") + _config.clientId + String("/command");
-    _config.topicPub = _config.channelPrefix + String("/") + _config.clientId + String("/status");
-    _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + String("/online");
+    String _prefix =_config.channelPrefix + "/" + _config.clientId;
+    _config.topicSub = _prefix + "/command";
+    _config.topicPub = _prefix + "/status";
+    _config.topicLastWill = _prefix + "/online";
 
 
-    (*info)["id"] = _config.clientId.c_str();;
+    (*info)["id"] = _config.clientId;
 
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
@@ -203,11 +204,12 @@ void MqttConnector::_hook_config()
 void MqttConnector::sync_pub(String payload)
 {
     MQTT_DEBUG_PRINT("SYNC PUB.... -> ");
-    MQTT_DEBUG_PRINTLN(payload.c_str());
+    MQTT_DEBUG_PRINTLN(payload);
 
     MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
     client->publish(newpub);
+    client->loop();
 }
 
 
@@ -225,11 +227,6 @@ void MqttConnector::loop()
 
 }
 
-void MqttConnector::loop(WiFiConnector *wifiHelper)
-{
-    wifiHelper->loop();
-    this->loop();
-}
 
 void MqttConnector::doPublish(bool force)
 {
@@ -242,16 +239,16 @@ void MqttConnector::doPublish(bool force)
 
         _prepare_data_hook();
 
-        (*d)["version"] = _version.c_str();                
+        (*d)["version"] = _version;                
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
                        '.' + String(ip[2]) + '.' + String(ip[3]);
         (*d)["heap"] = ESP.getFreeHeap();
-        (*d)["ip"] = ipStr.c_str();
+        (*d)["ip"] = ipStr;
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = String(_subscription_counter).c_str();
+        (*d)["subscription"] = String(_subscription_counter);
         
 
         _after_prepare_data_hook();
