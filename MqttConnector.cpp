@@ -55,14 +55,13 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _mqtt_port = port;
 
     _config.connOpts = NULL;
+    _config.mode = MODE_BOTH;
     client = NULL;
     
     _subscribe_object = NULL;
     _subscribe_object = new MQTT::Subscribe();
 
     _config.enableLastWill = true;
-    _config.publishOnly = false;
-    _config.subscribeOnly = false;
     _config.retainPublishMessage = false;
 
     JsonObject& r = jsonRootBuffer.createObject();
@@ -206,9 +205,11 @@ void MqttConnector::sync_pub(String payload)
     MQTT_DEBUG_PRINT("SYNC PUB.... -> ");
     MQTT_DEBUG_PRINTLN(payload);
 
-    MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
-    newpub.set_retain(true);
-    client->publish(newpub);
+    if (_mode & MODE_PUBLISH_ONLY) {
+        MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
+        newpub.set_retain(true);
+        client->publish(newpub);
+    }
     client->loop();
 }
 
@@ -232,7 +233,8 @@ void MqttConnector::doPublish(bool force)
 {
     static long counter = 0;
 
-    if (force || _timer_expired(&publish_timer))
+
+    if ( (force || _timer_expired(&publish_timer)) && _mode & MODE_PUBLISH_ONLY)
     {
         if (!client->connected()) return;
         _timer_set(&publish_timer, _publish_interval);
@@ -333,12 +335,16 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
 
-    if (_config.publishOnly == true) {
-       // delete _user_hook_prepare_subscribe;
+    MQTT_DEBUG_PRINT("MODE: ");
+    MQTT_DEBUG_PRINTLN(_config.mode);
+    MQTT_DEBUG_PRINT("IF: ");
+    MQTT_DEBUG_PRINTLN((_config.mode&MODE_SUBSCRIBE_ONLY));
+
+    if ((_config.mode&MODE_SUBSCRIBE_ONLY) !=MODE_SUBSCRIBE_ONLY)
+    {
        _user_hook_prepare_subscribe = NULL;
     }
-
-    if (_user_hook_prepare_subscribe != NULL)
+    else
     {
         MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
         _user_hook_prepare_subscribe(_subscribe_object);
@@ -355,10 +361,6 @@ void MqttConnector::_connect()
                 // goto loop and recheck connectiviy
                 return;
             }
-    }
-    else
-    {
-        MQTT_DEBUG_PRINTLN("__ PUBLISH ONLY MODE");
     }
     
     if (_config.enableLastWill) {

@@ -14,16 +14,19 @@ DHT *dht;
 #define MQTT_PORT        1883
 #define PUBLISH_EVERY    3*1000 // every 15 seconds
 
-#define MQTT_HOST "gb.netpie.io"
-#define MQTT_USERNAME "GaBH7sxFDUEX0hl"
-#define MQTT_PASSWORD "cab76s5OGZusfk7kLFvZOjRGkmA="
-#define MQTT_CLIENT_ID "YfOhF8fSboV46Gsv"
-#define MQTT_PREFIX "/NatWeerawan/gearname"
+/* comment ทิ้งถ้าไม่ส่ username/password */
+
+
+#define MQTT_HOST     "gb.netpie.io"
+#define MQTT_USERNAME "z7KXagr95sny6Zx"
+#define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
+#define MQTT_CLIENT_ID "OHXceTmPuUaYt41A"
+#define MQTT_PREFIX "/test999/gearname"
 
 /* SENSOR INFO */
-#define DEVICE_NAME "CMMC-DHT22-ESP01-003"
+#define DEVICE_NAME "DEEPSLEEP-001"
 #define AUTHOR      "Nat Weerawan"
-#define BOARD       "ESP01"
+#define BOARD       "NODEMCU V1.0"
 #define SENSOR      "DHT22"
 
 /* WIFI INFO */
@@ -31,8 +34,10 @@ DHT *dht;
 #define WIFI_PASSPHARSE  ""
 
 #include "init_wifi.h"
-#include "_receive.h"
 #include "_publish.h"
+#include "_receive.h"
+#include "init_mqtt.h"
+
 
 //DW-MINI-1
 //#define DHTPIN 12 // what pin we're connected to
@@ -46,15 +51,13 @@ DHT *dht;
 //#define DHT_GND 16
 
 //// NODE-MCU-0.9
-//#define DHT_VCC 5
-//#define DHT_GND 2
-//#define DHTPIN 4 // what pin we're connected to
+#define DHT_VCC 5
+#define DHT_GND 2
+#define DHTPIN 4 // what pin we're connected to
 
-//#define DHT_VCC 5
-//#define DHT_GND 2
-#define DHTPIN 2 // what pin we're connected to
 
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
+
 void init_hardware()
 {
 
@@ -62,11 +65,12 @@ void init_hardware()
   delay(10);
   Serial.println();
   Serial.println("BEGIN");
+ 
   pinMode(DHTPIN, INPUT_PULLUP);
-  //pinMode(DHT_VCC, OUTPUT);    
-  //pinMode(DHT_GND, OUTPUT);    
-  //digitalWrite(DHT_VCC, HIGH);
-  //digitalWrite(DHT_GND, LOW);    
+  pinMode(DHT_VCC, OUTPUT);    
+  pinMode(DHT_GND, OUTPUT);    
+  digitalWrite(DHT_VCC, HIGH);
+  digitalWrite(DHT_GND, LOW);    
 
   init_dht(&dht, DHTPIN, DHTTYPE);    
 }

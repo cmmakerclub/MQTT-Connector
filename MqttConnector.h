@@ -14,7 +14,7 @@ extern "C" {
 #endif
 
 
-#define MQTT_DEBUG_MODE
+// #define MQTT_DEBUG_MODE
 
 #ifdef MQTT_DEBUG_MODE
 #define MQTT_DEBUG_PRINTER Serial
@@ -28,6 +28,9 @@ extern "C" {
 class MqttConnector
 {
 public:
+    static const uint32_t MODE_PUBLISH_ONLY = 0x01;
+    static const uint32_t MODE_SUBSCRIBE_ONLY = 0x02;    
+    static const uint32_t MODE_BOTH = MODE_SUBSCRIBE_ONLY | MODE_PUBLISH_ONLY;    
     typedef struct
     {
         MQTT::Connect *connOpts;
@@ -42,8 +45,7 @@ public:
         String mqttHost;
         bool enableLastWill;
         bool retainPublishMessage;
-        bool subscribeOnly;
-        bool publishOnly;
+        uint32_t mode;
         uint16_t mqttPort;
     } Config;
 
@@ -107,6 +109,11 @@ public:
     void set_publish_data_hook(publish_data_hook_t func)
     {
         _user_hook_publish_data = func;
+    }
+
+    void set_mode(uint8_t mode) {
+        _config.mode = mode;
+        _mode = mode;
     }
     
 
@@ -182,6 +189,8 @@ private:
     PubSubClient::callback_t _user_on_message_arrived = NULL;
     PubSubClient::callback_t _user_on_published = NULL;
 
+    int _mode = MODE_BOTH;
+
     void _clear_last_will(); 
 
     String _mqtt_host = "";
@@ -199,10 +208,9 @@ private:
 
     unsigned long prev_millis;
 
-    // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
-
-    StaticJsonBuffer<800> jsonRootBuffer;
-    StaticJsonBuffer<512> jsonDBuffer;
+    // const int BUFFER_SIZE = JSON_OBJECT_SIZE(30) + JSON_ARRAY_SIZE(2);
+    DynamicJsonBuffer jsonRootBuffer;
+    DynamicJsonBuffer jsonDBuffer;
     // StaticJsonBuffer<128> jsonInfoBuffer;
 
     char jsonStrbuffer[1024];
@@ -212,7 +220,7 @@ private:
 
     PubSubClient *client;
     
-    String _version = "0.23";
+    String _version = "0.29";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
