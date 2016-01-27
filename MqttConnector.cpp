@@ -54,6 +54,8 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _mqtt_host = String(host);
     _mqtt_port = port;
 
+    _config.topicPub = "";
+    _config.topicSub = "";
     _config.connOpts = NULL;
     _config.mode = MODE_BOTH;
     client = NULL;
@@ -150,11 +152,12 @@ void MqttConnector::_hook_config()
         _user_hook_config(&_config);
     }
 
-    String _prefix =_config.channelPrefix + "/" + _config.clientId;
-    _config.topicSub = _prefix + "/command";
-    _config.topicPub = _prefix + "/status";
-    _config.topicLastWill = _prefix + "/online";
-
+    if (_config.topicPub == "") {
+        String _prefix =_config.channelPrefix + "/" + _config.clientId;
+        _config.topicSub = _prefix + "/command";
+        _config.topicPub = _prefix + "/status";
+        _config.topicLastWill = _prefix + "/online";
+    }
 
     (*info)["id"] = _config.clientId;
 
@@ -193,7 +196,7 @@ void MqttConnector::_hook_config()
         int qos = 1;
         int retain = true;
         (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
-        (_config.connOpts)->set_clean_session(false);
+        (_config.connOpts)->set_clean_session(true);
         (_config.connOpts)->set_keepalive(15);
         MQTT_DEBUG_PRINTLN(_config.topicLastWill);
     }
@@ -222,7 +225,9 @@ void MqttConnector::loop()
     }
     else
     {
-        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED");
+        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED.");
+        MQTT_DEBUG_PRINTLN("MQTT RECONNECTING.");
+
         _connect();
     }
 
@@ -241,12 +246,13 @@ void MqttConnector::doPublish(bool force)
 
         _prepare_data_hook();
 
-        (*d)["version"] = _version;                
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
                        '.' + String(ip[2]) + '.' + String(ip[3]);
+        (*d)["version"] = _version;
+
         (*d)["heap"] = ESP.getFreeHeap();
-        (*d)["ip"] = ipStr;
+        (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;

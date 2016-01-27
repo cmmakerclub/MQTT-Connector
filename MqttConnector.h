@@ -209,8 +209,8 @@ private:
     unsigned long prev_millis;
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(30) + JSON_ARRAY_SIZE(2);
-    DynamicJsonBuffer jsonRootBuffer;
-    DynamicJsonBuffer jsonDBuffer;
+    StaticJsonBuffer<2048> jsonRootBuffer;
+    StaticJsonBuffer<1024> jsonDBuffer;
     // StaticJsonBuffer<128> jsonInfoBuffer;
 
     char jsonStrbuffer[1024];
@@ -220,7 +220,7 @@ private:
 
     PubSubClient *client;
     
-    String _version = "0.29";
+    String _version = "0.30";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
