@@ -249,14 +249,14 @@ void MqttConnector::doPublish(bool force)
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) + 
                        '.' + String(ip[2]) + '.' + String(ip[3]);
-        (*d)["version"] = _version;
+        (*d)["version"] = _version.c_str();
 
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = String(_subscription_counter);
+        (*d)["subscription"] = String(_subscription_counter).c_str();
         
 
         _after_prepare_data_hook();
@@ -301,21 +301,26 @@ void MqttConnector::doPublish(bool force)
 void MqttConnector::_connect()
 {
     client->set_max_retries(150);
-    bool flag = true;
+    bool cont = true;
 
     uint16_t times = 0;
 
 
-    while(!client->connect(*(_config.connOpts)) && flag)
+    uint32_t connect_prev = millis();
+    while(!client->connect(*(_config.connOpts)) && cont)
     {
         MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
         if (_user_hook_connecting) {
-            _user_hook_connecting(++times, &flag);
+            _user_hook_connecting(++times, &cont);
             yield();
+            if (millis() - connect_prev > 5000) {
+                cont = false;
+                break;
+            }
         }
-        else {
-            delay(100);
-        }
+        // else {
+        //     yield();
+        // }
     }
 
     MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
