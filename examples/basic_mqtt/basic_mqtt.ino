@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <MqttConnector.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
@@ -24,18 +25,18 @@ MqttConnector *mqtt;
 #define SENSOR      "DHT22"
 
 /* WIFI INFO */
-#define WIFI_SSID        ""
-#define WIFI_PASSPHARSE  ""
+
+#ifndef WIFI_SSID
+  #define WIFI_SSID        ""
+  #define WIFI_PASSPHARSE  ""
+#endif
 
 #include "_publish.h"
 #include "_receive.h"
 #include "init_mqtt.h"
 
-
-
 void init_hardware()
 {
-
   Serial.begin(115200);
   delay(10);
   Serial.println();

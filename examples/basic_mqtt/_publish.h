@@ -6,9 +6,7 @@ MqttConnector::prepare_data_hook_t on_prepare_data =
     static float t_dht = 0;
     static float h_dht = 0;
 
-
-    data["temp"] = t_dht;
-    data["humid"] = h_dht;
+    data["millis"] = millis();
 
     info["author"] = AUTHOR;
     info["board"]  = BOARD;
