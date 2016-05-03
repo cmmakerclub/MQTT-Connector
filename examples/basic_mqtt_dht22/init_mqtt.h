@@ -8,8 +8,8 @@ void init_mqtt()
   config->clientId  = String(MQTT_CLIENT_ID);
   config->channelPrefix = String(MQTT_PREFIX);
   config->enableLastWill = true;
-  config->retainPublishMessage = false;
-  config->publishOnly = false;
+  config->retainPublishMessage = true;
+  config->publishOnly = true;
   config->firstCapChannel = false;
 
   config->username = String(MQTT_USERNAME);
