@@ -39,23 +39,7 @@ DHT dht(DHTPIN, DHTTYPE);
 #include "init_mqtt.h"
 
 
-//DW-MINI-1
-//#define DHTPIN 12 // what pin we're connected to
-//#define DHT_VCC 13
-//#define DHT_GND 14
-
-
-//DW-MINI-2
-//#define DHTPIN 12 // what pin we're connected to
-//#define DHT_VCC 13
-//#define DHT_GND 16
-
-//// NODE-MCU-0.9
-// #define DHT_VCC 5
-// #define DHT_GND 2
 #define DHTPIN 12 // what pin we're connected to
-
-
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 void init_hardware()

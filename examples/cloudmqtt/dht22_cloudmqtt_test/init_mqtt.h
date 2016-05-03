@@ -63,8 +63,8 @@ void init_mqtt()
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
-    Serial.print("PUBLISHED: ");
-    Serial.println(pub.payload_string());
+    // Serial.print("PUBLISHED: ");
+    // Serial.println(pub.payload_string());
   });
 
   mqtt->connect();

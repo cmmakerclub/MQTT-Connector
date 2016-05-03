@@ -9,10 +9,8 @@ void init_mqtt()
   config->retainPublishMessage = false;
   config->publishOnly = false;
 
-  #if defined (MQTT_USERNAME) && defined (MQTT_PASSWORD)
-    config->username = String(MQTT_USERNAME);
-    config->password = String(MQTT_PASSWORD);
-  #endif
+  config->username = String(MQTT_USERNAME);
+  config->password = String(MQTT_PASSWORD);
 
   uint8_t mac[6];
   WiFi.macAddress(mac);
@@ -63,8 +61,8 @@ void init_mqtt()
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
-    Serial.print("PUBLISHED: ");
-    Serial.println(pub.payload_string());
+    // Serial.print("PUBLISHED: ");
+    // Serial.println(pub.payload_string());
   });
 
   mqtt->connect();

@@ -10,7 +10,7 @@ MqttConnector *mqtt;
 #define MQTT_USERNAME     ""
 #define MQTT_PASSWORD     ""
 #define MQTT_CLIENT_ID    ""
-#define MQTT_PREFIX       ""
+#define MQTT_PREFIX       "NatWeerawan"
 #define PUBLISH_EVERY     (10*1000)// every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
