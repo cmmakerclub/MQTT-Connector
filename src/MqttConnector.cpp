@@ -64,6 +64,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _config.publishOnly = false;
     _config.subscribeOnly = false;
     _config.retainPublishMessage = false;
+    _config.firstCapChannel = false;
 
     JsonObject& r = jsonRootBuffer.createObject();
     JsonObject& info = r.createNestedObject("info");
@@ -132,14 +133,12 @@ void MqttConnector::on_published(PubSubClient::callback_t callback) {
 }
 
 
-
 void MqttConnector::connect()
 {
-    MQTT_DEBUG_PRINTLN("BEGIN Wrapper");
+    MQTT_DEBUG_PRINTLN("BEGIN CMMC_MQTT_CONNECTOR");
     _set_default_client_id();
     _hook_config();
     _connect();
-
 }
 
 
@@ -151,23 +150,42 @@ void MqttConnector::_hook_config()
         _user_hook_config(&_config);
     }
 
-    _config.topicSub = _config.channelPrefix + String("/") + _config.clientId + String("/command");
-    _config.topicPub = _config.channelPrefix + String("/") + _config.clientId + String("/status");
-    _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + String("/online");
+
+    if (_config.clientId == "") {
+      _config.clientId = String(ESP.getChipId());
+    }
+
+    String commandChannel = "/command";
+    String statusChannel = "/status";
+    String lwtChannel = "/online";
+
+    if (_config.firstCapChannel) {
+      commandChannel = "/Command";
+      statusChannel = "/Status";
+      lwtChannel = "/Online";
+    }
+
+    _config.topicSub = _config.channelPrefix + String("/") + _config.clientId + commandChannel;
+    _config.topicPub = _config.channelPrefix + String("/") + _config.clientId + statusChannel;
+    _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + lwtChannel;
 
 
     (*info)["id"] = _config.clientId.c_str();;
+    (*info)["prefix"] = _config.channelPrefix.c_str();
+
 
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
 
     MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
 
+    #ifdef MQTT_DEBUG_LEVEL_VERBOSE
     MQTT_DEBUG_PRINTLN(_config.topicPub)
-
+    #endif
     MQTT_DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
-
+    #ifdef MQTT_DEBUG_LEVEL_VERBOSE
     MQTT_DEBUG_PRINTLN(_config.topicSub);
+    #endif
 
     _config.connOpts = new MQTT::Connect(_config.clientId);
     _config.client = new PubSubClient(wclient);
@@ -178,8 +196,9 @@ void MqttConnector::_hook_config()
 
     _config.username.trim();
     _config.password.trim();
+
+    // NO-NEED TO SET AUTH;
     if(_config.username == "" ||  _config.password == "") {
-        // NO-NEED TO SET AUTH;
         MQTT_DEBUG_PRINT("NO-AUTH Connection.");
     }
     else {
@@ -195,7 +214,9 @@ void MqttConnector::_hook_config()
         (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
         (_config.connOpts)->set_clean_session(false);
         (_config.connOpts)->set_keepalive(15);
+        #ifdef MQTT_DEBUG_LEVEL_VERBOSE
         MQTT_DEBUG_PRINTLN(_config.topicLastWill);
+        #endif
     }
 
 }
@@ -256,11 +277,16 @@ void MqttConnector::doPublish(bool force)
         // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
-        MQTT_DEBUG_PRINTLN("__DO PUBLISH ");
+        MQTT_DEBUG_PRINTLN("__TO BE PUBLISHED ");
         MQTT_DEBUG_PRINT("______________ TOPIC: -->");
-        MQTT_DEBUG_PRINTLN(_config.topicPub);
+        MQTT_DEBUG_PRINT(_config.topicPub);
+        MQTT_DEBUG_PRINTLN();
+
         MQTT_DEBUG_PRINT("______________ CONTENT: -->");
-        MQTT_DEBUG_PRINTLN(jsonStrbuffer);
+        #ifdef MQTT_DEBUG_LEVEL_VERBOSE
+        MQTT_DEBUG_PRINT(jsonStrbuffer);
+        #endif
+        MQTT_DEBUG_PRINTLN();
 
         // if (_user_hook_publish_data != NULL)
         // {
@@ -272,10 +298,12 @@ void MqttConnector::doPublish(bool force)
             newpub.set_retain(true) ;
         }
         if(!client->publish(newpub)) {
+            MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
         }
         else {
+            MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
             if (_user_on_published) {
                 _user_on_published(newpub);

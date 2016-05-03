@@ -12,13 +12,9 @@ extern "C" {
 }
 #endif
 
-
-#define MQTT_DEBUG_MODE
-
-#ifdef MQTT_DEBUG_MODE
-#define MQTT_DEBUG_PRINTER Serial
-    #define MQTT_DEBUG_PRINT(...) { MQTT_DEBUG_PRINTER.print(__VA_ARGS__); }
-    #define MQTT_DEBUG_PRINTLN(...) { MQTT_DEBUG_PRINTER.println(__VA_ARGS__); }
+#ifdef CMMC_MQTT_DEBUG_MODE
+    #define MQTT_DEBUG_PRINT(...) { DEBUG_ESP_PORT.print(__VA_ARGS__); }
+    #define MQTT_DEBUG_PRINTLN(...) { DEBUG_ESP_PORT.println(__VA_ARGS__); }
 #else
     #define MQTT_DEBUG_PRINT(...) { }
     #define MQTT_DEBUG_PRINTLN(...) { }
@@ -44,6 +40,7 @@ public:
         bool subscribeOnly;
         bool publishOnly;
         uint16_t mqttPort;
+        bool firstCapChannel;
     } Config;
 
 
@@ -210,7 +207,7 @@ private:
 
     PubSubClient *client;
 
-    String _version = "0.50.1";
+    String _version = "0.51";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
