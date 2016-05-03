@@ -16,7 +16,7 @@ MqttConnector *mqtt;
 #define MQTT_PASSWORD     ""
 #define MQTT_CLIENT_ID    ""
 #define MQTT_PREFIX       "/NatWeerawan"
-#define PUBLISH_EVERY     (3*1000)// every 10 seconds
+#define PUBLISH_EVERY     (1*1000)// every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
 #define DEVICE_NAME       "CMMC-001"
