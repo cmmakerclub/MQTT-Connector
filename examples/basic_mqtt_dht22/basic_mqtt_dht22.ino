@@ -10,21 +10,24 @@ DHT dht(DHTPIN, DHTTYPE);
 
 MqttConnector *mqtt;
 
-#define MQTT_PORT        1883
-#define PUBLISH_EVERY    1*1000 // every 15 seconds
-
 #define MQTT_HOST     "mqtt.espert.io"
-/* AUTH */
-/* comment ทิ้งถ้าไม่ส่ username/password */
-/****************************************************
- #define MQTT_USERNAME "z7KXagr95sny6Zx"
- #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
-***************************************************/
-#define MQTT_CLIENT_ID "OHXceTmPuUaYt41A"
-#define MQTT_PREFIX "/NatWeerawan/Apps"
+#define MQTT_PORT     1883
+/**************************************************
+/* AUTH
+/**************************************************/
+// #define MQTT_USERNAME "z7KXagr95sny6Zx"
+// #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
+/***************************************************/
 
-/* SENSOR INFO */
-#define DEVICE_NAME "NAT-001"
+/**************************************************
+/* CLIENT_ID & PREFIX */
+/*************************************************/
+#define MQTT_CLIENT_ID    ""
+#define MQTT_PREFIX       ""
+
+/* DEVICE DATA & FREQUENCY */
+#define DEVICE_NAME       "CMMC-001"
+#define PUBLISH_EVERY     (10*1000)// every 10 seconds
 
 /* WIFI INFO */
 #ifndef WIFI_SSID

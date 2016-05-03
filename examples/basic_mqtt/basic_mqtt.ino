@@ -5,21 +5,24 @@
 
 MqttConnector *mqtt;
 
-/* comment ทิ้งถ้าไม่ส่ username/password */
-
 #define MQTT_HOST     "mqtt.espert.io"
-#define MQTT_PORT        1883
-/* AUTH */
-/****************************************************
- #define MQTT_USERNAME "z7KXagr95sny6Zx"
- #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
-***************************************************/
-#define MQTT_CLIENT_ID "OHXceTmPuUaYt41A"
-#define MQTT_PREFIX ""
-#define PUBLISH_EVERY    (10*1000)// every 10 seconds
+#define MQTT_PORT     1883
+/**************************************************
+/* AUTH
+/**************************************************/
+// #define MQTT_USERNAME "z7KXagr95sny6Zx"
+// #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
+/***************************************************/
 
-/* SENSOR INFO */
-#define DEVICE_NAME "DEEPSLEEP-001"
+/**************************************************
+/* CLIENT_ID & PREFIX */
+/*************************************************/
+#define MQTT_CLIENT_ID    ""
+#define MQTT_PREFIX       ""
+
+/* DEVICE DATA & FREQUENCY */
+#define DEVICE_NAME       "CMMC-001"
+#define PUBLISH_EVERY     (10*1000)// every 10 seconds
 
 /* WIFI INFO */
 #ifndef WIFI_SSID
@@ -41,7 +44,7 @@ void init_hardware()
 
 void setup()
 {
-  WiFi.begin("Nat", "123456789");
+  WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
   while(WiFi.status() != WL_CONNECTED) {
     Serial.println("CONNECTING...");
     delay(300);

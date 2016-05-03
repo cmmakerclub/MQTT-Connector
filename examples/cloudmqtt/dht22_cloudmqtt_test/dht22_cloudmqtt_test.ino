@@ -10,7 +10,6 @@ MqttConnector *mqtt;
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 DHT dht(DHTPIN, DHTTYPE);
 
-
 #define MQTT_HOST "m20.cloudmqtt.com"
 #define MQTT_PORT 19642
 #define MQTT_USERNAME "test"
@@ -20,8 +19,15 @@ DHT dht(DHTPIN, DHTTYPE);
 
 #define PUBLISH_EVERY    (10*1000) // every 10 seconds
 
-/* SENSOR INFO */
-#define DEVICE_NAME "DEEPSLEEP-001"
+/* DEVICE DATA & FREQUENCY */
+#define DEVICE_NAME       "CMMC-001"
+#define PUBLISH_EVERY     (10*1000)// every 10 seconds
+
+/* WIFI INFO */
+#ifndef WIFI_SSID
+  #define WIFI_SSID        ""
+  #define WIFI_PASSPHARSE  ""
+#endif
 
 /* WIFI INFO */
 #ifndef WIFI_SSID
