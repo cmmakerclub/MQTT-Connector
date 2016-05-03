@@ -10,25 +10,16 @@ DHT dht(DHTPIN, DHTTYPE);
 
 MqttConnector *mqtt;
 
-#define MQTT_HOST     "mqtt.espert.io"
-#define MQTT_PORT     1883
-/**************************************************
-/* AUTH
-/**************************************************/
-// #define MQTT_USERNAME "z7KXagr95sny6Zx"
-// #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
-/***************************************************/
-
-/**************************************************
-/* CLIENT_ID & PREFIX */
-/*************************************************/
+#define MQTT_HOST         "mqtt.espert.io"
+#define MQTT_PORT         1883
+#define MQTT_USERNAME     ""
+#define MQTT_PASSWORD     ""
 #define MQTT_CLIENT_ID    ""
 #define MQTT_PREFIX       ""
+#define PUBLISH_EVERY     (10*1000)// every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
 #define DEVICE_NAME       "CMMC-001"
-#define PUBLISH_EVERY     (10*1000)// every 10 seconds
-
 /* WIFI INFO */
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
@@ -50,7 +41,7 @@ void init_hardware()
 
 void setup()
 {
-  WiFi.begin("Nat", "123456789");
+  WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
   while(WiFi.status() != WL_CONNECTED) {
     Serial.println("CONNECTING...");
     delay(300);

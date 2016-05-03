@@ -16,7 +16,6 @@ DHT dht(DHTPIN, DHTTYPE);
 #define MQTT_PASSWORD "test"
 #define MQTT_CLIENT_ID "S1E6h0qKLTmjC1Vh"
 #define MQTT_PREFIX "/NatWeerawan2/gearname"
-
 #define PUBLISH_EVERY    (10*1000) // every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */

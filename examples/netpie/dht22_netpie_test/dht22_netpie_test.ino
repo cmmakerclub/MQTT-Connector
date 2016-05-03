@@ -66,22 +66,16 @@ void init_hardware()
   Serial.println();
   Serial.println("BEGIN");
 
-  pinMode(DHTPIN, INPUT_PULLUP);
-  // pinMode(DHT_VCC, OUTPUT);
-  // pinMode(DHT_GND, OUTPUT);
-  // digitalWrite(DHT_VCC, HIGH);
-  // digitalWrite(DHT_GND, LOW);
-
   init_dht();
 
 }
 
 void init_dht() {
-  // init_dht(&dht, DHTPIN, DHTTYPE);
+  pinMode(DHTPIN, INPUT_PULLUP);
 }
 
 void init_wifi() {
-  WiFi.begin("Nat", "123456789");
+  WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
   while(WiFi.status() != WL_CONNECTED) {
     Serial.println("CONNECTING...");
     delay(300);
