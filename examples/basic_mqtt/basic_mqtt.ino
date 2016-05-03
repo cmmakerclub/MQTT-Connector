@@ -5,27 +5,23 @@
 
 MqttConnector *mqtt;
 
-
-#define MQTT_PORT        1883
-#define PUBLISH_EVERY    3*1000 // every 15 seconds
-
 /* comment ทิ้งถ้าไม่ส่ username/password */
 
-
 #define MQTT_HOST     "mqtt.espert.io"
-// #define MQTT_USERNAME "z7KXagr95sny6Zx"
-// #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
+#define MQTT_PORT        1883
+/* AUTH */
+/****************************************************
+ #define MQTT_USERNAME "z7KXagr95sny6Zx"
+ #define MQTT_PASSWORD "jPxRZFXfoshDxLHk79ChVFLu5/8="
+***************************************************/
 #define MQTT_CLIENT_ID "OHXceTmPuUaYt41A"
 #define MQTT_PREFIX ""
+#define PUBLISH_EVERY    (10*1000)// every 10 seconds
 
 /* SENSOR INFO */
 #define DEVICE_NAME "DEEPSLEEP-001"
-#define AUTHOR      "Nat Weerawan"
-#define BOARD       "NODEMCU V1.0"
-#define SENSOR      "DHT22"
 
 /* WIFI INFO */
-
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
   #define WIFI_PASSPHARSE  ""

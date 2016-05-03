@@ -11,22 +11,17 @@ MqttConnector *mqtt;
 DHT dht(DHTPIN, DHTTYPE);
 
 
-#define MQTT_PORT        1883
-#define PUBLISH_EVERY    (3*1000) // every 15 seconds
-
-/* comment ทิ้งถ้าไม่ส่ username/password */
-
-#define MQTT_HOST "gb.netpie.io"
-#define MQTT_USERNAME "VKUbwn8T5FsNKpp"
-#define MQTT_PASSWORD "dDfoyjzgNox3ExWvmXaRb4tw3ik="
+#define MQTT_HOST "m20.cloudmqtt.com"
+#define MQTT_PORT 19642
+#define MQTT_USERNAME "test"
+#define MQTT_PASSWORD "test"
 #define MQTT_CLIENT_ID "S1E6h0qKLTmjC1Vh"
 #define MQTT_PREFIX "/NatWeerawan2/gearname"
 
+#define PUBLISH_EVERY    (10*1000) // every 10 seconds
+
 /* SENSOR INFO */
 #define DEVICE_NAME "DEEPSLEEP-001"
-#define AUTHOR      "Nat Weerawan"
-#define BOARD       "NODEMCU V1.0"
-#define SENSOR      "DHT22"
 
 /* WIFI INFO */
 #ifndef WIFI_SSID
@@ -38,46 +33,22 @@ DHT dht(DHTPIN, DHTTYPE);
 #include "_receive.h"
 #include "init_mqtt.h"
 
-
-//DW-MINI-1
-//#define DHTPIN 12 // what pin we're connected to
-//#define DHT_VCC 13
-//#define DHT_GND 14
-
-
-//DW-MINI-2
-//#define DHTPIN 12 // what pin we're connected to
-//#define DHT_VCC 13
-//#define DHT_GND 16
-
-//// NODE-MCU-0.9
-// #define DHT_VCC 5
-// #define DHT_GND 2
 #define DHTPIN 12 // what pin we're connected to
-
-
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 
 void init_hardware()
 {
-
   Serial.begin(115200);
   delay(10);
   Serial.println();
   Serial.println("BEGIN");
-
-  pinMode(DHTPIN, INPUT_PULLUP);
-  // pinMode(DHT_VCC, OUTPUT);
-  // pinMode(DHT_GND, OUTPUT);
-  // digitalWrite(DHT_VCC, HIGH);
-  // digitalWrite(DHT_GND, LOW);
 
   init_dht();
 
 }
 
 void init_dht() {
-  // init_dht(&dht, DHTPIN, DHTTYPE);
+  pinMode(DHTPIN, INPUT_PULLUP);
 }
 
 void init_wifi() {
