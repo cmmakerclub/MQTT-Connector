@@ -1,0 +1,12 @@
+{
+    "name": "CMMC MQTT Connector",
+    "keywords": "mqtt, connectivity, iot",
+    "description": "an ESP8266 MQTT Connector library. made with love by CMMC",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/cmmakerclub/MQTT-Connector.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "espressif"
+}
