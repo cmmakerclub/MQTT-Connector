@@ -1,5 +1,5 @@
 {
-    "name": "CMMC MQTT Connector",
+    "name": "MqttConnector",
     "keywords": "mqtt, connectivity, iot",
     "description": "an ESP8266 MQTT Connector library. made with love by CMMC",
     "repository":
