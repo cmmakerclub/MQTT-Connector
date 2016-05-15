@@ -19,11 +19,11 @@ MqttConnector *mqtt;
 #define PUBLISH_EVERY     (3*1000)// every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
-#define DEVICE_NAME       "CMMC-003"
+#define DEVICE_NAME       "CNX-CMMC-002"
 /* WIFI INFO */
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
-  #define WIFI_PASSPHARSE  ""
+  #define WIFI_PASSWORD    ""
 #endif
 
 #include "_publish.h"
@@ -41,7 +41,7 @@ void init_hardware()
 
 void setup()
 {
-  WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while(WiFi.status() != WL_CONNECTED) {
     Serial.println("CONNECTING...");
     delay(300);

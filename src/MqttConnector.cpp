@@ -234,16 +234,18 @@ void MqttConnector::sync_pub(String payload)
 
 void MqttConnector::loop()
 {
-    if (client->loop())
+  if (!this->_is_connecting) {
+    if (client->connected())
     {
         doPublish();
     }
     else
     {
-        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED");
+        MQTT_DEBUG_PRINTLN("MQTT NOT CONNECTED.");
+        MQTT_DEBUG_PRINTLN("Reconnecting.......");
         _connect();
     }
-
+  }
 }
 
 void MqttConnector::doPublish(bool force)
@@ -315,27 +317,15 @@ void MqttConnector::doPublish(bool force)
     }
 }
 
+
 void MqttConnector::_connect()
 {
-    client->set_max_retries(150);
     bool flag = true;
+    this->_is_connecting = true;
 
     uint16_t times = 0;
 
-
-    while(!client->connect(*(_config.connOpts)) && flag)
-    {
-        MQTT_DEBUG_PRINTLN("KEEP CONNECTING...");
-        if (_user_hook_connecting) {
-            _user_hook_connecting(++times, &flag);
-            yield();
-        }
-        else {
-            delay(100);
-        }
-    }
-
-    MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
+    MQTT_DEBUG_PRINTLN("== TRY CONNECT TO MQTT BROKER ==");
     MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
     MQTT_DEBUG_PRINT("HOST: ");
     MQTT_DEBUG_PRINTLN(_mqtt_host);
@@ -354,9 +344,27 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINT("lastWill: ");
     MQTT_DEBUG_PRINTLN(_config.enableLastWill);
 
+
+    while(!client->connect(*(_config.connOpts)) && flag)
+    {
+        MQTT_DEBUG_PRINTLN("STILL.. CONNECTING...");
+        if (_user_hook_connecting) {
+            MQTT_DEBUG_PRINTLN("Calling hook_connecting..");
+            _user_hook_connecting(++times, &flag);
+            MQTT_DEBUG_PRINTLN("TO BE YIELDED.");
+            MQTT_DEBUG_PRINTLN("YIELDED.");
+            yield();
+        }
+        else {
+            MQTT_DEBUG_PRINTLN("TRY CONNECTING WITHOUT CONNECTING CALLBACK..");
+            delay(100);
+        }
+    }
+
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
+    this->_is_connecting = false;
 
     if (_config.publishOnly == true) {
        // delete _user_hook_prepare_subscribe;

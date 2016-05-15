@@ -31,7 +31,7 @@ DHT dht(DHTPIN, DHTTYPE);
 /* WIFI INFO */
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
-  #define WIFI_PASSPHARSE  ""
+  #define WIFI_PASSWORD    ""
 #endif
 
 #include "_publish.h"
@@ -59,7 +59,7 @@ void init_dht() {
 }
 
 void init_wifi() {
-  WiFi.begin(WIFI_SSID, WIFI_PASSPHRASE);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while(WiFi.status() != WL_CONNECTED) {
     Serial.println("CONNECTING...");
     delay(300);

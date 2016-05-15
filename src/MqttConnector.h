@@ -64,6 +64,9 @@ public:
     void sync_pub(String payload);
     void clear_last_will(String payload);
     void connect();
+    bool connected() {
+      return client->connected();
+    }
 
     void on_message(PubSubClient::callback_t callback = NULL);
     void on_published(PubSubClient::callback_t callback = NULL);
@@ -181,6 +184,8 @@ private:
 
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
+
+    bool _is_connecting = false;
 
     Config _config;
     String _mac = "";
