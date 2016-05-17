@@ -238,7 +238,7 @@ void MqttConnector::loop()
   if (!this->_is_connecting) {
     if (this->_client->connected())
     {
-        doPublish();
+        _do_publish();
     }
     else
     {
@@ -249,7 +249,7 @@ void MqttConnector::loop()
   }
 }
 
-void MqttConnector::doPublish(bool force)
+void MqttConnector::_do_publish(bool force)
 {
     static long counter = 0;
 
@@ -260,7 +260,7 @@ void MqttConnector::doPublish(bool force)
 
         _prepare_data_hook();
 
-        (*_d)["version"] = _version.c_str();
+        (*this->_d)["version"] = _version.c_str();
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) +
                        '.' + String(ip[2]) + '.' + String(ip[3]);
@@ -285,8 +285,8 @@ void MqttConnector::doPublish(bool force)
         MQTT_DEBUG_PRINT(_config.topicPub);
         MQTT_DEBUG_PRINTLN();
 
-        MQTT_DEBUG_PRINT("______________ CONTENT: -->");
         #ifdef MQTT_DEBUG_LEVEL_VERBOSE
+        MQTT_DEBUG_PRINT("______________ CONTENT: -->");
         MQTT_DEBUG_PRINT(jsonStrbuffer);
         #endif
         MQTT_DEBUG_PRINTLN();
@@ -353,8 +353,8 @@ void MqttConnector::_connect()
             MQTT_DEBUG_PRINTLN("Calling hook_connecting..");
             _user_hook_connecting(++times, &flag);
             MQTT_DEBUG_PRINTLN("TO BE YIELDED.");
-            MQTT_DEBUG_PRINTLN("YIELDED.");
             yield();
+            MQTT_DEBUG_PRINTLN("YIELDED.");
         }
         else {
             MQTT_DEBUG_PRINTLN("TRY CONNECTING WITHOUT CONNECTING CALLBACK..");
@@ -399,9 +399,55 @@ void MqttConnector::_connect()
         _clear_last_will();
     }
 
-    doPublish(true);
+    _do_publish(true);
 }
 
+bool MqttConnector::connected() {
+    return this->_client->connected();
+}
+
+
+/*
+*******************************
+************* HOOKS  **********
+*******************************
+*/
+
+void MqttConnector::on_prepare_configuration(cmmc_config_t func)
+{
+    _user_hook_config = func;
+}
+
+void MqttConnector::on_after_prepare_configuration(cmmc_after_config_t func)
+{
+    _user_hook_after_config = func;
+}
+
+void MqttConnector::on_connecting(connecting_hook_t cb) {
+    _user_hook_connecting = cb;
+}
+
+void MqttConnector::on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval)
+{
+    _user_hook_prepare_data = func;
+    _publish_interval = publish_interval;
+    _timer_set(&publish_timer, publish_interval);
+}
+
+void MqttConnector::on_after_prepare_data(after_prepare_data_hook_t func)
+{
+    _user_hook_after_prepare_data = func;
+}
+
+void MqttConnector::on_prepare_subscribe(prepare_subscribe_hook_t func)
+{
+    _user_hook_prepare_subscribe = func;
+}
+
+void MqttConnector::set_publish_data_hook(publish_data_hook_t func)
+{
+    _user_hook_publish_data = func;
+}
 
 MqttConnector::~MqttConnector()
 {
