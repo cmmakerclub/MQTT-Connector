@@ -56,7 +56,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _mqtt_port = port;
 
     _config.connOpts = NULL;
-    this->_client = NULL;
+    _client = NULL;
 
     _subscribe_object = NULL;
     _subscribe_object = new MQTT::Subscribe();
@@ -71,14 +71,14 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     JsonObject& info = r.createNestedObject("info");
     JsonObject& dd = _jsonDBuffer.createObject();
 
-    this->_root = &r;
-    this->_info = &info;
+    _root = &r;
+    _info = &info;
 
 
     r["info"] = info;
     r["d"] = dd;
     // this->d = &((JsonObject)r["d"]);
-    this->_d = &dd;
+    _d = &dd;
     static struct station_config conf;
     wifi_station_get_config(&conf);
     const char* ssid = reinterpret_cast<const char*>(conf.ssid);
@@ -105,41 +105,26 @@ void MqttConnector::_clear_last_will() {
     uint8_t* payload = (uint8_t*) willText.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
     newpub.set_retain(true);
-    this->_client->publish(newpub);
+    _client->publish(newpub);
 
 }
-
-void MqttConnector::on_message(PubSubClient::callback_t callback) {
-    if (callback != NULL)
-    {
-        MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
-        _user_on_message_arrived = callback;
-    }
-    else
-    {
-        MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
-    }
-}
-
-void MqttConnector::on_published(PubSubClient::callback_t callback) {
-    if (callback != NULL)
-    {
-        MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
-        _user_on_published = callback;
-    }
-    else
-    {
-        MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
-    }
-}
-
 
 void MqttConnector::connect()
 {
     MQTT_DEBUG_PRINTLN("BEGIN CMMC_MQTT_CONNECTOR");
     _set_default_client_id();
     _hook_config();
+    _hook_after_config();
     _connect();
+}
+
+void MqttConnector::_hook_after_config()
+{
+    if (_user_hook_after_config != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
+        _user_hook_after_config(_config);
+    }
 }
 
 
@@ -156,6 +141,8 @@ void MqttConnector::_hook_config()
       _config.clientId = String(ESP.getChipId());
     }
 
+    // TODO:  make this smarter
+
     String commandChannel = "/command";
     String statusChannel = "/status";
     String lwtChannel = "/online";
@@ -171,44 +158,43 @@ void MqttConnector::_hook_config()
     _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + lwtChannel;
 
 
-    (*this->_info)["id"] = _config.clientId.c_str();;
-    (*this->_info)["prefix"] = _config.channelPrefix.c_str();
+    (*_info)["id"] = _config.clientId.c_str();;
+    (*_info)["prefix"] = _config.channelPrefix.c_str();
 
 
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
 
-    MQTT_DEBUG_PRINT("__PUBLICATION TOPIC -> ");
+    MQTT_DEBUG_PRINT("[DEBUG] __PUBLICATION TOPIC -> ");
 
     #ifdef MQTT_DEBUG_LEVEL_VERBOSE
     MQTT_DEBUG_PRINTLN(_config.topicPub)
     #endif
-    MQTT_DEBUG_PRINT("__SUBSCRIPTION TOPIC -> ");
+    MQTT_DEBUG_PRINT("[DEBUG] __SUBSCRIPTION TOPIC -> ");
     #ifdef MQTT_DEBUG_LEVEL_VERBOSE
     MQTT_DEBUG_PRINTLN(_config.topicSub);
     #endif
 
     _config.connOpts = new MQTT::Connect(_config.clientId);
     _config.client = new PubSubClient(wclient);
-    this->_client = _config.client;
+    _client = _config.client;
 
-    this->_client->set_server(_mqtt_host, _mqtt_port);
-    this->_client->set_callback(_on_message_arrived);
+    _client->set_server(_mqtt_host, _mqtt_port);
+    _client->set_callback(_on_message_arrived);
 
     _config.username.trim();
     _config.password.trim();
 
     // NO-NEED TO SET AUTH;
     if(_config.username == "" ||  _config.password == "") {
-        MQTT_DEBUG_PRINT("NO-AUTH Connection.");
+        MQTT_DEBUG_PRINT("[DEBUG] NO-AUTH Connection.");
     }
     else {
         _config.connOpts->set_auth(_config.username, _config.password);
     }
 
-
     if (_config.enableLastWill) {
-        MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");
+        MQTT_DEBUG_PRINT("[DEBUG] ENABLE LAST WILL: ");
         String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis()/1000);
         int qos = 1;
         int retain = true;
@@ -224,26 +210,26 @@ void MqttConnector::_hook_config()
 
 void MqttConnector::sync_pub(String payload)
 {
-    MQTT_DEBUG_PRINT("SYNC PUB.... -> ");
+    MQTT_DEBUG_PRINT("[DEBUG] SYNC PUB.... -> ");
     MQTT_DEBUG_PRINTLN(payload.c_str());
 
     MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
-    this->_client->publish(newpub);
+    _client->publish(newpub);
 }
 
 
 void MqttConnector::loop()
 {
-  if (!this->_is_connecting) {
-    if (this->_client->connected())
+  if (!_is_connecting) {
+    if (_client->connected())
     {
         _do_publish();
     }
     else
     {
-        MQTT_DEBUG_PRINTLN("MQTT NOT CONNECTED.");
-        MQTT_DEBUG_PRINTLN("Reconnecting.......");
+        MQTT_DEBUG_PRINTLN("[DEBUG] MQTT NOT CONNECTED.");
+        MQTT_DEBUG_PRINTLN("[DEBUG] Reconnecting.......");
         _connect();
     }
   }
@@ -251,32 +237,34 @@ void MqttConnector::loop()
 
 void MqttConnector::_do_publish(bool force)
 {
+  if (_config.subscribeOnly) return ;
+
     static long counter = 0;
 
     if (force || _timer_expired(&publish_timer))
     {
-        if (!this->_client->connected()) return;
+        if (!_client->connected()) return;
         _timer_set(&publish_timer, _publish_interval);
 
         _prepare_data_hook();
 
-        (*this->_d)["version"] = _version.c_str();
+        (*_d)["version"] = _version.c_str();
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) +
                        '.' + String(ip[2]) + '.' + String(ip[3]);
-        (*this->_d)["heap"] = ESP.getFreeHeap();
-        (*this->_d)["ip"] = ipStr.c_str();
-        (*this->_d)["rssi"] = WiFi.RSSI();
-        (*this->_d)["counter"] = ++counter;
-        (*this->_d)["seconds"] = millis()/1000;
-        (*this->_d)["subscription"] = String(_subscription_counter).c_str();
+        (*_d)["heap"] = ESP.getFreeHeap();
+        (*_d)["ip"] = ipStr.c_str();
+        (*_d)["rssi"] = WiFi.RSSI();
+        (*_d)["counter"] = ++counter;
+        (*_d)["seconds"] = millis()/1000;
+        (*_d)["subscription"] = String(_subscription_counter).c_str();
 
 
         _after_prepare_data_hook();
 
 
         strcpy(jsonStrbuffer, "");
-        this->_root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
+        _root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
         // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
@@ -300,14 +288,14 @@ void MqttConnector::_do_publish(bool force)
         if (_config.retainPublishMessage) {
             newpub.set_retain(true) ;
         }
-        if(!this->_client->publish(newpub)) {
+        if(!_client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN();
-            MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
+            MQTT_DEBUG_PRINTLN("[DEBUG] PUBLISHED FAILED!");
             return;
         }
         else {
             MQTT_DEBUG_PRINTLN();
-            MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
+            MQTT_DEBUG_PRINTLN("[DEBUG] PUBLISHED SUCCEEDED!");
             if (_user_on_published) {
                 _user_on_published(newpub);
             }
@@ -322,88 +310,97 @@ void MqttConnector::_do_publish(bool force)
 void MqttConnector::_connect()
 {
     bool flag = true;
-    this->_is_connecting = true;
+    _is_connecting = true;
 
     uint16_t times = 0;
 
-    MQTT_DEBUG_PRINTLN("== TRY CONNECT TO MQTT BROKER ==");
-    MQTT_DEBUG_PRINTLN("== Wrapper.connect(); CONNECT WITH OPTIONS = ");
-    MQTT_DEBUG_PRINT("HOST: ");
+    MQTT_DEBUG_PRINTLN("====================================");
+    MQTT_DEBUG_PRINTLN("[DEBUG] == TRY CONNECT TO MQTT BROKER ==");
+    MQTT_DEBUG_PRINTLN("[DEBUG] == Wrapper.connect(); CONNECT WITH OPTIONS = ");
+    MQTT_DEBUG_PRINT("[DEBUG] HOST: ");
     MQTT_DEBUG_PRINTLN(_mqtt_host);
-    MQTT_DEBUG_PRINT("PORT: ");
+    MQTT_DEBUG_PRINT("[DEBUG] PORT: ");
     MQTT_DEBUG_PRINTLN(_mqtt_port);
-    MQTT_DEBUG_PRINT("clientId: ");
+    MQTT_DEBUG_PRINT("[DEBUG] clientId: ");
     MQTT_DEBUG_PRINTLN(_config.clientId);
 
-    MQTT_DEBUG_PRINT("USER: ");
+    MQTT_DEBUG_PRINT("[DEBUG] USER: ");
     MQTT_DEBUG_PRINTLN(_config.username);
-    MQTT_DEBUG_PRINT("PASS: ");
+    MQTT_DEBUG_PRINT("[DEBUG] PASS: ");
     MQTT_DEBUG_PRINTLN(_config.password);
-    MQTT_DEBUG_PRINT("clientId: ");
+    MQTT_DEBUG_PRINT("[DEBUG] clientId: ");
     MQTT_DEBUG_PRINTLN(_config.clientId);
 
-    MQTT_DEBUG_PRINT("lastWill: ");
+    MQTT_DEBUG_PRINT("[DEBUG] lastWill: ");
     MQTT_DEBUG_PRINTLN(_config.enableLastWill);
+    MQTT_DEBUG_PRINTLN("====================================");
 
-
-    while(!this->_client->connect(*(_config.connOpts)) && flag)
+    while(!_client->connect(*(_config.connOpts)) && flag)
     {
-        MQTT_DEBUG_PRINTLN("STILL.. CONNECTING...");
+        MQTT_DEBUG_PRINTLN("[DEBUG] STILL.. CONNECTING...");
         if (_user_hook_connecting) {
-            MQTT_DEBUG_PRINTLN("Calling hook_connecting..");
+            MQTT_DEBUG_PRINTLN("[DEBUG] Calling hook_connecting..");
             _user_hook_connecting(++times, &flag);
-            MQTT_DEBUG_PRINTLN("TO BE YIELDED.");
+            MQTT_DEBUG_PRINTLN("[DEBUG] TO BE YIELDED.");
             yield();
-            MQTT_DEBUG_PRINTLN("YIELDED.");
+            MQTT_DEBUG_PRINTLN("[DEBUG] YIELDED.");
         }
         else {
-            MQTT_DEBUG_PRINTLN("TRY CONNECTING WITHOUT CONNECTING CALLBACK..");
+            MQTT_DEBUG_PRINTLN("[DEBUG] [SYSTEM] RECONNECT MQTT..");
             delay(100);
         }
     }
 
-    MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
+    MQTT_DEBUG_PRINTLN("[DEBUG] MQTT CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
-    this->_is_connecting = false;
+    _is_connecting = false;
 
     if (_config.publishOnly == true) {
        // delete _user_hook_prepare_subscribe;
        _user_hook_prepare_subscribe = NULL;
     }
 
-    if (_user_hook_prepare_subscribe != NULL)
+    if (_user_hook_prepare_subscribe == NULL)
     {
-        MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
-        _user_hook_prepare_subscribe(_subscribe_object);
-        MQTT_DEBUG_PRINTLN("CHECK IF __SUBSCRIBING... ->");
-
-        _subscribe_object->add_topic(_config.topicSub);
-        MQTT_DEBUG_PRINTLN("++TRY SUBSCRIBING ++");
-            if (this->_client->subscribe(*_subscribe_object)) {
-                _subscription_counter++;
-                MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
-                MQTT_DEBUG_PRINTLN(_config.topicSub);
-            }
-            else {
-                // goto loop and recheck connectiviy
-                return;
-            }
+        MQTT_DEBUG_PRINTLN("[DEBUG] __ PUBLISH ONLY MODE");
     }
     else
     {
-        MQTT_DEBUG_PRINTLN("__ PUBLISH ONLY MODE");
+        MQTT_DEBUG_PRINTLN("[DEBUG] CALLING HOOK SUBSCRIBING..");
+        _user_hook_prepare_subscribe(_subscribe_object);
+        MQTT_DEBUG_PRINTLN("[DEBUG] CHECK IF __SUBSCRIBING... ->");
+
+        MQTT_DEBUG_PRINT("[DEBUG] SYSTEM TOPIC = ");
+        _subscribe_object->add_topic(_config.topicSub);
+        MQTT_DEBUG_PRINTLN(_config.topicSub);
+        MQTT_DEBUG_PRINTLN("/[DEBUG] SYSTEM TOPIC = ");
+
+        MQTT_DEBUG_PRINTLN("[DEBUG] SUBSCRIBING ALL TOPIC");
+        if (_client->subscribe(*_subscribe_object)) {
+            _subscription_counter++;
+            MQTT_DEBUG_PRINT("[DEBUG] /__SUBSCRIBED TO ");
+            MQTT_DEBUG_PRINTLN(_config.topicSub);
+        }
+        else {
+            MQTT_DEBUG_PRINT("[DEBUG] FAIL TO SUBSCRIBE TOPIC... ");
+            MQTT_DEBUG_PRINTLN(_config.topicSub);
+            // goto loop and recheck connectiviy
+            return;
+        }
     }
 
     if (_config.enableLastWill) {
+        MQTT_DEBUG_PRINT("[DEBUG] CLEAR LAST WILL MSG.. ");
         _clear_last_will();
     }
 
+    MQTT_DEBUG_PRINT("[DEBUG] FORCE PUBLISH MSG..");
     _do_publish(true);
 }
 
 bool MqttConnector::connected() {
-    return this->_client->connected();
+    return _client->connected();
 }
 
 
@@ -412,6 +409,32 @@ bool MqttConnector::connected() {
 ************* HOOKS  **********
 *******************************
 */
+
+void MqttConnector::on_message(PubSubClient::callback_t callback) {
+    MQTT_DEBUG_PRINTLN("====== SET_ON_MESSAGE_CALLBACK ======");
+    if (callback != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("[DEBUG] __USER REGISTER SUBSCRIPTION CALLBACK");
+        _user_on_message_arrived = callback;
+    }
+    else
+    {
+        MQTT_DEBUG_PRINTLN("[DEBUG] __USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
+    }
+}
+
+void MqttConnector::on_published(PubSubClient::callback_t callback) {
+    MQTT_DEBUG_PRINTLN("====== SET_ON_PUBLISHED ======");
+    if (callback != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
+        _user_on_published = callback;
+    }
+    else
+    {
+        MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
+    }
+}
 
 void MqttConnector::on_prepare_configuration(cmmc_config_t func)
 {

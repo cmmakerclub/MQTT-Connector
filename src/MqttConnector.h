@@ -195,6 +195,7 @@ private:
     bool _pub_lock = false;
 
     void _connect();
+    void _hook_after_config();
 };
 
 

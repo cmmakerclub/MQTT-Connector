@@ -46,6 +46,8 @@ void setup()
     Serial.println("CONNECTING...");
     delay(300);
   }
+  Serial.println("..WIFI CONNECTED..");   
+  delay(1000);
   init_hardware();
   init_mqtt();
 }
