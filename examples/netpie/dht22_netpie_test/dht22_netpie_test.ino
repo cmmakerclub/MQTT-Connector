@@ -16,17 +16,17 @@ DHT dht(DHTPIN, DHTTYPE);
 
 /* comment ทิ้งถ้าไม่ส่ username/password */
 
-#define MQTT_HOST "gb.netpie.io"
-#define MQTT_USERNAME "VKUbwn8T5FsNKpp"
-#define MQTT_PASSWORD "dDfoyjzgNox3ExWvmXaRb4tw3ik="
-#define MQTT_CLIENT_ID "S1E6h0qKLTmjC1Vh"
-#define MQTT_PREFIX "/NatWeerawan2/gearname"
+#define MQTT_HOST         "gb.netpie.io"
+#define MQTT_USERNAME     "VKUbwn8T5FsNKpp"
+#define MQTT_PASSWORD     "dDfoyjzgNox3ExWvmXaRb4tw3ik="
+#define MQTT_CLIENT_ID    "S1E6h0qKLTmjC1Vh"
+#define MQTT_PREFIX       "/NatWeerawan2/gearname"
 
 /* SENSOR INFO */
-#define DEVICE_NAME "DEEPSLEEP-001"
-#define AUTHOR      "Nat Weerawan"
-#define BOARD       "NODEMCU V1.0"
-#define SENSOR      "DHT22"
+#define DEVICE_NAME       "DEEPSLEEP-001"
+#define AUTHOR            "Nat Weerawan"
+#define BOARD             "NODEMCU V1.0"
+#define SENSOR            "DHT22"
 
 /* WIFI INFO */
 #ifndef WIFI_SSID

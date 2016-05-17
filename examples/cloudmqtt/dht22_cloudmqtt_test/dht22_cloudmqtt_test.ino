@@ -10,13 +10,13 @@ MqttConnector *mqtt;
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 DHT dht(DHTPIN, DHTTYPE);
 
-#define MQTT_HOST "m20.cloudmqtt.com"
-#define MQTT_PORT 19642
-#define MQTT_USERNAME "test"
-#define MQTT_PASSWORD "test"
-#define MQTT_CLIENT_ID "S1E6h0qKLTmjC1Vh"
-#define MQTT_PREFIX "/NatWeerawan2/gearname"
-#define PUBLISH_EVERY    (10*1000) // every 10 seconds
+#define MQTT_HOST         "m20.cloudmqtt.com"
+#define MQTT_PORT         19642
+#define MQTT_USERNAME     "test"
+#define MQTT_PASSWORD     "test"
+#define MQTT_CLIENT_ID    "S1E6h0qKLTmjC1Vh"
+#define MQTT_PREFIX       "/NatWeerawan2/gearname"
+#define PUBLISH_EVERY     (10*1000) // every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
 #define DEVICE_NAME       "CMMC-001"
