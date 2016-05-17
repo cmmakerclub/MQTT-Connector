@@ -29,6 +29,7 @@ THE SOFTWARE.
 
 #include "MqttConnector.h"
 
+static MqttConnector *_mqtt = NULL;
 MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
     _on_message_arrived = [&](const MQTT::Publish& pub) {
@@ -55,7 +56,7 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _mqtt_port = port;
 
     _config.connOpts = NULL;
-    client = NULL;
+    this->_client = NULL;
 
     _subscribe_object = NULL;
     _subscribe_object = new MQTT::Subscribe();
@@ -66,18 +67,18 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     _config.retainPublishMessage = false;
     _config.firstCapChannel = false;
 
-    JsonObject& r = jsonRootBuffer.createObject();
+    JsonObject& r = _jsonRootBuffer.createObject();
     JsonObject& info = r.createNestedObject("info");
-    JsonObject& dd = jsonDBuffer.createObject();
+    JsonObject& dd = _jsonDBuffer.createObject();
 
-    this->root = &r;
-    this->info = &info;
+    this->_root = &r;
+    this->_info = &info;
 
 
     r["info"] = info;
     r["d"] = dd;
     // this->d = &((JsonObject)r["d"]);
-    this->d = &dd;
+    this->_d = &dd;
     static struct station_config conf;
     wifi_station_get_config(&conf);
     const char* ssid = reinterpret_cast<const char*>(conf.ssid);
@@ -104,7 +105,7 @@ void MqttConnector::_clear_last_will() {
     uint8_t* payload = (uint8_t*) willText.c_str();
     MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
     newpub.set_retain(true);
-    client->publish(newpub);
+    this->_client->publish(newpub);
 
 }
 
@@ -170,8 +171,8 @@ void MqttConnector::_hook_config()
     _config.topicLastWill = _config.channelPrefix + String("/") + _config.clientId + lwtChannel;
 
 
-    (*info)["id"] = _config.clientId.c_str();;
-    (*info)["prefix"] = _config.channelPrefix.c_str();
+    (*this->_info)["id"] = _config.clientId.c_str();;
+    (*this->_info)["prefix"] = _config.channelPrefix.c_str();
 
 
     _config.mqttHost = _mqtt_host;
@@ -189,10 +190,10 @@ void MqttConnector::_hook_config()
 
     _config.connOpts = new MQTT::Connect(_config.clientId);
     _config.client = new PubSubClient(wclient);
-    client = _config.client;
+    this->_client = _config.client;
 
-    client->set_server(_mqtt_host, _mqtt_port);
-    client->set_callback(_on_message_arrived);
+    this->_client->set_server(_mqtt_host, _mqtt_port);
+    this->_client->set_callback(_on_message_arrived);
 
     _config.username.trim();
     _config.password.trim();
@@ -228,14 +229,14 @@ void MqttConnector::sync_pub(String payload)
 
     MQTT::Publish newpub(_config.topicSub, (uint8_t*)payload.c_str(), payload.length());
     newpub.set_retain(true);
-    client->publish(newpub);
+    this->_client->publish(newpub);
 }
 
 
 void MqttConnector::loop()
 {
   if (!this->_is_connecting) {
-    if (client->connected())
+    if (this->_client->connected())
     {
         doPublish();
     }
@@ -254,28 +255,28 @@ void MqttConnector::doPublish(bool force)
 
     if (force || _timer_expired(&publish_timer))
     {
-        if (!client->connected()) return;
+        if (!this->_client->connected()) return;
         _timer_set(&publish_timer, _publish_interval);
 
         _prepare_data_hook();
 
-        (*d)["version"] = _version.c_str();
+        (*_d)["version"] = _version.c_str();
         IPAddress ip = WiFi.localIP();
         String ipStr = String(ip[0]) + '.' + String(ip[1]) +
                        '.' + String(ip[2]) + '.' + String(ip[3]);
-        (*d)["heap"] = ESP.getFreeHeap();
-        (*d)["ip"] = ipStr.c_str();
-        (*d)["rssi"] = WiFi.RSSI();
-        (*d)["counter"] = ++counter;
-        (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = String(_subscription_counter).c_str();
+        (*this->_d)["heap"] = ESP.getFreeHeap();
+        (*this->_d)["ip"] = ipStr.c_str();
+        (*this->_d)["rssi"] = WiFi.RSSI();
+        (*this->_d)["counter"] = ++counter;
+        (*this->_d)["seconds"] = millis()/1000;
+        (*this->_d)["subscription"] = String(_subscription_counter).c_str();
 
 
         _after_prepare_data_hook();
 
 
         strcpy(jsonStrbuffer, "");
-        root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
+        this->_root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
         // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
@@ -299,7 +300,7 @@ void MqttConnector::doPublish(bool force)
         if (_config.retainPublishMessage) {
             newpub.set_retain(true) ;
         }
-        if(!client->publish(newpub)) {
+        if(!this->_client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
             return;
@@ -345,7 +346,7 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN(_config.enableLastWill);
 
 
-    while(!client->connect(*(_config.connOpts)) && flag)
+    while(!this->_client->connect(*(_config.connOpts)) && flag)
     {
         MQTT_DEBUG_PRINTLN("STILL.. CONNECTING...");
         if (_user_hook_connecting) {
@@ -379,7 +380,7 @@ void MqttConnector::_connect()
 
         _subscribe_object->add_topic(_config.topicSub);
         MQTT_DEBUG_PRINTLN("++TRY SUBSCRIBING ++");
-            if (client->subscribe(*_subscribe_object)) {
+            if (this->_client->subscribe(*_subscribe_object)) {
                 _subscription_counter++;
                 MQTT_DEBUG_PRINT("__SUBSCRIBED TO ");
                 MQTT_DEBUG_PRINTLN(_config.topicSub);

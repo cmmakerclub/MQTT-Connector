@@ -27,6 +27,7 @@ public:
     {
         MQTT::Connect *connOpts;
         PubSubClient *client;
+        MqttConnector *mqttConnector;
         String clientId;
         String channelPrefix;
         String topicSub;
@@ -65,7 +66,7 @@ public:
     void clear_last_will(String payload);
     void connect();
     bool connected() {
-      return client->connected();
+      return this->_client->connected();
     }
 
     void on_message(PubSubClient::callback_t callback = NULL);
@@ -137,7 +138,7 @@ protected:
         if (_user_hook_prepare_data != NULL)
         {
             MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
-            _user_hook_prepare_data(root);
+            _user_hook_prepare_data(this->_root);
         }
 
     }
@@ -147,7 +148,7 @@ protected:
         if (_user_hook_after_prepare_data != NULL)
         {
             MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
-            _user_hook_after_prepare_data(root);
+            _user_hook_after_prepare_data(this->_root);
         }
 
         // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
@@ -186,10 +187,8 @@ private:
     uint16_t _mqtt_port = 0;
 
     bool _is_connecting = false;
-
     Config _config;
     String _mac = "";
-
     unsigned int _subscription_counter = 0;
     int _publish_interval = 3000;
 
@@ -200,17 +199,16 @@ private:
     unsigned long prev_millis;
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
-
-    StaticJsonBuffer<800> jsonRootBuffer;
-    StaticJsonBuffer<512> jsonDBuffer;
     // StaticJsonBuffer<128> jsonInfoBuffer;
+    StaticJsonBuffer<800> _jsonRootBuffer;
+    StaticJsonBuffer<512> _jsonDBuffer;
 
     char jsonStrbuffer[1024];
-    JsonObject *root;
-    JsonObject *d;
-    JsonObject *info;
+    JsonObject *_root;
+    JsonObject *_d;
+    JsonObject *_info;
 
-    PubSubClient *client;
+    PubSubClient *_client;
 
     String _version = "0.51";
 
