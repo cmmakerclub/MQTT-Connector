@@ -152,7 +152,6 @@ void MqttConnector::_hook_config()
         _user_hook_config(&_config);
     }
 
-
     if (_config.clientId == "") {
       _config.clientId = String(ESP.getChipId());
     }
@@ -432,6 +431,80 @@ void MqttConnector::_connect()
     doPublish(true);
 }
 
+
+
+// HOOKS
+// void MqttConnector::connecting_hook(int count, bool *flag) {
+//     if (_user_hook_connecting != NULL) {
+//         _user_hook_connecting(count, flag);
+//     }
+// }
+void MqttConnector::on_prepare_configuration(cmmc_config_t func)
+{
+    _user_hook_config = func;
+}
+
+void MqttConnector::on_after_prepare_configuration(cmmc_after_config_t func)
+{
+    _user_hook_after_config = func;
+}
+
+void MqttConnector::on_connecting(connecting_hook_t cb) {
+    _user_hook_connecting = cb;
+}
+
+void MqttConnector::on_prepare_data(prepare_data_hook_t func,
+  unsigned long publish_interval)
+{
+    _user_hook_prepare_data = func;
+    _publish_interval = publish_interval;
+    _timer_set(&publish_timer, publish_interval);
+}
+
+void MqttConnector::on_after_prepare_data(after_prepare_data_hook_t func)
+{
+    _user_hook_after_prepare_data = func;
+}
+
+void MqttConnector::on_prepare_subscribe(prepare_subscribe_hook_t func)
+{
+    _user_hook_prepare_subscribe = func;
+}
+
+void MqttConnector::set_publish_data_hook(publish_data_hook_t func)
+{
+    _user_hook_publish_data = func;
+}
+
+
+
+void MqttConnector::_prepare_data_hook()
+{
+
+    if (_user_hook_prepare_data != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
+        _user_hook_prepare_data(root);
+    }
+
+}
+
+void MqttConnector::_after_prepare_data_hook()
+{
+    if (_user_hook_after_prepare_data != NULL)
+    {
+        MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
+        _user_hook_after_prepare_data(root);
+    }
+
+    // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
+}
+
+
+void MqttConnector::_hook_after_publish(char** ptr)
+{
+    // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
+}
 
 MqttConnector::~MqttConnector()
 {

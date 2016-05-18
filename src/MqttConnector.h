@@ -67,42 +67,15 @@ public:
 
     void on_message(PubSubClient::callback_t callback = NULL);
     void on_published(PubSubClient::callback_t callback = NULL);
+    void on_prepare_configuration(cmmc_config_t func);
+    void on_after_prepare_configuration(cmmc_after_config_t func);
+    void on_connecting(connecting_hook_t cb);
+    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
+    void on_after_prepare_data(after_prepare_data_hook_t func);
+    void on_prepare_subscribe(prepare_subscribe_hook_t func);
+    void set_publish_data_hook(publish_data_hook_t func);
 
-    void on_prepare_configuration(cmmc_config_t func)
-    {
-        _user_hook_config = func;
-    }
 
-    void on_after_prepare_configuration(cmmc_after_config_t func)
-    {
-        _user_hook_after_config = func;
-    }
-
-    void on_connecting(connecting_hook_t cb) {
-        _user_hook_connecting = cb;
-    }
-
-    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000)
-    {
-        _user_hook_prepare_data = func;
-        _publish_interval = publish_interval;
-        _timer_set(&publish_timer, publish_interval);
-    }
-
-    void on_after_prepare_data(after_prepare_data_hook_t func)
-    {
-        _user_hook_after_prepare_data = func;
-    }
-
-    void on_prepare_subscribe(prepare_subscribe_hook_t func)
-    {
-        _user_hook_prepare_subscribe = func;
-    }
-
-    void set_publish_data_hook(publish_data_hook_t func)
-    {
-        _user_hook_publish_data = func;
-    }
 
 
 
@@ -124,39 +97,6 @@ protected:
 
     }
 
-    void connecting_hook(int count, bool *flag) {
-        if (_user_hook_connecting != NULL) {
-            _user_hook_connecting(count, flag);
-        }
-    }
-
-    void _prepare_data_hook()
-    {
-
-        if (_user_hook_prepare_data != NULL)
-        {
-            MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
-            _user_hook_prepare_data(root);
-        }
-
-    }
-
-    void _after_prepare_data_hook()
-    {
-        if (_user_hook_after_prepare_data != NULL)
-        {
-            MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
-            _user_hook_after_prepare_data(root);
-        }
-
-        // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
-    }
-
-
-    void _hook_after_publish(char** ptr)
-    {
-        // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
-    }
 
     void doPublish(bool force = false);
 
@@ -227,6 +167,11 @@ private:
 
     void _connect();
     void _hook_after_config();
+    // void connecting_hook(int count, bool *flag);
+    void _prepare_data_hook();
+    void _after_prepare_data_hook();
+    void _hook_after_publish(char** ptr);
+
 };
 
 
