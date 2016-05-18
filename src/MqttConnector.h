@@ -1,10 +1,10 @@
 #ifndef MQTT_WRAPPER_H
 #define MQTT_WRAPPER_H
 
-#include "PubSubClient.h"
-#include <ArduinoJson.h>
+#include <PubSubClient.h>
 #include "ESP8266WiFi.h"
 #include <functional>
+#include <ArduinoJson.h>
 
 #ifdef ESP8266
 extern "C" {
@@ -27,7 +27,6 @@ public:
     {
         MQTT::Connect *connOpts;
         PubSubClient *client;
-        MqttConnector *mqttConnector;
         String clientId;
         String channelPrefix;
         String topicSub;
@@ -66,17 +65,45 @@ public:
     void clear_last_will(String payload);
     void connect();
 
-    bool connected();
-
     void on_message(PubSubClient::callback_t callback = NULL);
     void on_published(PubSubClient::callback_t callback = NULL);
-    void on_prepare_configuration(cmmc_config_t func);
-    void on_after_prepare_configuration(cmmc_after_config_t func);
-    void on_connecting(connecting_hook_t cb);
-    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
-    void on_after_prepare_data(after_prepare_data_hook_t func);
-    void on_prepare_subscribe(prepare_subscribe_hook_t func);
-    void set_publish_data_hook(publish_data_hook_t func);
+
+    void on_prepare_configuration(cmmc_config_t func)
+    {
+        _user_hook_config = func;
+    }
+
+    void on_after_prepare_configuration(cmmc_after_config_t func)
+    {
+        _user_hook_after_config = func;
+    }
+
+    void on_connecting(connecting_hook_t cb) {
+        _user_hook_connecting = cb;
+    }
+
+    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000)
+    {
+        _user_hook_prepare_data = func;
+        _publish_interval = publish_interval;
+        _timer_set(&publish_timer, publish_interval);
+    }
+
+    void on_after_prepare_data(after_prepare_data_hook_t func)
+    {
+        _user_hook_after_prepare_data = func;
+    }
+
+    void on_prepare_subscribe(prepare_subscribe_hook_t func)
+    {
+        _user_hook_prepare_subscribe = func;
+    }
+
+    void set_publish_data_hook(publish_data_hook_t func)
+    {
+        _user_hook_publish_data = func;
+    }
+
 
 
 protected:
@@ -94,20 +121,22 @@ protected:
         _config.channelPrefix = "esp8266";
         _mac = result;
         MQTT_DEBUG_PRINTLN("/===SET_DEFAULT_MQTT_CLIENT_ID====");
+
     }
 
-    // void _connecting_hook(int count, bool *flag) {
-    //     if (_user_hook_connecting != NULL) {
-    //         _user_hook_connecting(count, flag);
-    //     }
-    // }
+    void connecting_hook(int count, bool *flag) {
+        if (_user_hook_connecting != NULL) {
+            _user_hook_connecting(count, flag);
+        }
+    }
 
     void _prepare_data_hook()
     {
+
         if (_user_hook_prepare_data != NULL)
         {
             MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
-            _user_hook_prepare_data(this->_root);
+            _user_hook_prepare_data(root);
         }
 
     }
@@ -117,8 +146,9 @@ protected:
         if (_user_hook_after_prepare_data != NULL)
         {
             MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
-            _user_hook_after_prepare_data(this->_root);
+            _user_hook_after_prepare_data(root);
         }
+
         // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
     }
 
@@ -128,7 +158,7 @@ protected:
         // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
     }
 
-    void _do_publish(bool force = false);
+    void doPublish(bool force = false);
 
 protected:
 
@@ -154,9 +184,9 @@ private:
     String _mqtt_host = "";
     uint16_t _mqtt_port = 0;
 
-    bool _is_connecting = false;
     Config _config;
     String _mac = "";
+
     unsigned int _subscription_counter = 0;
     int _publish_interval = 3000;
 
@@ -164,21 +194,22 @@ private:
     MQTT::Publish   *_publish_object;
 
 
+
     unsigned long prev_millis;
+    unsigned long _msg_arrived_ms;
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
+
+    StaticJsonBuffer<800> jsonRootBuffer;
+    StaticJsonBuffer<512> jsonDBuffer;
     // StaticJsonBuffer<128> jsonInfoBuffer;
-    StaticJsonBuffer<800> _jsonRootBuffer;
-    StaticJsonBuffer<512> _jsonDBuffer;
 
     char jsonStrbuffer[1024];
-    JsonObject *_root;
-    JsonObject *_d;
-    JsonObject *_info;
+    JsonObject *root;
+    JsonObject *d;
+    JsonObject *info;
 
-    PubSubClient *_client;
-
-    String _version = "0.60";
+    String _version = "0.51";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

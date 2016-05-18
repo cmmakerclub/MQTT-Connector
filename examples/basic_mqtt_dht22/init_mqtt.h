@@ -7,8 +7,8 @@ void init_mqtt()
   config->channelPrefix = String(MQTT_PREFIX);
   config->enableLastWill = true;
   config->retainPublishMessage = true;
-  config->publishOnly = true;
-  // config->subscribeOnly = true;
+  config->publishOnly = false;
+  config->subscribeOnly = false;
   config->firstCapChannel = false;
 
   config->username = String(MQTT_USERNAME);
@@ -40,9 +40,15 @@ void init_mqtt()
 
   mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
     Serial.println("SUBSCRIBING .. QRX");
-    // sub->add_topic("/qrx/1");
+    Serial.println("SUBSCRIBING .. QRX");
+    Serial.println("SUBSCRIBING .. QRX");
+    Serial.println("SUBSCRIBING .. QRX");
+    Serial.println("SUBSCRIBING .. QRX");
+    Serial.println("SUBSCRIBING .. QRX");
+    Serial.println("SUBSCRIBING .. QRX");
+    sub->add_topic("/qrx/1");
     // sub->add_topic("/CMMC/#");
-    // Serial.println("/SUBSCRIBING .. QRX");
+    Serial.println("/SUBSCRIBING .. QRX");
   });
 
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {
