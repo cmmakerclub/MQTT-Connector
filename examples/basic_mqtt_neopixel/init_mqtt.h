@@ -1,4 +1,4 @@
-#include <MqttConnector.h>
+// #include <MqttConnector.h>
 
 // MQTT INITIALIZER
 void init_mqtt()
@@ -41,7 +41,9 @@ void init_mqtt()
   });
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
-  mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
+  mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
+    // sub->add_topic("/qrx/1");
+  });
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {
     /**************
     remove prepared data from lib

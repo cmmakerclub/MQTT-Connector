@@ -4,10 +4,20 @@
 #include <ArduinoJson.h>
 #include <WiFiConnector.h>
 #include <DHT.h>
+#include <EEPROM.h>
 
 #define DHTPIN 12
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 DHT dht(DHTPIN, DHTTYPE);
+
+#define RELAY_01_PIN 4
+#define RELAY_02_PIN 5
+#define RELAY_01_MASK 0b01
+#define RELAY_02_MASK 0b10
+#define EEPROM_ADDR 0x00
+
+bool pin01_state = 0;
+bool pin02_state = 0;
 
 MqttConnector *mqtt;
 
@@ -20,7 +30,7 @@ MqttConnector *mqtt;
 #define PUBLISH_EVERY     (5*1000)// every 5 seconds
 
 /* DEVICE DATA & FREQUENCY */
-#define DEVICE_NAME       "CNX-CMMC-001"
+#define DEVICE_NAME       "CNX-PLUG-001"
 /* WIFI INFO */
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
@@ -38,11 +48,24 @@ WiFiConnector wifi(WIFI_SSID, WIFI_PASSWORD);
 void init_hardware()
 {
   pinMode(DHTPIN, INPUT_PULLUP);
+
   Serial.begin(115200);
-  delay(10);
   dht.begin();
+  EEPROM.begin(10);
+  delay(10);
+
+  delay(10);
   Serial.println();
   Serial.println("BEGIN");
+
+  pinMode(RELAY_01_PIN, OUTPUT);
+  pinMode(RELAY_02_PIN, OUTPUT);
+
+  //
+  byte val = EEPROM.read(EEPROM_ADDR);
+  Serial.println(val, BIN);
+  digitalWrite(RELAY_01_PIN, val & RELAY_01_MASK);
+  digitalWrite(RELAY_02_PIN, val & RELAY_02_MASK);
 }
 
 void init_wifi() {
@@ -83,6 +106,6 @@ void loop()
 {
   wifi.loop();
   if (wifi.connected()) {
-    mqtt->loop();     
+    mqtt->loop();
   }
 }

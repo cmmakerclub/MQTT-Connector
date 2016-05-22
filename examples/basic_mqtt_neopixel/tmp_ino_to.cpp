@@ -1,9 +1,12 @@
 #include <Arduino.h>
+#line 1 "/Users/Nat/Documents/Arduino/libraries/MQTT_Connector/examples/basic_mqtt_neopixel/basic_mqtt_neopixel.ino"
+#include <Arduino.h>
 #include <MqttConnector.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
-#include <WiFiConnector.h>
+#include <Adafruit_NeoPixel.h>
 #include <DHT.h>
+
 
 #define DHTPIN 12
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
@@ -20,69 +23,59 @@ MqttConnector *mqtt;
 #define PUBLISH_EVERY     (5*1000)// every 5 seconds
 
 /* DEVICE DATA & FREQUENCY */
-#define DEVICE_NAME       "CNX-CMMC-001"
+#define DEVICE_NAME       "NAT-NEOPIXEL-001"
 /* WIFI INFO */
 #ifndef WIFI_SSID
   #define WIFI_SSID        ""
   #define WIFI_PASSWORD    ""
 #endif
 
-
-
-WiFiConnector wifi(WIFI_SSID, WIFI_PASSWORD);
+Adafruit_NeoPixel pixel(1 , 2 , NEO_GRB + NEO_KHZ800);
 
 #include "_publish.h"
 #include "_receive.h"
 #include "init_mqtt.h"
 
+void init_hardware();
+
+void setup();
+
+void loop();
+#line 37 "/Users/Nat/Documents/Arduino/libraries/MQTT_Connector/examples/basic_mqtt_neopixel/basic_mqtt_neopixel.ino"
 void init_hardware()
 {
-  pinMode(DHTPIN, INPUT_PULLUP);
   Serial.begin(115200);
+  pixel.begin();
+  pixel.show();
+  delay(100);
+  pixel.setPixelColor(0, pixel.Color(255, 0, 0));
+  Serial.println("OK..");
+
+  // for(uint16_t i=0; i<pixel.numPixels(); i++) {
+  //   pixel.show();
+  //   delay(20);
+  // }
+
   delay(10);
   dht.begin();
   Serial.println();
   Serial.println("BEGIN");
 }
 
-void init_wifi() {
-  wifi.init();
-
-  wifi.on_connected([&](const void* message)
-  {
-    Serial.print("WIFI CONNECTED WITH IP: ");
-    Serial.println(WiFi.localIP());
-  });
-
-  wifi.on_connecting([&](const void* message)
-  {
-    Serial.print("Connecting to ");
-    Serial.println(wifi.get("ssid") + ", " + wifi.get("password"));
-    delay(200);
-  });
-
-  wifi.on_disconnected([&](const void* message) {
-    // if (mqtt != NULL) {
-    //   delete mqtt;
-    //   mqtt = NULL;
-    // }
-  });
-}
-
-
 void setup()
 {
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while(WiFi.status() != WL_CONNECTED) {
+    Serial.println("CONNECTING...");
+    delay(300);
+  }
+  Serial.println("..WIFI CONNECTED..");
+  delay(1000);
   init_hardware();
   init_mqtt();
-  init_wifi();
-  wifi.connect();
-  mqtt->connect();
 }
 
 void loop()
 {
-  wifi.loop();
-  if (wifi.connected()) {
-    mqtt->loop();     
-  }
+  mqtt->loop();
 }
