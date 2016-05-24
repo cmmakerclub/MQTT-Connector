@@ -10,11 +10,11 @@ MqttConnector *mqtt;
 #define MQTT_USERNAME     ""
 #define MQTT_PASSWORD     ""
 #define MQTT_CLIENT_ID    ""
-#define MQTT_PREFIX       "CMMC"
-#define PUBLISH_EVERY     (10*1000)// every 10 seconds
+#define MQTT_PREFIX       "/CMMC"
+#define PUBLISH_EVERY     (1*1000)// every 10 seconds
 
 /* DEVICE DATA & FREQUENCY */
-#define DEVICE_NAME       "CMMC-002"
+#define DEVICE_NAME       "BASIC-CMMC-000"
 
 /* WIFI INFO */
 #ifndef WIFI_SSID

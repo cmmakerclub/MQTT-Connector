@@ -7,9 +7,11 @@ void init_mqtt()
   mqtt->on_prepare_configuration([&](MqttConnector::Config * config) -> void {
   config->clientId  = String(MQTT_CLIENT_ID);
   config->channelPrefix = String(MQTT_PREFIX);
-  config->enableLastWill = false;
-  config->retainPublishMessage = false;
+  config->enableLastWill = true;
+  config->retainPublishMessage = true;
   config->publishOnly = false;
+  config->subscribeOnly = false;
+  config->firstCapChannel = false;
 
   config->username = String(MQTT_USERNAME);
   config->password = String(MQTT_PASSWORD);
