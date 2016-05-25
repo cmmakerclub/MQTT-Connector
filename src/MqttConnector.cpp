@@ -399,13 +399,6 @@ void MqttConnector::_connect()
         MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
         _user_hook_prepare_subscribe(_subscribe_object);
         MQTT_DEBUG_PRINTLN("CHECK IF __SUBSCRIBING... ->");
-
-        Serial.printf("[NAT] TOPIC ======= %s \r\n", _config.topicSub.c_str());
-        Serial.printf("[NAT] TOPIC ======= %s \r\n", _config.topicSub.c_str());
-        Serial.printf("[NAT] TOPIC ======= %s \r\n", _config.topicSub.c_str());
-        Serial.printf("[NAT] TOPIC ======= %s \r\n", _config.topicSub.c_str());
-        Serial.printf("[NAT] TOPIC ======= %s \r\n", _config.topicSub.c_str());
-
         _subscribe_object->add_topic(_config.topicSub);
 
         MQTT_DEBUG_PRINTLN("++TRY SUBSCRIBING ++");

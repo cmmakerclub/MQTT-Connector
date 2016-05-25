@@ -1,3 +1,6 @@
+#include <MqttConnector.h>
+
+
 // MQTT INITIALIZER
 void init_mqtt()
 {
@@ -39,16 +42,7 @@ void init_mqtt()
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
 
   mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void {
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    Serial.println("SUBSCRIBING .. QRX");
-    sub->add_topic("/qrx/1");
-    // sub->add_topic("/CMMC/#");
-    Serial.println("/SUBSCRIBING .. QRX");
+    Serial.println("[CUSTOM] SUBSCRIPTION...");
   });
 
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {

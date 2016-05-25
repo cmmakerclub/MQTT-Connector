@@ -12,7 +12,9 @@ extern "C" {
 }
 #endif
 
-#ifdef CMMC_MQTT_DEBUG_MODE
+#define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
+
+#if defined(CMMC_MQTT_DEBUG_MODE) or DEBUG_ALL
     #define MQTT_DEBUG_PRINT(...) { DEBUG_ESP_PORT.print(__VA_ARGS__); }
     #define MQTT_DEBUG_PRINTLN(...) { DEBUG_ESP_PORT.println(__VA_ARGS__); }
 #else

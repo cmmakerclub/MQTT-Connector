@@ -31,17 +31,19 @@ void init_hardware()
   Serial.begin(115200);
   delay(10);
   Serial.println();
-  Serial.println("BEGIN");
+  Serial.println("Serial port initialized.");
 }
 
 void setup()
 {
+  init_hardware();
+
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while(WiFi.status() != WL_CONNECTED) {
-    Serial.println("CONNECTING...");
+    Serial.printf ("Connecting to %s:%s\r\n", WIFI_SSID, WIFI_PASSWORD);
     delay(300);
   }
-  init_hardware();
+
   init_mqtt();
 }
 

@@ -33,14 +33,12 @@ void init_mqtt()
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
-    Serial.print(String("HOST: ") + config.mqttHost);
-    Serial.println(String(" PORT: ") + config.mqttPort);
-    Serial.println(String("__PUBLICATION TOPIC .. ") + config.topicPub);
-    Serial.println(String("__SUBSCRIPTION TOPIC .. ") + config.topicPub);
-    Serial.println(String("_PUBLISH ONLY ..") + config.publishOnly);
-    Serial.println(String("_SUBSCRIBE ONLY ..") + config.subscribeOnly);
+    Serial.printf("[USER] HOST = %s\r\n", config.mqttHost.c_str());
+    Serial.printf("[USER] PORT = %s\r\n", String(config.mqttHost).c_str());
+    Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());
+    Serial.printf("[USER] SUB  = %s\r\n", config.topicSub.c_str());
   });
-
+  
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
   mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {
@@ -57,13 +55,13 @@ void init_mqtt()
   mqtt->on_message(on_message_arrived);
 
   mqtt->on_connecting([&](int count, bool * flag) {
-    Serial.print("MQTT CONNECTING.. ");
-    Serial.println(count);
+    Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
+    delay(1000);
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
-    // Serial.print("PUBLISHED: ");
-    // Serial.println(pub.payload_string());
+    Serial.print("[MQTT] PUBLISHED: ");
+    Serial.println(pub.payload_string());
   });
 
   mqtt->connect();
