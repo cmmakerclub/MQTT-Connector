@@ -151,7 +151,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    String _version = "0.74";
+    String _version = "0.75";
 
     struct timer { int start, interval; };
     struct timer publish_timer;
