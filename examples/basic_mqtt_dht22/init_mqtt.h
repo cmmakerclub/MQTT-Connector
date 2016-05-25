@@ -30,6 +30,7 @@ void init_mqtt()
     //d:quickstart:<type-id>:<device-id>
     //config->clientId += macAddr;
     //config->topicPub  = String("/HelloChiangMaiMakerClub/gearname/") + config->clientId;
+    
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
