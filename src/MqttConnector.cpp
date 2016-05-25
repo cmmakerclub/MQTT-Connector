@@ -171,8 +171,10 @@ void MqttConnector::_hook_config()
     _config.topicLastWill = String(_config.channelPrefix) + String("/") + String(_config.clientId) + lwtChannel;
 
 
-    (*info)["id"] = _config.clientId.c_str();;
-    (*info)["prefix"] = _config.channelPrefix.c_str();
+    static const char* cid = _config.clientId.c_str();
+    static const char* cprefix = _config.channelPrefix.c_str();
+    (*info)["id"] = cid;
+    (*info)["prefix"] = cprefix;
 
 
     _config.mqttHost = _mqtt_host;
@@ -284,11 +286,11 @@ void MqttConnector::doPublish(bool force)
         String ipStr = String(ip[0]) + '.' + String(ip[1]) +
                        '.' + String(ip[2]) + '.' + String(ip[3]);
         (*d)["heap"] = ESP.getFreeHeap();
-        (*d)["ip"] = ipStr.c_str();
+        (*info)["ip"] = ipStr.c_str();
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;
-        (*d)["subscription"] = String(_subscription_counter).c_str();
+        (*d)["subscription"] = _subscription_counter;
 
 
         _after_prepare_data_hook();
