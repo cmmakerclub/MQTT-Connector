@@ -166,8 +166,14 @@ void MqttConnector::_hook_config()
       lwtChannel = "/Online";
     }
 
-    _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
-    _config.topicPub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + statusChannel;
+    if (_config.topicSub == "") {
+      _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
+    }
+
+    if (_config.topicPub == "") {
+      _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
+    }
+
     _config.topicLastWill = String(_config.channelPrefix) + String("/") + String(_config.clientId) + lwtChannel;
 
 
