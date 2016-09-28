@@ -12,7 +12,10 @@ extern "C" {
 }
 #endif
 
-#define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
+// #define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
+#define DEBUG_ALL 1
+#define CMMC_MQTT_DEBUG_MODE 1
+#define MQTT_DEBUG_LEVEL_VERBOSE 1
 
 #if defined(CMMC_MQTT_DEBUG_MODE) or DEBUG_ALL
     #define MQTT_DEBUG_PRINT(...) { DEBUG_ESP_PORT.print(__VA_ARGS__); }
@@ -22,6 +25,12 @@ extern "C" {
     #define MQTT_DEBUG_PRINTLN(...) { }
 #endif
 
+enum mqtt_mode_t{
+    MODE_PUB_ONLY   = 0b01,
+    MODE_SUB_ONLY = 0b10,
+    MODE_BOTH = 0b11
+};
+
 class MqttConnector
 {
 public:
@@ -29,6 +38,7 @@ public:
     {
         MQTT::Connect *connOpts;
         PubSubClient *client;
+        mqtt_mode_t mode;
         String clientId;
         String channelPrefix;
         String topicSub;
@@ -39,8 +49,8 @@ public:
         String mqttHost;
         bool enableLastWill;
         bool retainPublishMessage;
-        bool subscribeOnly;
-        bool publishOnly;
+        // bool subscribeOnly;
+        // bool publishOnly;
         uint16_t mqttPort;
         bool firstCapChannel;
     } Config;
@@ -60,6 +70,7 @@ public:
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
     ~MqttConnector();
 
+
     void _hook_config();
     void loop();
     void init_config(const char*, uint16_t);
@@ -72,14 +83,14 @@ public:
     void on_prepare_configuration(cmmc_config_t func);
     void on_after_prepare_configuration(cmmc_after_config_t func);
     void on_connecting(connecting_hook_t cb);
+    // void on_connnected(cmmc_config_t cb);
     void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
     void on_after_prepare_data(after_prepare_data_hook_t func);
     void on_prepare_subscribe(prepare_subscribe_hook_t func);
     void set_publish_data_hook(publish_data_hook_t func);
-
-
-
-
+    void mode(mqtt_mode_t mode) {
+        _mode = mode;
+    }
 
 protected:
     void _set_default_client_id()
@@ -99,13 +110,13 @@ protected:
 
     }
 
-
     void doPublish(bool force = false);
 
-protected:
 
 private:
+    mqtt_mode_t _mode;
     WiFiClient wclient;
+    // MqttConnector::MODE_BOTH;
 
     // hooks
     cmmc_config_t             _user_hook_config = NULL;
@@ -135,8 +146,6 @@ private:
     MQTT::Subscribe *_subscribe_object;
     MQTT::Publish   *_publish_object;
 
-
-
     unsigned long prev_millis;
     unsigned long _msg_arrived_ms;
 
@@ -151,7 +160,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    String _version = "0.75";
+    String _version = "0.80";
 
     struct timer { int start, interval; };
     struct timer publish_timer;

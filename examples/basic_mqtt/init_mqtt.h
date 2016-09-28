@@ -7,10 +7,9 @@ void init_mqtt()
   mqtt->on_prepare_configuration([&](MqttConnector::Config * config) -> void {
   config->clientId  = String(MQTT_CLIENT_ID);
   config->channelPrefix = String(MQTT_PREFIX);
-  config->enableLastWill = true;
-  config->retainPublishMessage = true;
-  config->publishOnly = false;
-  config->subscribeOnly = false;
+  config->enableLastWill = false;
+  config->retainPublishMessage = false;
+  config->mode = MODE_BOTH;
   config->firstCapChannel = false;
 
   config->username = String(MQTT_USERNAME);
@@ -28,8 +27,8 @@ void init_mqtt()
 
     // FORMAT
     // d:quickstart:<type-id>:<device-id>
-    // config->clientId += macAddr;
-    //config->topicPub  = String("/HelloChiangMaiMakerClub/gearname/") + config->clientId;
+    //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
+    //config->topicPub  = String("iot-2/evt/status/fmt/json");
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
@@ -38,7 +37,7 @@ void init_mqtt()
     Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());
     Serial.printf("[USER] SUB  = %s\r\n", config.topicSub.c_str());
   });
-  
+
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
   mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {

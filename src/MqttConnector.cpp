@@ -58,12 +58,9 @@ void MqttConnector::init_config(const char* host, uint16_t port)
 
     _config.connOpts = NULL;
     _config.client = NULL;
-
+    _config.mode = MODE_BOTH;
     _subscribe_object = NULL;
-
     _config.enableLastWill = true;
-    _config.publishOnly = false;
-    _config.subscribeOnly = false;
     _config.retainPublishMessage = false;
     _config.firstCapChannel = false;
 
@@ -83,11 +80,12 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     wifi_station_get_config(&conf);
     const char* ssid = reinterpret_cast<const char*>(conf.ssid);
 
-    info["ssid"] =  ssid;
+    info["ssid"] =  String(ssid);
     info["flash_size"] = ESP.getFlashChipSize();
     info["flash_id"] = String(ESP.getFlashChipId(), HEX);
     info["chip_id"] = String(ESP.getChipId(), HEX);
-    info["sdk"] = system_get_sdk_version();
+    info["sdk"] = String(system_get_sdk_version());
+    info["mac"] = WiFi.macAddress();
 
 }
 
@@ -101,9 +99,9 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINTLN("__CLEAR LASTWILL");
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
+
     String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000);
-    static uint8_t* payload = (uint8_t*) willText.c_str();
-    MQTT::Publish newpub(_config.topicLastWill, payload, willText.length());
+    MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
     newpub.set_retain(true);
     _config.client->publish(newpub);
 
@@ -166,21 +164,33 @@ void MqttConnector::_hook_config()
       lwtChannel = "/Online";
     }
 
-    if (_config.topicSub == "") {
+    Serial.print("TOPIC SUB = ");
+    Serial.println(_config.topicSub);
+    Serial.print("TOPIC PUB = ");
+    Serial.println(_config.topicSub);
+    _config.topicSub.trim();
+    _config.topicSub.trim();
+
+    // subscribe
+    if (_config.topicSub.length() == 0) {
       _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
     }
 
-    if (_config.topicPub == "") {
-      _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
+    // publish
+    if (_config.topicPub.length() == 0) {
+      _config.topicPub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + statusChannel;
     }
+
+    Serial.print("TOPIC SUB = ");
+    Serial.println(_config.topicSub);
+    Serial.print("TOPIC PUB = ");
+    Serial.println(_config.topicSub);
 
     _config.topicLastWill = String(_config.channelPrefix) + String("/") + String(_config.clientId) + lwtChannel;
 
 
-    static const char* cid = _config.clientId.c_str();
-    static const char* cprefix = _config.channelPrefix.c_str();
-    (*info)["id"] = cid;
-    (*info)["prefix"] = cprefix;
+    (*info)["id"] = _config.clientId;
+    (*info)["prefix"] = _config.channelPrefix;
 
 
     _config.mqttHost = _mqtt_host;
@@ -253,7 +263,7 @@ void MqttConnector::loop()
     if (_config.client->connected())
     {
       _config.client->loop();
-      if (_config.subscribeOnly) {
+      if (_config.mode == MODE_PUB_ONLY) {
         return;
       }
       else {
@@ -292,7 +302,7 @@ void MqttConnector::doPublish(bool force)
         String ipStr = String(ip[0]) + '.' + String(ip[1]) +
                        '.' + String(ip[2]) + '.' + String(ip[3]);
         (*d)["heap"] = ESP.getFreeHeap();
-        (*info)["ip"] = ipStr.c_str();
+        (*info)["ip"] = ipStr;
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
         (*d)["seconds"] = millis()/1000;
@@ -387,7 +397,7 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN("====================================");
     MQTT_DEBUG_PRINTLN("====================================");
 
-    if (_config.publishOnly == true) {
+    if (_config.mode == MODE_PUB_ONLY) {
        // delete _user_hook_prepare_subscribe;
        _user_hook_prepare_subscribe = NULL;
     }

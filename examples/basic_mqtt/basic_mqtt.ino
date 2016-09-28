@@ -2,10 +2,11 @@
 #include <MqttConnector.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+#include <MQTT_OTA.hpp>
 
 MqttConnector *mqtt;
 
-#define MQTT_HOST         "mqtt.espert.io"
+#define MQTT_HOST         "mqtt.cmmc.io"
 #define MQTT_PORT         1883
 #define MQTT_USERNAME     ""
 #define MQTT_PASSWORD     ""
@@ -18,8 +19,8 @@ MqttConnector *mqtt;
 
 /* WIFI INFO */
 #ifndef WIFI_SSID
-  #define WIFI_SSID        ""
-  #define WIFI_PASSWORD    ""
+  #define WIFI_SSID        "ESPERT-3020"
+  #define WIFI_PASSWORD    "espertap"
 #endif
 
 #include "_publish.h"
