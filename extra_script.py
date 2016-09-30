@@ -9,6 +9,7 @@ env = DefaultEnvironment()
 # copyfile("src/MqttConnector.h", "tmp/MqttConnector/MqttConnector.h")
 # copyfile("src/MqttConnector.cpp", "tmp/MqttConnector/MqttConnector.cpp")
 
+print "BEING COPY FILES..."
 if not os.path.exists("pio_compile_here/MqttConnector"):
     os.makedirs("pio_compile_here/MqttConnector")
 

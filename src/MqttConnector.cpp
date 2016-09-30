@@ -164,30 +164,32 @@ void MqttConnector::_hook_config()
       lwtChannel = "/Online";
     }
 
-    Serial.print("TOPIC SUB = ");
-    Serial.println(_config.topicSub);
-    Serial.print("TOPIC PUB = ");
-    Serial.println(_config.topicSub);
+    MQTT_DEBUG_PRINT("TOPIC SUB = ");
+    MQTT_DEBUG_PRINTLN(_config.topicSub);
+    MQTT_DEBUG_PRINT("TOPIC PUB = ");
+    MQTT_DEBUG_PRINTLN(_config.topicSub);
     _config.topicSub.trim();
     _config.topicSub.trim();
 
     // subscribe
     if (_config.topicSub.length() == 0) {
-      _config.topicSub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + commandChannel;
+      _config.topicSub = String(_config.channelPrefix) + String("/") +
+      String(_config.clientId) + commandChannel;
     }
 
     // publish
     if (_config.topicPub.length() == 0) {
-      _config.topicPub = String(_config.channelPrefix) + String("/") + String(_config.clientId) + statusChannel;
+      _config.topicPub = String(_config.channelPrefix) + String("/") +
+      String(_config.clientId) + statusChannel;
     }
 
-    Serial.print("TOPIC SUB = ");
-    Serial.println(_config.topicSub);
-    Serial.print("TOPIC PUB = ");
-    Serial.println(_config.topicSub);
+    MQTT_DEBUG_PRINT("TOPIC SUB = ");
+    MQTT_DEBUG_PRINTLN(_config.topicSub);
+    MQTT_DEBUG_PRINT("TOPIC PUB = ");
+    MQTT_DEBUG_PRINTLN(_config.topicSub);
 
-    _config.topicLastWill = String(_config.channelPrefix) + String("/") + String(_config.clientId) + lwtChannel;
-
+    _config.topicLastWill = String(_config.channelPrefix) + String("/") +
+    String(_config.clientId) + lwtChannel;
 
     (*info)["id"] = _config.clientId;
     (*info)["prefix"] = _config.channelPrefix;
@@ -285,7 +287,7 @@ void MqttConnector::doPublish(bool force)
     {
         if (!_config.client->connected()) return;
         unsigned long __dif = (millis() - _msg_arrived_ms);
-        // Serial.printf("DIFF == %lu \r\n", __dif);
+        // MQTT_DEBUG_PRINTf("DIFF == %lu \r\n", __dif);
         if (__dif <= 1000)  {
           // MQTT_DEBUG_PRINTLN("PUBLICATION SKIPPED.");
           return;

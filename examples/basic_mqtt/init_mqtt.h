@@ -9,6 +9,14 @@ void init_mqtt()
   config->channelPrefix = String(MQTT_PREFIX);
   config->enableLastWill = false;
   config->retainPublishMessage = false;
+  /*
+   *  config->mode
+   *  ===================
+   *  | MODE_BOTH       |
+   *  | MODE_PUB_ONLY   |
+   *  | MODE_SUB_ONLY   |
+   *  ===================
+  */
   config->mode = MODE_BOTH;
   config->firstCapChannel = false;
 
