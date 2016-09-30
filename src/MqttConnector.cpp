@@ -405,12 +405,9 @@ void MqttConnector::_connect()
     if (_subscribe_object != NULL) {
       delete _subscribe_object;
       _subscribe_object = NULL;
+      _subscription_counter=0;
     }
-    else {
-      //finally
-      _subscribe_object = new MQTT::Subscribe();
-    }
-
+    _subscribe_object = new MQTT::Subscribe();
 
     if (_user_hook_prepare_subscribe != NULL)
     {
