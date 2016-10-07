@@ -29,8 +29,26 @@ THE SOFTWARE.
 
 #include "MqttConnector.h"
 
+// 192.168.111.111
+#define IP_C_STR_SIZE 16
+static char *c_ipStr;
+static String ipStr;
+
+static String toStringIp(uint32_t ip) {
+  String res = "";
+  for (int i = 0; i < 3; i++) {
+    res += String((ip >> (8 * i)) & 0xFF) + ".";
+  }
+  res += String(((ip >> 8 * 3)) & 0xFF);
+  return res;
+}
+
 MqttConnector::MqttConnector(const char* host, uint16_t port)
 {
+    c_ipStr = (char*)malloc(IP_C_STR_SIZE);
+    ipStr = toStringIp(WiFi.localIP());
+    strcpy(c_ipStr, ipStr.c_str());
+
     _on_message_arrived = [&](const MQTT::Publish& pub) {
       _msg_arrived_ms = millis();
       wclient.flush();
@@ -100,7 +118,7 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000);
+    static String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000);
     MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
     newpub.set_retain(true);
     _config.client->publish(newpub);
@@ -191,9 +209,10 @@ void MqttConnector::_hook_config()
     _config.topicLastWill = String(_config.channelPrefix) + String("/") +
     String(_config.clientId) + lwtChannel;
 
-    (*info)["id"] = _config.clientId;
+    (*info)["client_id"] = _config.clientId;
+    (*info)["device_id"] = _config.clientId;
     (*info)["prefix"] = _config.channelPrefix;
-
+    (*info)["ip"] = c_ipStr;
 
     _config.mqttHost = _mqtt_host;
     _config.mqttPort = _mqtt_port;
@@ -228,7 +247,7 @@ void MqttConnector::_hook_config()
 
     if (_config.enableLastWill) {
         MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");
-        String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis()/1000);
+        String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis());
         int qos = 1;
         int retain = true;
         (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
@@ -259,13 +278,13 @@ void MqttConnector::sync_pub(String payload)
     _config.client->publish(newpub);
 }
 
-
 void MqttConnector::loop()
 {
     if (_config.client->connected())
     {
       _config.client->loop();
       if (_config.mode == MODE_PUB_ONLY) {
+        MQTT_DEBUG_PRINTLN("PUBLISH ONLY MODE..");
         return;
       }
       else {
@@ -274,10 +293,10 @@ void MqttConnector::loop()
     }
     else
     {
-        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED");
+        MQTT_DEBUG_PRINTLN("MQTT DISCONNECTED..");
+        MQTT_DEBUG_PRINTLN("MQTT RECONNECTING..");
         _connect();
     }
-
 }
 
 void MqttConnector::doPublish(bool force)
@@ -296,23 +315,16 @@ void MqttConnector::doPublish(bool force)
         MQTT_DEBUG_PRINTLN("PUBLICATION PASSED.");
 
         _timer_set(&publish_timer, _publish_interval);
-
         _prepare_data_hook();
 
-        (*d)["version"] = _version.c_str();
-        IPAddress ip = WiFi.localIP();
-        String ipStr = String(ip[0]) + '.' + String(ip[1]) +
-                       '.' + String(ip[2]) + '.' + String(ip[3]);
+        (*d)["version"] = _version;
         (*d)["heap"] = ESP.getFreeHeap();
-        (*info)["ip"] = ipStr;
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
-        (*d)["seconds"] = millis()/1000;
+        (*d)["millis"] = millis();
         (*d)["subscription"] = _subscription_counter;
 
-
         _after_prepare_data_hook();
-
 
         strcpy(jsonStrbuffer, "");
         root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
@@ -506,7 +518,6 @@ void MqttConnector::_after_prepare_data_hook()
         MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
         _user_hook_after_prepare_data(root);
     }
-
     // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
 }
 
@@ -525,4 +536,6 @@ MqttConnector::~MqttConnector()
     _config.connOpts = NULL;
     _config.client = NULL;
     _subscribe_object = NULL;
+
+    free(c_ipStr);
 }

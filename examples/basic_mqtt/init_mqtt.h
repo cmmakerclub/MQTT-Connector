@@ -7,7 +7,7 @@ void init_mqtt()
   mqtt->on_prepare_configuration([&](MqttConnector::Config * config) -> void {
   config->clientId  = String(MQTT_CLIENT_ID);
   config->channelPrefix = String(MQTT_PREFIX);
-  config->enableLastWill = false;
+  config->enableLastWill = true;
   config->retainPublishMessage = false;
   /*
    *  config->mode
@@ -23,20 +23,11 @@ void init_mqtt()
   config->username = String(MQTT_USERNAME);
   config->password = String(MQTT_PASSWORD);
 
-  uint8_t mac[6];
-  WiFi.macAddress(mac);
+  // FORMAT
+  // d:quickstart:<type-id>:<device-id>
+  //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
+  //config->topicPub  = String("iot-2/evt/status/fmt/json");
 
-  // device id
-  String macAddr;
-  for (int i = 0; i < 6; ++i)
-  {
-      macAddr += String(mac[i], 16);
-  }
-
-    // FORMAT
-    // d:quickstart:<type-id>:<device-id>
-    //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
-    //config->topicPub  = String("iot-2/evt/status/fmt/json");
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
@@ -67,8 +58,8 @@ void init_mqtt()
   });
 
   mqtt->on_published([&](const MQTT::Publish & pub) -> void {
-    Serial.print("[MQTT] PUBLISHED: ");
-    Serial.println(pub.payload_string());
+    // Serial.print("[MQTT] PUBLISHED: ");
+    // Serial.println(pub.payload_string());
   });
 
   mqtt->connect();

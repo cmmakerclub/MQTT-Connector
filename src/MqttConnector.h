@@ -13,8 +13,9 @@ extern "C" {
 #endif
 
 // #define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
-//#define DEBUG_ALL 1
-//#define CMMC_MQTT_DEBUG_MODE 1
+// #define DEBUG_ALL 1
+
+// #define CMMC_MQTT_DEBUG_MODE 0
 #define MQTT_DEBUG_LEVEL_VERBOSE 1
 
 #if defined(CMMC_MQTT_DEBUG_MODE) or DEBUG_ALL
@@ -151,7 +152,7 @@ private:
 
     // const int BUFFER_SIZE = JSON_OBJECT_SIZE(3) + JSON_ARRAY_SIZE(2);
 
-    StaticJsonBuffer<800> jsonRootBuffer;
+    StaticJsonBuffer<1024> jsonRootBuffer;
     StaticJsonBuffer<512> jsonDBuffer;
     // StaticJsonBuffer<128> jsonInfoBuffer;
 
@@ -160,7 +161,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    String _version = "0.80";
+    float _version = 0.81f;
 
     struct timer { int start, interval; };
     struct timer publish_timer;
