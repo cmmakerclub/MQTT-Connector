@@ -108,6 +108,19 @@ public:
     void sync_pub(String payload);
     void clear_last_will(String payload);
     void connect();
+    void publish(MQTT::Publish p) {
+      if (_config.client != NULL) {
+        _config.client->publish(p);
+      }
+    };
+
+    void publish(String topic, String payload, bool retain) {
+      if (_config.client != NULL) {
+        MQTT::Publish newpub(topic.c_str(), (uint8_t*)payload.c_str(), payload.length());
+        newpub.set_retain(true);
+        _config.client->publish(newpub);
+      }
+    };
 
     void on_message(PubSubClient::callback_t callback = NULL);
     // void before_publish(before_prepare_data_hook_t callback = NULL);
@@ -115,7 +128,6 @@ public:
     // backward compat
     void on_published(PubSubClient::callback_t callback = NULL);
     void on_after_publish(PubSubClient::callback_t callback = NULL);
-
     void on_prepare_configuration(cmmc_config_t func);
     void on_after_prepare_configuration(cmmc_after_config_t func);
     void on_connecting(connecting_hook_t cb);
@@ -128,6 +140,7 @@ public:
     void mode(mqtt_mode_t mode) {
         _mode = mode;
     }
+
 
 protected:
     void _set_default_client_id()

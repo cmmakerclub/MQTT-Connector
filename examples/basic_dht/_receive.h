@@ -5,6 +5,7 @@ PubSubClient::callback_t on_message_arrived =
     Serial.printf("TOPIC = %s, PAYLOAD = %s\r\n", topic.c_str(), payload.c_str());
  };
 
-MqttConnector::subscribe_hook_t on_subscribe = [&](MQTT::Subscribe *sub) {
+MqttConnector::subscribe_hook_t on_subscribe =
+[&](MQTT::Subscribe *sub) {
 
 };

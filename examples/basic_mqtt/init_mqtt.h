@@ -21,6 +21,12 @@ extern int PUBLISH_EVERY;
 void init_mqtt()
 {
   mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
+  
+  mqtt->on_connecting([&](int count, bool *flag) {
+    Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
+    delay(1000);
+  });
+
   mqtt->on_prepare_configuration([&](MqttConnector::Config *config) -> void {
   config->clientId  = MQTT_CLIENT_ID;
   config->channelPrefix = MQTT_PREFIX;
@@ -60,11 +66,6 @@ void init_mqtt()
   mqtt->on_before_prepare_data(on_before_prepare_data_loop);
   mqtt->on_after_prepare_data(on_after_prepare_data);
   mqtt->on_message(on_message_arrived);
-
-  mqtt->on_connecting([&](int count, bool *flag) {
-    Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
-    delay(1000);
-  });
 
   mqtt->connect();
 }
