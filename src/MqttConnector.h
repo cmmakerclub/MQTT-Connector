@@ -96,6 +96,7 @@ public:
     typedef PubSubClient::callback_t after_publish_hook_t;
 
     typedef std::function<void(MQTT::Subscribe*)> subscribe_hook_t;
+    typedef std::function<void(String, String, String)> after_message_arrived_t;
 
     MqttConnector(const char* , uint16_t port = 1883);
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
@@ -123,6 +124,9 @@ public:
     };
 
     void on_message(PubSubClient::callback_t callback = NULL);
+    void on_after_message_arrived(after_message_arrived_t callback = NULL) {
+      _user_on_after_message_arrived = callback;
+    };
     // void before_publish(before_prepare_data_hook_t callback = NULL);
     // void after_publish(before_prepare_data_hook_t callback = NULL);
     // backward compat
@@ -181,6 +185,7 @@ private:
 
     PubSubClient::callback_t  _on_message_arrived = NULL;
     PubSubClient::callback_t  _user_on_message_arrived = NULL;
+    after_message_arrived_t   _user_on_after_message_arrived = NULL;
     after_publish_hook_t      _user_on_after_publish = NULL;
     // on_prepare_data_once
     before_prepare_data_once_t _user_on_prepare_data_once = NULL;
@@ -239,7 +244,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    float _version = 0.90f;
+    float _version = 0.91f;
     bool _pub_lock = false;
 
 };

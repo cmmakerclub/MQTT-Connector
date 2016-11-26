@@ -55,6 +55,19 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
         if (_user_on_message_arrived) {
             _user_on_message_arrived(pub);
         }
+
+        if (_user_on_after_message_arrived != NULL) {
+            int prefix_len = _config.channelPrefix.length()+1;
+            String topic = pub.topic();
+            String p_topic = topic.substring(prefix_len);
+
+            const char *p = p_topic.c_str();
+            int fc = 0;
+            while(*p++ != '/') {
+              fc++;
+            }
+            _user_on_after_message_arrived(p_topic, p_topic.substring(fc+1), pub.payload_string());
+        }
     };
 
     init_config(host, port);
@@ -173,22 +186,22 @@ void MqttConnector::_hook_config()
       _config.clientId = String(ESP.getChipId());
     }
 
-    String commandChannel = "/command";
+    String commandChannel = "/$/command";
     String statusChannel = "/status";
-    String lwtChannel = "/online";
+    String lwtChannel = "/lwt";
 
     if (_config.firstCapChannel) {
-      commandChannel = "/Command";
+      commandChannel = "/$/Command";
       statusChannel = "/Status";
-      lwtChannel = "/Online";
+      lwtChannel = "/Lwt";
     }
 
     MQTT_DEBUG_PRINT("TOPIC SUB = ");
     MQTT_DEBUG_PRINTLN(_config.topicSub);
     MQTT_DEBUG_PRINT("TOPIC PUB = ");
-    MQTT_DEBUG_PRINTLN(_config.topicSub);
+    MQTT_DEBUG_PRINTLN(_config.topicPub);
     _config.topicSub.trim();
-    _config.topicSub.trim();
+    _config.topicPub.trim();
 
     // subscribe
     if (_config.topicSub.length() == 0) {
@@ -429,6 +442,9 @@ void MqttConnector::_connect()
     }
     _subscribe_object = new MQTT::Subscribe();
 
+    /*
+    * BEGIN SUBSCRIBE LOGIC
+    */
     if (_user_hook_subscribe != NULL)
     {
         MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
