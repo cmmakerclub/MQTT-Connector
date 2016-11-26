@@ -59,8 +59,6 @@ public:
         String mqttHost;
         bool enableLastWill;
         bool retainPublishMessage;
-        // bool subscribeOnly;
-        // bool publishOnly;
         uint16_t mqttPort;
         bool firstCapChannel;
     } Config;
@@ -161,7 +159,7 @@ private:
     */
     cmmc_config_t             _user_hook_config = NULL;
     cmmc_after_config_t       _user_hook_after_config = NULL;
-    subscribe_hook_t  _user_hook_subscribe = NULL;
+    subscribe_hook_t          _user_hook_subscribe = NULL;
     prepare_data_hook_t       _user_hook_prepare_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
 
@@ -176,6 +174,9 @@ private:
     prepare_data_hook_t        _user_on_prepare_data  = NULL;
     before_prepare_data_hook_t _user_on_before_prepare_data = NULL;
     // before_prepare_data_once_t _user_on_prepare_data_once = NULL;
+
+
+
     /*
      * Methods
     */

@@ -6,6 +6,7 @@ extern PubSubClient::callback_t on_message_arrived;
 extern MqttConnector::after_prepare_data_hook_t on_after_prepare_data;
 extern MqttConnector::before_prepare_data_once_t on_prepare_data_once;
 extern MqttConnector::before_prepare_data_hook_t on_before_prepare_data_loop;
+extern MqttConnector::subscribe_hook_t on_subscribe;
 
 extern String MQTT_HOST;
 extern String MQTT_USERNAME;
@@ -54,7 +55,7 @@ void init_mqtt()
   });
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
-  mqtt->on_subscribe([&](MQTT::Subscribe *sub) -> void { });
+  mqtt->on_subscribe(on_subscribe);
   mqtt->on_prepare_data_once(on_prepare_data_once);
   mqtt->on_before_prepare_data(on_before_prepare_data_loop);
   mqtt->on_after_prepare_data(on_after_prepare_data);

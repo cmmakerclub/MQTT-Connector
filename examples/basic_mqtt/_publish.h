@@ -20,8 +20,8 @@ MqttConnector::prepare_data_hook_t on_prepare_data =
     data["millis"] = millis();
 };
 
-MqttConnector::after_prepare_data_hook_t on_after_prepare_data =
-[&](JsonObject *root) -> void {
+MqttConnector::after_prepare_data_hook_t
+on_after_prepare_data = [&](JsonObject *root) -> void {
   /**************
   JsonObject& data = (*root)["d"];
   data.remove("version");

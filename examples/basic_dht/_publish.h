@@ -12,7 +12,7 @@ float t_dht = 0;
 float h_dht = 0;
 
 MqttConnector::before_prepare_data_once_t
-on_prepare_data_once =[&](void) -> void {
+on_prepare_data_once = [&](void) -> void {
   dht.begin();
 };
 
@@ -29,11 +29,10 @@ MqttConnector::prepare_data_hook_t on_prepare_data =
     data["millis"] = millis();
     data["temp"] = t_dht;
     data["humid"] = h_dht;
-    Serial.println("PUB?");
 };
 
-MqttConnector::after_prepare_data_hook_t on_after_prepare_data =
-[&](JsonObject *root) -> void {
+MqttConnector::after_prepare_data_hook_t
+on_after_prepare_data = [&](JsonObject *root) -> void {
   /**************
   JsonObject& data = (*root)["d"];
   data.remove("version");
