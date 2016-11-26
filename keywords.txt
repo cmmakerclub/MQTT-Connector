@@ -13,7 +13,6 @@
 begin 					KEYWORD2
 prepare_data	KEYWORD2
 set_configuration_hook	KEYWORD2
-set_publish_data_hook	KEYWORD2
 sync_pub				KEYWORD2
 init_config				KEYWORD2
 connect 				KEYWORD2

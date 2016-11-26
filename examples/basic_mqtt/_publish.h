@@ -2,13 +2,13 @@
 
 extern String DEVICE_NAME;
 
-MqttConnector::before_prepare_data_once_t on_prepare_data_once =
-[&](void) -> void {
-  
+MqttConnector::before_prepare_data_once_t
+on_prepare_data_once =[&](void) -> void {
+
 };
 
-MqttConnector::before_prepare_data_hook_t on_before_prepare_data_loop =
-[&](void) -> void {
+MqttConnector::before_prepare_data_hook_t
+on_before_prepare_data_loop = [&](void) -> void {
 
 };
 

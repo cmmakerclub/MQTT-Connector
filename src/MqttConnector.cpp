@@ -501,6 +501,9 @@ void MqttConnector::on_subscribe(subscribe_hook_t func)
 
 void MqttConnector::_prepare_data_hook()
 {
+    if (_user_on_before_prepare_data != NULL) {
+      _user_on_before_prepare_data();
+    }
 
     if (_user_hook_prepare_data != NULL)
     {
@@ -508,9 +511,6 @@ void MqttConnector::_prepare_data_hook()
         _user_hook_prepare_data(root);
     }
 
-    if (_user_on_before_prepare_data != NULL) {
-      _user_on_before_prepare_data();
-    }
 }
 
 void MqttConnector::_after_prepare_data_hook()
