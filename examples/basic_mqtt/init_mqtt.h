@@ -1,10 +1,23 @@
 #include <MqttConnector.h>
 
+extern MqttConnector::prepare_data_hook_t on_prepare_data;
+extern MqttConnector* mqtt;
+extern PubSubClient::callback_t on_message_arrived;
+
+extern const char *MQTT_HOST;
+extern const char *MQTT_USERNAME;
+extern const char *MQTT_PASSWORD;
+extern const char *MQTT_CLIENT_ID;
+extern const char *MQTT_PREFIX;
+
+extern const int MQTT_PORT;
+extern const int PUBLISH_EVERY;
+
 // MQTT INITIALIZER
 void init_mqtt()
 {
   mqtt = new MqttConnector(MQTT_HOST, MQTT_PORT);
-  mqtt->on_prepare_configuration([&](MqttConnector::Config * config) -> void {
+  mqtt->on_prepare_configuration([&](MqttConnector::Config *config) -> void {
   config->clientId  = String(MQTT_CLIENT_ID);
   config->channelPrefix = String(MQTT_PREFIX);
   config->enableLastWill = true;
@@ -32,14 +45,14 @@ void init_mqtt()
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
     Serial.printf("[USER] HOST = %s\r\n", config.mqttHost.c_str());
-    Serial.printf("[USER] PORT = %s\r\n", String(config.mqttHost).c_str());
+    Serial.printf("[USER] PORT = %d\r\n", config.mqttPort);
     Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());
     Serial.printf("[USER] SUB  = %s\r\n", config.topicSub.c_str());
   });
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
-  mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
-  mqtt->on_after_prepare_data([&](JsonObject * root) -> void {
+  mqtt->on_prepare_subscribe([&](MQTT::Subscribe *sub) -> void { });
+  mqtt->on_after_prepare_data([&](JsonObject *root) -> void {
     /**************
     remove prepared data from lib
     root->remove("info");
@@ -52,14 +65,9 @@ void init_mqtt()
   // on_message_arrived located in _receive.h
   mqtt->on_message(on_message_arrived);
 
-  mqtt->on_connecting([&](int count, bool * flag) {
+  mqtt->on_connecting([&](int count, bool *flag) {
     Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
     delay(1000);
-  });
-
-  mqtt->on_published([&](const MQTT::Publish & pub) -> void {
-    // Serial.print("[MQTT] PUBLISHED: ");
-    // Serial.println(pub.payload_string());
   });
 
   mqtt->connect();

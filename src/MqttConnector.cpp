@@ -137,18 +137,21 @@ void MqttConnector::on_message(PubSubClient::callback_t callback) {
     }
 }
 
-void MqttConnector::on_published(PubSubClient::callback_t callback) {
+void MqttConnector::on_published(after_publish_hook_t callback) {
+  on_after_publish(callback);
+}
+
+void MqttConnector::on_after_publish(after_publish_hook_t callback) {
     if (callback != NULL)
     {
         MQTT_DEBUG_PRINTLN("__USER REGISTER SUBSCRIPTION CALLBACK");
-        _user_on_published = callback;
+        _user_on_after_publish = callback;
     }
     else
     {
         MQTT_DEBUG_PRINTLN("__USER DOES NOT REGISTER SUBSCRIPTION CALLBACk");
     }
 }
-
 
 void MqttConnector::connect()
 {
@@ -158,7 +161,6 @@ void MqttConnector::connect()
     _hook_after_config();
     _connect();
 }
-
 
 void MqttConnector::_hook_config()
 {
@@ -302,7 +304,7 @@ void MqttConnector::loop()
 void MqttConnector::doPublish(bool force)
 {
     static long counter = 0;
-    if (force || _timer_expired(&publish_timer))
+    if (force || _timer_expired(&_publish_timer))
     {
         if (!_config.client->connected()) return;
         unsigned long __dif = (millis() - _msg_arrived_ms);
@@ -314,10 +316,10 @@ void MqttConnector::doPublish(bool force)
 
         MQTT_DEBUG_PRINTLN("PUBLICATION PASSED.");
 
-        _timer_set(&publish_timer, _publish_interval);
+        _timer_set(&_publish_timer, _publish_interval);
         _prepare_data_hook();
 
-        (*d)["version"] = _version;
+        (*info)["version"] = _version;
         (*d)["heap"] = ESP.getFreeHeap();
         (*d)["rssi"] = WiFi.RSSI();
         (*d)["counter"] = ++counter;
@@ -331,7 +333,7 @@ void MqttConnector::doPublish(bool force)
         // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
-        MQTT_DEBUG_PRINTLN("__TO BE PUBLISHED ");
+        MQTT_DEBUG_PRINTLN("PUBLISH: ");
         MQTT_DEBUG_PRINT("______________ TOPIC: -->");
         MQTT_DEBUG_PRINT(_config.topicPub);
         MQTT_DEBUG_PRINTLN();
@@ -359,12 +361,13 @@ void MqttConnector::doPublish(bool force)
         else {
             MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED SUCCEEDED!");
-            if (_user_on_published) {
-                _user_on_published(newpub);
+            if (_user_on_after_publish) {
+                _user_on_after_publish(newpub);
             }
 
         }
 
+        MQTT_DEBUG_PRINTLN("====================================");
         MQTT_DEBUG_PRINTLN("====================================");
     }
 }
@@ -480,7 +483,7 @@ void MqttConnector::on_prepare_data(prepare_data_hook_t func,
 {
     _user_hook_prepare_data = func;
     _publish_interval = publish_interval;
-    _timer_set(&publish_timer, publish_interval);
+    _timer_set(&_publish_timer, publish_interval);
 }
 
 void MqttConnector::on_after_prepare_data(after_prepare_data_hook_t func)
@@ -492,13 +495,6 @@ void MqttConnector::on_prepare_subscribe(prepare_subscribe_hook_t func)
 {
     _user_hook_prepare_subscribe = func;
 }
-
-void MqttConnector::set_publish_data_hook(publish_data_hook_t func)
-{
-    _user_hook_publish_data = func;
-}
-
-
 
 void MqttConnector::_prepare_data_hook()
 {
