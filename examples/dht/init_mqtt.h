@@ -5,14 +5,14 @@ extern MqttConnector* mqtt;
 extern PubSubClient::callback_t on_message_arrived;
 extern CMMC_Blink blinker;
 
-extern const char *MQTT_HOST;
-extern const char *MQTT_USERNAME;
-extern const char *MQTT_PASSWORD;
-extern const char *MQTT_CLIENT_ID;
-extern const char *MQTT_PREFIX;
+const char *MQTT_HOST;
+const char *MQTT_USERNAME;
+const char *MQTT_PASSWORD;
+const char *MQTT_CLIENT_ID;
+const char *MQTT_PREFIX;
 
-extern const int MQTT_PORT;
-extern const int PUBLISH_EVERY;
+const int MQTT_PORT;
+const int PUBLISH_EVERY;
 
 // MQTT INITIALIZER
 void init_mqtt()
@@ -52,7 +52,7 @@ void init_mqtt()
   });
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
-  mqtt->on_prepare_subscribe([&](MQTT::Subscribe * sub) -> void { });
+  mqtt->on_subscribe([&](MQTT::Subscribe * sub) -> void { });
   mqtt->on_after_prepare_data([&](JsonObject * root) -> void {
     /**************
     remove prepared data from lib

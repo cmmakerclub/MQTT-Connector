@@ -3,6 +3,7 @@
 extern MqttConnector::prepare_data_hook_t on_prepare_data;
 extern MqttConnector* mqtt;
 extern PubSubClient::callback_t on_message_arrived;
+extern MqttConnector::after_prepare_data_hook_t on_after_prepare_data;
 
 extern const char *MQTT_HOST;
 extern const char *MQTT_USERNAME;
@@ -10,8 +11,8 @@ extern const char *MQTT_PASSWORD;
 extern const char *MQTT_CLIENT_ID;
 extern const char *MQTT_PREFIX;
 
-extern const int MQTT_PORT;
-extern const int PUBLISH_EVERY;
+extern int MQTT_PORT;
+extern int PUBLISH_EVERY;
 
 // MQTT INITIALIZER
 void init_mqtt()
@@ -40,7 +41,7 @@ void init_mqtt()
   // d:quickstart:<type-id>:<device-id>
   //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
   //config->topicPub  = String("iot-2/evt/status/fmt/json");
-
+  
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
@@ -51,18 +52,9 @@ void init_mqtt()
   });
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
-  mqtt->on_prepare_subscribe([&](MQTT::Subscribe *sub) -> void { });
-  mqtt->on_after_prepare_data([&](JsonObject *root) -> void {
-    /**************
-    remove prepared data from lib
-    root->remove("info");
-    JsonObject& data = (*root)["d"];
-    data.remove("version");
-    data.remove("subscription");
-    **************/
-  });
+  mqtt->on_subscribe([&](MQTT::Subscribe *sub) -> void { });
 
-  // on_message_arrived located in _receive.h
+  mqtt->on_after_prepare_data(on_after_prepare_data);
   mqtt->on_message(on_message_arrived);
 
   mqtt->on_connecting([&](int count, bool *flag) {

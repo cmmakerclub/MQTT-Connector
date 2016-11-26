@@ -104,7 +104,6 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     info["chip_id"] = String(ESP.getChipId(), HEX);
     info["sdk"] = String(system_get_sdk_version());
     info["mac"] = WiFi.macAddress();
-
 }
 
 MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t config_hook)
@@ -415,8 +414,8 @@ void MqttConnector::_connect()
     MQTT_DEBUG_PRINTLN("====================================");
 
     if (_config.mode == MODE_PUB_ONLY) {
-       // delete _user_hook_prepare_subscribe;
-       _user_hook_prepare_subscribe = NULL;
+       // delete _user_hook_subscribe;
+       _user_hook_subscribe = NULL;
     }
 
     if (_subscribe_object != NULL) {
@@ -426,10 +425,10 @@ void MqttConnector::_connect()
     }
     _subscribe_object = new MQTT::Subscribe();
 
-    if (_user_hook_prepare_subscribe != NULL)
+    if (_user_hook_subscribe != NULL)
     {
         MQTT_DEBUG_PRINTLN("CALLING HOOK SUBSCRIBING..");
-        _user_hook_prepare_subscribe(_subscribe_object);
+        _user_hook_subscribe(_subscribe_object);
         MQTT_DEBUG_PRINTLN("CHECK IF __SUBSCRIBING... ->");
         _subscribe_object->add_topic(_config.topicSub);
 
@@ -491,9 +490,9 @@ void MqttConnector::on_after_prepare_data(after_prepare_data_hook_t func)
     _user_hook_after_prepare_data = func;
 }
 
-void MqttConnector::on_prepare_subscribe(prepare_subscribe_hook_t func)
+void MqttConnector::on_subscribe(subscribe_hook_t func)
 {
-    _user_hook_prepare_subscribe = func;
+    _user_hook_subscribe = func;
 }
 
 void MqttConnector::_prepare_data_hook()

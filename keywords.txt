@@ -21,7 +21,7 @@ loop 					KEYWORD2
 
 prepare_configuration	KEYWORD2
 on_connecting			KEYWORD2
-prepare_subscribe		KEYWORD2
+subscribe		KEYWORD2
 after_prepare_data		KEYWORD2
 on_message				KEYWORD2
 on_published			KEYWORD2

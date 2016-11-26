@@ -96,7 +96,7 @@ public:
     typedef std::function<void(void)> before_publish_hook_t;
     typedef PubSubClient::callback_t after_publish_hook_t;
 
-    typedef std::function<void(MQTT::Subscribe*)> prepare_subscribe_hook_t;
+    typedef std::function<void(MQTT::Subscribe*)> subscribe_hook_t;
 
     MqttConnector(const char* , uint16_t port = 1883);
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
@@ -123,7 +123,7 @@ public:
     // void on_connnected(cmmc_config_t cb);
     void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
     void on_after_prepare_data(after_prepare_data_hook_t func);
-    void on_prepare_subscribe(prepare_subscribe_hook_t func);
+    void on_subscribe(subscribe_hook_t func);
     void mode(mqtt_mode_t mode) {
         _mode = mode;
     }
@@ -158,7 +158,7 @@ private:
     */
     cmmc_config_t             _user_hook_config = NULL;
     cmmc_after_config_t       _user_hook_after_config = NULL;
-    prepare_subscribe_hook_t  _user_hook_prepare_subscribe = NULL;
+    subscribe_hook_t  _user_hook_subscribe = NULL;
     prepare_data_hook_t       _user_hook_prepare_data = NULL;
     after_prepare_data_hook_t _user_hook_after_prepare_data= NULL;
 

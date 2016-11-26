@@ -8,8 +8,8 @@
 
 /* WIFI INFO */
 #ifndef WIFI_SSID
-  #define WIFI_SSID        "ESPERT-3020"
-  #define WIFI_PASSWORD    "espertap"
+  #define WIFI_SSID        "DEVICES-AP"
+  #define WIFI_PASSWORD    "devicenetwork"
 #endif
 
 const char* MQTT_HOST        = "mqtt.cmmc.io";
@@ -17,10 +17,10 @@ const char* MQTT_USERNAME    = "";
 const char* MQTT_PASSWORD    = "";
 const char* MQTT_CLIENT_ID   = "";
 const char* MQTT_PREFIX      = "/CMMC";
-const int MQTT_PORT           = 1883;
+int   MQTT_PORT              = 1883;
 
-const char *DEVICE_NAME       = "plug001";
-const int PUBLISH_EVERY       = 3000;
+const char* DEVICE_NAME      = "plug001";
+int PUBLISH_EVERY            = 3000;
 
 MqttConnector *mqtt;
 
