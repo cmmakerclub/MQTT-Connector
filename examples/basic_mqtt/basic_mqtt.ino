@@ -12,15 +12,15 @@
   #define WIFI_PASSWORD    "devicenetwork"
 #endif
 
-const char* MQTT_HOST        = "mqtt.cmmc.io";
-const char* MQTT_USERNAME    = "";
-const char* MQTT_PASSWORD    = "";
-const char* MQTT_CLIENT_ID   = "";
-const char* MQTT_PREFIX      = "/CMMC";
-int   MQTT_PORT              = 1883;
+String MQTT_HOST        = "mqtt.cmmc.io";
+String MQTT_USERNAME    = "";
+String MQTT_PASSWORD    = "";
+String MQTT_CLIENT_ID   = "";
+String MQTT_PREFIX      = "/CMMC";
+int    MQTT_PORT        = 1883;
 
-const char* DEVICE_NAME      = "plug001";
-int PUBLISH_EVERY            = 3000;
+String DEVICE_NAME      = "plug001";
+int PUBLISH_EVERY       = 3000;
 
 MqttConnector *mqtt;
 

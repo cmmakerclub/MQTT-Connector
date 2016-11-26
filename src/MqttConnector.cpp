@@ -267,6 +267,10 @@ void MqttConnector::_hook_after_config()
         MQTT_DEBUG_PRINTLN("OVERRIDE CONFIG IN _hook_config");
         _user_hook_after_config(_config);
     }
+
+    if (_user_on_prepare_data_once) {
+      _user_on_prepare_data_once();
+    }
 }
 
 void MqttConnector::sync_pub(String payload)
@@ -455,14 +459,13 @@ void MqttConnector::_connect()
     doPublish(true);
 }
 
-
-
 // HOOKS
 // void MqttConnector::connecting_hook(int count, bool *flag) {
 //     if (_user_hook_connecting != NULL) {
 //         _user_hook_connecting(count, flag);
 //     }
 // }
+
 void MqttConnector::on_prepare_configuration(cmmc_config_t func)
 {
     _user_hook_config = func;
@@ -483,6 +486,7 @@ void MqttConnector::on_prepare_data(prepare_data_hook_t func,
     _user_hook_prepare_data = func;
     _publish_interval = publish_interval;
     _timer_set(&_publish_timer, publish_interval);
+
 }
 
 void MqttConnector::on_after_prepare_data(after_prepare_data_hook_t func)
@@ -504,6 +508,9 @@ void MqttConnector::_prepare_data_hook()
         _user_hook_prepare_data(root);
     }
 
+    if (_user_on_before_prepare_data != NULL) {
+      _user_on_before_prepare_data();
+    }
 }
 
 void MqttConnector::_after_prepare_data_hook()
@@ -521,6 +528,15 @@ void MqttConnector::_hook_after_publish(char** ptr)
 {
     // MQTT_DEBUG_PRINTLN("AFTER PUBLISH");
 }
+
+void MqttConnector::on_prepare_data_once(before_prepare_data_once_t func) {
+    _user_on_prepare_data_once = func;
+}
+
+void MqttConnector::on_before_prepare_data(before_prepare_data_hook_t func) {
+  _user_on_before_prepare_data = func;
+}
+
 
 MqttConnector::~MqttConnector()
 {

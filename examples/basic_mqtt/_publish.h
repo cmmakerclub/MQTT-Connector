@@ -1,6 +1,16 @@
 #include <MqttConnector.h>
 
-extern const char* DEVICE_NAME;
+extern String DEVICE_NAME;
+
+MqttConnector::before_prepare_data_once_t on_prepare_data_once =
+[&](void) -> void {
+  Serial.println("OK OK ONCE ONCE");
+};
+
+MqttConnector::before_prepare_data_hook_t on_before_prepare_data_loop =
+[&](void) -> void {
+  Serial.println("BEFORE PREPARE DATA");
+};
 
 MqttConnector::prepare_data_hook_t on_prepare_data =
 [&](JsonObject *root) -> void {

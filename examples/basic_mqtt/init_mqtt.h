@@ -1,15 +1,17 @@
 #include <MqttConnector.h>
 
-extern MqttConnector::prepare_data_hook_t on_prepare_data;
 extern MqttConnector* mqtt;
+extern MqttConnector::prepare_data_hook_t on_prepare_data;
 extern PubSubClient::callback_t on_message_arrived;
 extern MqttConnector::after_prepare_data_hook_t on_after_prepare_data;
+extern MqttConnector::before_prepare_data_once_t on_prepare_data_once;
+extern MqttConnector::before_prepare_data_hook_t on_before_prepare_data_loop;
 
-extern const char *MQTT_HOST;
-extern const char *MQTT_USERNAME;
-extern const char *MQTT_PASSWORD;
-extern const char *MQTT_CLIENT_ID;
-extern const char *MQTT_PREFIX;
+extern String MQTT_HOST;
+extern String MQTT_USERNAME;
+extern String MQTT_PASSWORD;
+extern String MQTT_CLIENT_ID;
+extern String MQTT_PREFIX;
 
 extern int MQTT_PORT;
 extern int PUBLISH_EVERY;
@@ -17,10 +19,10 @@ extern int PUBLISH_EVERY;
 // MQTT INITIALIZER
 void init_mqtt()
 {
-  mqtt = new MqttConnector(MQTT_HOST, MQTT_PORT);
+  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
   mqtt->on_prepare_configuration([&](MqttConnector::Config *config) -> void {
-  config->clientId  = String(MQTT_CLIENT_ID);
-  config->channelPrefix = String(MQTT_PREFIX);
+  config->clientId  = MQTT_CLIENT_ID;
+  config->channelPrefix = MQTT_PREFIX;
   config->enableLastWill = true;
   config->retainPublishMessage = false;
   /*
@@ -41,7 +43,7 @@ void init_mqtt()
   // d:quickstart:<type-id>:<device-id>
   //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
   //config->topicPub  = String("iot-2/evt/status/fmt/json");
-  
+
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
@@ -53,7 +55,8 @@ void init_mqtt()
 
   mqtt->on_prepare_data(on_prepare_data, PUBLISH_EVERY);
   mqtt->on_subscribe([&](MQTT::Subscribe *sub) -> void { });
-
+  mqtt->on_prepare_data_once(on_prepare_data_once);
+  mqtt->on_before_prepare_data(on_before_prepare_data_loop);
   mqtt->on_after_prepare_data(on_after_prepare_data);
   mqtt->on_message(on_message_arrived);
 

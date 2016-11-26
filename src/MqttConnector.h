@@ -13,13 +13,13 @@ extern "C" {
 #endif
 
 // #define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
-#define DEBUG_ALL 1
+// #define DEBUG_ALL 1
 
-#define CMMC_MQTT_DEBUG_MODE 1
+#define CMMC_MQTT_DEBUG_MODE 0
 #define MQTT_DEBUG_LEVEL_VERBOSE 1
 
 
-#if defined(CMMC_MQTT_DEBUG_MODE) or DEBUG_ALL
+#if CMMC_MQTT_DEBUG_MODE or DEBUG_ALL
     #ifndef DEBUG_ESP_PORT
       #define DEBUG_ESP_PORT Serial
     #endif
@@ -87,6 +87,7 @@ public:
      */
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(void)> before_prepare_data_hook_t;
+    typedef before_prepare_data_hook_t before_prepare_data_once_t;
     typedef std::function<void(JsonObject *)> after_prepare_data_hook_t;
 
     /*
@@ -121,9 +122,11 @@ public:
     void on_after_prepare_configuration(cmmc_after_config_t func);
     void on_connecting(connecting_hook_t cb);
     // void on_connnected(cmmc_config_t cb);
-    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
     void on_after_prepare_data(after_prepare_data_hook_t func);
     void on_subscribe(subscribe_hook_t func);
+    void on_prepare_data_once(before_prepare_data_once_t func);
+    void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
+    void on_before_prepare_data(before_prepare_data_hook_t func);
     void mode(mqtt_mode_t mode) {
         _mode = mode;
     }
@@ -168,6 +171,11 @@ private:
     PubSubClient::callback_t  _on_message_arrived = NULL;
     PubSubClient::callback_t  _user_on_message_arrived = NULL;
     after_publish_hook_t      _user_on_after_publish = NULL;
+    // on_prepare_data_once
+    before_prepare_data_once_t _user_on_prepare_data_once = NULL;
+    prepare_data_hook_t        _user_on_prepare_data  = NULL;
+    before_prepare_data_hook_t _user_on_before_prepare_data = NULL;
+    // before_prepare_data_once_t _user_on_prepare_data_once = NULL;
     /*
      * Methods
     */
@@ -180,8 +188,7 @@ private:
     void _after_prepare_data_hook();
     void _hook_after_publish(char** ptr);
 
-        struct timer _publish_timer;
-
+    struct timer _publish_timer;
     int _timer_expired(struct timer *t) {
         return (millis() - t->start) >= t->interval;
     }
