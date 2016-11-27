@@ -3,7 +3,10 @@
 extern MqttConnector* mqtt;
 extern MqttConnector::prepare_data_hook_t on_prepare_data;
 extern PubSubClient::callback_t on_message_arrived;
+
+extern MqttConnector::before_message_arrived_once_t on_before_message_arrived_once;
 extern MqttConnector::after_message_arrived_t on_after_message_arrived;
+
 extern MqttConnector::after_prepare_data_hook_t on_after_prepare_data;
 extern MqttConnector::before_prepare_data_once_t on_prepare_data_once;
 extern MqttConnector::before_prepare_data_hook_t on_before_prepare_data_loop;
@@ -67,7 +70,8 @@ void init_mqtt()
   mqtt->on_before_prepare_data(on_before_prepare_data_loop);
   mqtt->on_after_prepare_data(on_after_prepare_data);
   mqtt->on_message(on_message_arrived);
+  mqtt->on_before_message_arrived_once(on_before_message_arrived_once);
   mqtt->on_after_message_arrived(on_after_message_arrived);
-
+  
   mqtt->connect();
 }

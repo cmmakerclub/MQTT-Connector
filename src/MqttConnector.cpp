@@ -186,12 +186,12 @@ void MqttConnector::_hook_config()
       _config.clientId = String(ESP.getChipId());
     }
 
-    String commandChannel = "/command";
+    String commandChannel = "/$/command";
     String statusChannel = "/status";
     String lwtChannel = "/lwt";
 
     if (_config.firstCapChannel) {
-      commandChannel = "/Command";
+      commandChannel = "/$/Command";
       statusChannel = "/Status";
       lwtChannel = "/Lwt";
     }
@@ -283,6 +283,10 @@ void MqttConnector::_hook_after_config()
 
     if (_user_on_prepare_data_once) {
       _user_on_prepare_data_once();
+    }
+
+    if (_user_on_before_message_arrived_once) {
+      _user_on_before_message_arrived_once();
     }
 }
 

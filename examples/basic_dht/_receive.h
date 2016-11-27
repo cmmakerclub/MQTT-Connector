@@ -1,5 +1,12 @@
 extern String MQTT_CLIENT_ID;
 
+
+MqttConnector::before_message_arrived_once_t
+on_before_message_arrived_once = [&](void) -> void {
+    Serial.println("BEFORE MESSAGE ONCE...");
+};
+
+
 MqttConnector::after_message_arrived_t on_after_message_arrived =
 [&](String topic, String cmd, String payload) -> void {
   Serial.printf("topic: %s\r\n", topic.c_str());

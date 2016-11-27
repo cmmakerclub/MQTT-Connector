@@ -86,6 +86,8 @@ public:
     typedef std::function<void(JsonObject* )> prepare_data_hook_t;
     typedef std::function<void(void)> before_prepare_data_hook_t;
     typedef before_prepare_data_hook_t before_prepare_data_once_t;
+
+    typedef before_prepare_data_once_t before_message_arrived_once_t;
     typedef std::function<void(JsonObject *)> after_prepare_data_hook_t;
 
     /*
@@ -101,7 +103,6 @@ public:
     MqttConnector(const char* , uint16_t port = 1883);
     MqttConnector(const char* , uint16_t port, cmmc_config_t config_hook);
     ~MqttConnector();
-
 
     void _hook_config();
     void loop();
@@ -127,6 +128,11 @@ public:
     void on_after_message_arrived(after_message_arrived_t callback = NULL) {
       _user_on_after_message_arrived = callback;
     };
+
+    void on_before_message_arrived_once(before_message_arrived_once_t callback = NULL) {
+      _user_on_before_message_arrived_once = callback;
+    };
+
     // void before_publish(before_prepare_data_hook_t callback = NULL);
     // void after_publish(before_prepare_data_hook_t callback = NULL);
     // backward compat
@@ -141,6 +147,8 @@ public:
     void on_prepare_data_once(before_prepare_data_once_t func);
     void on_prepare_data(prepare_data_hook_t func, unsigned long publish_interval = 30 *1000);
     void on_before_prepare_data(before_prepare_data_hook_t func);
+
+
     void mode(mqtt_mode_t mode) {
         _mode = mode;
     }
@@ -186,6 +194,8 @@ private:
     PubSubClient::callback_t  _on_message_arrived = NULL;
     PubSubClient::callback_t  _user_on_message_arrived = NULL;
     after_message_arrived_t   _user_on_after_message_arrived = NULL;
+    before_message_arrived_once_t   _user_on_before_message_arrived_once = NULL;
+
     after_publish_hook_t      _user_on_after_publish = NULL;
     // on_prepare_data_once
     before_prepare_data_once_t _user_on_prepare_data_once = NULL;
@@ -244,7 +254,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    float _version = 0.92f;
+    float _version = 0.93f;
     bool _pub_lock = false;
 
 };

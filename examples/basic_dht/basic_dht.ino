@@ -19,8 +19,8 @@ String MQTT_CLIENT_ID   = "";
 String MQTT_PREFIX      = "/CMMC";
 int    MQTT_PORT        = 1883;
 
-String DEVICE_NAME      = "plug001";
-int PUBLISH_EVERY       = 3000;
+String DEVICE_NAME      = "V2 001";
+int PUBLISH_EVERY       = 2000;
 
 MqttConnector *mqtt;
 
