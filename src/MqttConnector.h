@@ -260,7 +260,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    float _version = 0.93f;
+    float _version = 0.94f;
     bool _pub_lock = false;
 
 };
