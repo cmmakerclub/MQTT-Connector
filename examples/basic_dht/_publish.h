@@ -1,44 +1,46 @@
 #include <MqttConnector.h>
 #include <DHT.h>
 
-
-#define DHTPIN 12     // what digital pin we're connected to
-#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
-DHT dht(DHTPIN, DHTTYPE);
+extern int pin_state;
+extern MqttConnector* mqtt;
 static void read_dht();
+float t_dht, h_dht = 0;
+DHT dht(12, DHT22);
 
-extern String DEVICE_NAME;
-float t_dht = 0;
-float h_dht = 0;
 
-MqttConnector::before_prepare_data_once_t
-on_prepare_data_once = [&](void) -> void {
-  dht.begin();
-};
+#define DEVICE_NAME      "DEVICE_NAME_MUST_BE_CHANGED"
+#define DEVICE_NAME_SIZE 40
 
-MqttConnector::before_prepare_data_hook_t
-on_before_prepare_data_loop = [&](void) -> void {
-  read_dht();
-};
+char myName[DEVICE_NAME_SIZE];
 
-MqttConnector::prepare_data_hook_t on_prepare_data =
-[&](JsonObject *root) -> void {
+void register_publish_hooks() {
+  mqtt->on_prepare_data_once([&](void) {
+    dht.begin();
+    strcpy(myName, DEVICE_NAME);
+  });
+
+  mqtt->on_before_prepare_data([&](void) {
+    read_dht();
+  });
+
+  mqtt->on_prepare_data([&](JsonObject * root) {
     JsonObject& data = (*root)["d"];
     JsonObject& info = (*root)["info"];
-    data["myName"] = DEVICE_NAME;
+    data["myName"] = myName;
     data["millis"] = millis();
     data["temp"] = t_dht;
     data["humid"] = h_dht;
-};
+    data["state"] = pin_state;
+  }, PUBLISH_EVERY);
 
-MqttConnector::after_prepare_data_hook_t
-on_after_prepare_data = [&](JsonObject *root) -> void {
-  /**************
-  JsonObject& data = (*root)["d"];
-  data.remove("version");
-  data.remove("subscription");
-  **************/
-};
+  mqtt->on_after_prepare_data([&](JsonObject * root) {
+    /**************
+      JsonObject& data = (*root)["d"];
+      data.remove("version");
+      data.remove("subscription");
+    **************/
+  });
+}
 
 static void read_dht() {
   // Reading temperature or humidity takes about 250 milliseconds!
@@ -50,8 +52,8 @@ static void read_dht() {
   float f = dht.readTemperature(true);
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
-   Serial.println("Failed to read from DHT sensor!");
-   return;
+    Serial.println("Failed to read from DHT sensor!");
+    return;
   }
   else {
     t_dht = t;
