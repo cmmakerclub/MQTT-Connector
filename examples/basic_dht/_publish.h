@@ -3,7 +3,7 @@
 
 extern int pin_state;
 extern MqttConnector* mqtt;
-static void read_dht();
+static void read_sensor();
 float t_dht, h_dht = 0;
 DHT dht(12, DHT22);
 
@@ -14,13 +14,13 @@ DHT dht(12, DHT22);
 char myName[DEVICE_NAME_SIZE];
 
 void register_publish_hooks() {
+  strcpy(myName, DEVICE_NAME);
   mqtt->on_prepare_data_once([&](void) {
     dht.begin();
-    strcpy(myName, DEVICE_NAME);
   });
 
   mqtt->on_before_prepare_data([&](void) {
-    read_dht();
+    read_sensor();
   });
 
   mqtt->on_prepare_data([&](JsonObject * root) {
@@ -42,7 +42,7 @@ void register_publish_hooks() {
   });
 }
 
-static void read_dht() {
+static void read_sensor() {
   // Reading temperature or humidity takes about 250 milliseconds!
   // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
   float h = dht.readHumidity();

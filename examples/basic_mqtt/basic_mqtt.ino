@@ -1,26 +1,28 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+
 #include <MqttConnector.h>
+
 #include "init_mqtt.h"
 #include "_publish.h"
 #include "_receive.h"
 
+
 /* WIFI INFO */
 #ifndef WIFI_SSID
-  #define WIFI_SSID        "DEVICES-AP"
-  #define WIFI_PASSWORD    "devicenetwork"
+#define WIFI_SSID        "DEVICES-AP"
+#define WIFI_PASSWORD    "devicenetwork"
 #endif
 
 String MQTT_HOST        = "mqtt.cmmc.io";
 String MQTT_USERNAME    = "";
 String MQTT_PASSWORD    = "";
 String MQTT_CLIENT_ID   = "";
-String MQTT_PREFIX      = "/CMMC";
+String MQTT_PREFIX      = "CMMC";
 int    MQTT_PORT        = 1883;
 
-String DEVICE_NAME      = "plug001";
-int PUBLISH_EVERY       = 3000;
+int PUBLISH_EVERY       = 1000;
 
 MqttConnector *mqtt;
 
@@ -34,12 +36,11 @@ void init_hardware()
 }
 
 void init_wifi() {
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  while(WiFi.status() != WL_CONNECTED) {
-    Serial.printf ("Connecting to %s:%s\r\n", WIFI_SSID, WIFI_PASSWORD);
-    delay(300);
-  }
-
+   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+   while(WiFi.status() != WL_CONNECTED) {
+     Serial.printf ("Connecting to %s:%s\r\n", WIFI_SSID, WIFI_PASSWORD);
+     delay(300);
+   }
   Serial.println("WiFi Connected.");
   digitalWrite(LED_BUILTIN, HIGH);
 }

@@ -64,8 +64,14 @@ public:
     } Config;
 
 
+    // #ifdef _GLIBCXX_FUNCTIONAL
+    //   typedef std::function<void(const MQTT::Publish&)> callback_t;
+    // #else
+    //   typedef void(*callback_t)(const MQTT::Publish&);
+    // #endif
     typedef void (*callback_t)(void);
     typedef void (*callback_with_arg_t)(void*);
+    // typedef std::function<void(const MQTT::Publish&)> callback_t;
     /*
      * Config Hook
      */
