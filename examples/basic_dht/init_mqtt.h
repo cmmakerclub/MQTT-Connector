@@ -4,7 +4,7 @@ extern MqttConnector* mqtt;
 
 extern String MQTT_HOST;
 extern String MQTT_USERNAME;
-extern String MQTT_PASSWORD; 
+extern String MQTT_PASSWORD;
 extern String MQTT_CLIENT_ID;
 extern String MQTT_PREFIX;
 
@@ -19,8 +19,12 @@ void init_mqtt()
 {
   mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
 
-  mqtt->on_connecting([&](int count, bool * flag) {
+  mqtt->on_connecting([&](int counter, bool * flag) {
     Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
+    // 5 minutes
+    if (counter >= 600) {
+      ESP.reset();
+    }
     delay(1000);
   });
 
@@ -29,7 +33,7 @@ void init_mqtt()
     config->clientId  = MQTT_CLIENT_ID;
     config->channelPrefix = MQTT_PREFIX;
     config->enableLastWill = true;
-    config->retainPublishMessage = false;
+    config->retainPublishMessage = true;
     /*
         config->mode
         ===================
