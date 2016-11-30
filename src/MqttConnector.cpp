@@ -305,9 +305,8 @@ void MqttConnector::loop()
     if (_config.client->connected())
     {
       _config.client->loop();
-      if (_config.mode == MODE_PUB_ONLY) {
-        MQTT_DEBUG_PRINTLN("PUBLISH ONLY MODE..");
-        return;
+      if (_config.mode == MODE_SUB_ONLY) {
+        MQTT_DEBUG_PRINTLN("SUBSCRIBE ONLY MODE..");
       }
       else {
           doPublish();
@@ -529,6 +528,11 @@ void MqttConnector::_prepare_data_hook()
     {
         MQTT_DEBUG_PRINTLN("__user_hook_prepare_data()");
         _user_hook_prepare_data(root);
+
+        if (_user_hook_after_prepare_data) {
+            _user_hook_after_prepare_data(root);
+        }
+
     }
 
 }

@@ -12,7 +12,7 @@ extern "C" {
 }
 #endif
 
-// #define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
+#define DEBUG_ALL (defined(DEBUG_ESP_CORE) and defined(DEBUG_ESP_SSL) and defined(DEBUG_ESP_WIFI))
 // #define DEBUG_ALL 1
 
 #define CMMC_MQTT_DEBUG_MODE 0
