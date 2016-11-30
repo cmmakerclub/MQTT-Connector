@@ -20,7 +20,7 @@ void init_mqtt()
   mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
 
   mqtt->on_connecting([&](int counter, bool * flag) {
-    Serial.printf("[%lu] MQTT CONNECTING.. \r\n", count);
+    Serial.printf("[%lu] MQTT CONNECTING.. \r\n", counter);
     // 5 minutes
     if (counter >= 600) {
       ESP.reset();
