@@ -329,11 +329,8 @@ void MqttConnector::doPublish(bool force)
         unsigned long __dif = (millis() - _msg_arrived_ms);
         // MQTT_DEBUG_PRINTf("DIFF == %lu \r\n", __dif);
         if (__dif <= 1000)  {
-          // MQTT_DEBUG_PRINTLN("PUBLICATION SKIPPED.");
           return;
         }
-
-        MQTT_DEBUG_PRINTLN("PUBLICATION PASSED.");
 
         _timer_set(&_publish_timer, _publish_interval);
         _prepare_data_hook();
@@ -349,15 +346,13 @@ void MqttConnector::doPublish(bool force)
 
         strcpy(jsonStrbuffer, "");
         root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
-        // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
         MQTT_DEBUG_PRINTLN("PUBLISH: ");
-        MQTT_DEBUG_PRINT("______________ TOPIC: -->");
+        MQTT_DEBUG_PRINT("  TOPIC: -->");
         MQTT_DEBUG_PRINT(_config.topicPub);
         MQTT_DEBUG_PRINTLN();
-
-        MQTT_DEBUG_PRINT("______________ CONTENT: -->");
+        MQTT_DEBUG_PRINT("  CONTENT: -->");
         #ifdef MQTT_DEBUG_LEVEL_VERBOSE
         MQTT_DEBUG_PRINT(jsonStrbuffer);
         #endif
@@ -369,9 +364,9 @@ void MqttConnector::doPublish(bool force)
         // }
 
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
-        if (_config.retainPublishMessage) {
-            newpub.set_retain(true) ;
-        }
+
+        bool shouldRetainMessage = _config.retainPublishMessage;
+        newpub.set_retain(shouldRetainMessage);
         if(!_config.client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
@@ -385,15 +380,12 @@ void MqttConnector::doPublish(bool force)
             }
 
         }
-
-        MQTT_DEBUG_PRINTLN("====================================");
         MQTT_DEBUG_PRINTLN("====================================");
     }
 }
 
 void MqttConnector::_connect()
 {
-    // _config.client->set_max_retries(150);
     bool flag = true;
 
     uint16_t times = 0;
@@ -431,10 +423,11 @@ void MqttConnector::_connect()
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
-    MQTT_DEBUG_PRINTLN("====================================");
 
     if (_config.mode == MODE_PUB_ONLY) {
-       // delete _user_hook_subscribe;
+        // if (_user_hook_subscribe) {
+        //    delete _user_hook_subscribe;
+        // }
        _user_hook_subscribe = NULL;
     }
 
@@ -442,8 +435,11 @@ void MqttConnector::_connect()
       delete _subscribe_object;
       _subscribe_object = NULL;
       _subscription_counter=0;
+      _subscribe_object = new MQTT::Subscribe();
     }
-    _subscribe_object = new MQTT::Subscribe();
+    else {
+      _subscribe_object = new MQTT::Subscribe();
+    }
 
     /*
     * BEGIN SUBSCRIBE LOGIC
@@ -479,12 +475,6 @@ void MqttConnector::_connect()
 }
 
 // HOOKS
-// void MqttConnector::connecting_hook(int count, bool *flag) {
-//     if (_user_hook_connecting != NULL) {
-//         _user_hook_connecting(count, flag);
-//     }
-// }
-
 void MqttConnector::on_prepare_configuration(cmmc_config_t func)
 {
     _user_hook_config = func;
@@ -544,7 +534,6 @@ void MqttConnector::_after_prepare_data_hook()
         MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
         _user_hook_after_prepare_data(root);
     }
-    // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
 }
 
 
