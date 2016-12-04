@@ -10,8 +10,9 @@
 #define WIFI_PASSWORD    "devicenetwork"
 #endif
 
-#define BLUEMIX_ORG_ID   "r6crrd"
-#define BLUEMIX_TYPE_ID  "esp8266" 
+#define BLUEMIX_ORG_ID    "r6crrd"
+#define BLUEMIX_TYPE_ID   "esp8266" 
+#define BLUEMIX_DEVICE_ID "plug001" 
 
 String MQTT_HOST        = BLUEMIX_ORG_ID ".messaging.internetofthings.ibmcloud.com";
 String MQTT_USERNAME    = "use-token-auth";

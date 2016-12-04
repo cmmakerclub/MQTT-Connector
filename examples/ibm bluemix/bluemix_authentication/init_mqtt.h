@@ -45,7 +45,7 @@ void init_mqtt()
     String macAddr = WiFi.macAddress();
     macAddr.replace(":", "");
     macAddr.toLowerCase();
-    config->clientId  = String("d:" BLUEMIX_ORG_ID ":" BLUEMIX_TYPE_ID ":") + "plug001";
+    config->clientId  = String("d:" BLUEMIX_ORG_ID ":" BLUEMIX_TYPE_ID ":" BLUEMIX_DEVICE_ID);
     config->topicPub  = String("iot-2/evt/status/fmt/json");
   });
 
