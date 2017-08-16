@@ -20,7 +20,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #pragma once
 
 #include <stdint.h>
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 #include <pgmspace.h>
 #include <functional>
 #endif
@@ -28,6 +28,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #define MQTT_KEEPALIVE 15
+
+// Packets larger than this can only be streamed
+#ifndef MQTT_TOO_BIG
+#define MQTT_TOO_BIG 4096
+#endif
 
 class PubSubClient;
 
@@ -53,6 +58,13 @@ namespace MQTT {
     Reserved,		// Reserved
   };
 
+  //! The Quality of Service (QoS) level is an agreement between sender and receiver of a message regarding the guarantees of delivering a message.  
+  enum Qos {
+      QOS0 = 0,  //! At most once
+      QOS1 = 1,  //! At least once
+      QOS2 = 2   //! Exactly once
+  };
+
 #ifdef _GLIBCXX_FUNCTIONAL
   typedef std::function<bool(Client&)> payload_callback_t;
 #else
@@ -73,7 +85,8 @@ namespace MQTT {
     Message(message_type t, uint8_t f = 0) :
       _type(t), _flags(f),
       _packet_id(0), _need_packet_id(false),
-      _stream_client(NULL)
+      _stream_client(nullptr),
+      _payload_callback(nullptr)
     {}
 
     //! Virtual destructor
@@ -98,9 +111,6 @@ namespace MQTT {
 
     //! Set the packet id
     void set_packet_id(uint16_t pid) { _packet_id = pid; }
-
-    //! Get the packet id
-    uint16_t packet_id(void) const { return _packet_id; }
 
     //! Write the packet id to a buffer
     /*!
@@ -141,8 +151,11 @@ namespace MQTT {
     //! Get the message type
     message_type type(void) const { return _type; }
 
+    //! Get the packet id
+    uint16_t packet_id(void) const { return _packet_id; }
+
     //! Does this message have a network stream for reading the (large) payload?
-    bool has_stream(void) const { return _stream_client != NULL; }
+    bool has_stream(void) const { return _stream_client != nullptr; }
 
   };
 
@@ -155,14 +168,15 @@ namespace MQTT {
 
   //! Message sent when connecting to a broker
   class Connect : public Message {
-  private:
+  protected:
     bool _clean_session;
     uint8_t _will_qos;
     bool _will_retain;
 
     String _clientid;
     String _will_topic;
-    String _will_message;
+    uint8_t *_will_message;
+    uint16_t _will_message_len;
     String _username, _password;
 
     uint16_t _keepalive;
@@ -184,10 +198,9 @@ namespace MQTT {
     Connect& unset_clean_session(void)		{ _clean_session = false; return *this; }
 
     //! Set the "will" flag and associated attributes
-    Connect& set_will(String willTopic, String willMessage, uint8_t willQos = 0, bool willRetain = false) {
-      _will_topic = willTopic; _will_message = willMessage; _will_qos = willQos; _will_retain = willRetain;
-      return *this;
-    }
+    Connect& set_will(String willTopic, String willMessage, uint8_t willQos = 0, bool willRetain = false);
+    //! Set the "will" flag and attributes, with an arbitrary will message
+    Connect& set_will(String willTopic, uint8_t *willMessage, uint16_t willMessageLength, uint8_t willQos = 0, bool willRetain = false);
     //! Unset the "will" flag and associated attributes
     Connect& unset_will(void)			{ _will_topic = ""; return *this; }
 
@@ -200,6 +213,8 @@ namespace MQTT {
     uint16_t keepalive(void) const	{ return _keepalive; }
     //! Set the keepalive period
     Connect& set_keepalive(uint16_t k)	{ _keepalive = k; return *this; }
+
+    ~Connect();
 
   };
 
@@ -219,7 +234,7 @@ namespace MQTT {
 
   //! Publish a payload to a topic
   class Publish : public Message {
-  private:
+  protected:
     String _topic;
     uint8_t *_payload;
     uint32_t _payload_len;
@@ -324,6 +339,9 @@ namespace MQTT {
   //! Response to Publish when qos == 1
   class PublishAck : public Message {
   private:
+    uint32_t variable_header_length(void) const { return sizeof(_packet_id); }
+    void write_variable_header(uint8_t *buf, uint32_t& bufpos) const { write_packet_id(buf, bufpos); }
+
     //! Private constructor from a network buffer
     PublishAck(uint8_t* data, uint32_t length);
 

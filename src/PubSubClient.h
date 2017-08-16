@@ -7,7 +7,7 @@
 #ifndef PubSubClient_h
 #define PubSubClient_h
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 #include <functional>
 #include <pgmspace.h>
 #endif
@@ -31,16 +31,17 @@ private:
    uint16_t server_port;
    callback_t _callback;
 
-   Client *_client;
+   Client &_client;
    uint16_t nextMsgId, keepalive;
    uint8_t _max_retries;
    unsigned long lastOutActivity;
    unsigned long lastInActivity;
    bool pingOutstanding;
+   bool isSubAckFound;
 
    //! Receive a message from the client
    /*!
-     \return Pointer to message object, NULL if no message has been received
+     \return Pointer to message object, nullptr if no message has been received
     */
    MQTT::Message* _recv_message(void);
 
@@ -98,7 +99,7 @@ public:
    //! Set the callback function
    PubSubClient& set_callback(callback_t cb) { _callback = cb; return *this; }
    //! Unset the callback function
-   PubSubClient& unset_callback(void) { _callback = NULL; return * this; }
+   PubSubClient& unset_callback(void) { _callback = nullptr; return * this; }
 
    //! Set the maximum number of retries when waiting for response packets
    PubSubClient& set_max_retries(uint8_t mr) { _max_retries = mr; return *this; }
