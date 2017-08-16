@@ -35,8 +35,6 @@ on_published			KEYWORD2
 # Instances (KEYWORD2)
 #######################################
 
-WiFiConnector 				KEYWORD2
-
 #######################################
 # Constants (LITERAL1)
 #######################################

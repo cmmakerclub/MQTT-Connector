@@ -128,7 +128,7 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    static String willText = String("ONLINE|") + String(_config.clientId) + "|" + (millis()/1000);
+    static String willText = String("{\"status\":1,\"id\":\"") + String(_config.clientId) + "\"}";
     MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
     newpub.set_retain(true);
     _config.client->publish(newpub);
@@ -221,6 +221,7 @@ void MqttConnector::_hook_config()
     _config.topicLastWill = String(_config.channelPrefix) +
       String(_config.clientId) + lwtChannel;
 
+    (*info)["id"] = _config.clientId;
     (*info)["client_id"] = _config.clientId;
     (*info)["device_id"] = _config.clientId;
     (*info)["prefix"] = _config.channelPrefix;
@@ -259,7 +260,8 @@ void MqttConnector::_hook_config()
 
     if (_config.enableLastWill) {
         MQTT_DEBUG_PRINT("ENABLE LAST WILL: ");
-        String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis());
+        // String willText = String("DEAD|") + String(_config.clientId) + "|" + (millis());
+        static String willText = String("{\"status\":0,\"id\": \"") + String(_config.clientId) + "\"}";
         int qos = 1;
         int retain = true;
         (_config.connOpts)->set_will(_config.topicLastWill, willText, qos, retain);
