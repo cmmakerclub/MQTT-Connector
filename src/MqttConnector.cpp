@@ -63,9 +63,7 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
 
             const char *p = p_topic.c_str();
             int fc = 0;
-            while(*p++ != '/') {
-              fc++;
-            }
+            while(*p++ != '/') { fc++; }
             _user_on_after_message_arrived(p_topic, p_topic.substring(fc+1), pub.payload_string());
         }
     };
@@ -205,13 +203,13 @@ void MqttConnector::_hook_config()
 
     // subscribe
     if (_config.topicSub.length() == 0) {
-      _config.topicSub = String(_config.channelPrefix) + String("/") +
-      String(_config.clientId) + commandChannel;
+      _config.topicSub = String(_config.channelPrefix) +
+        String(_config.clientId) + commandChannel;
     }
 
     // publish
     if (_config.topicPub.length() == 0) {
-      _config.topicPub = String(_config.channelPrefix) + String("/") +
+      _config.topicPub = String(_config.channelPrefix) +
       String(_config.clientId) + statusChannel;
     }
 
@@ -220,8 +218,8 @@ void MqttConnector::_hook_config()
     MQTT_DEBUG_PRINT("TOPIC PUB = ");
     MQTT_DEBUG_PRINTLN(_config.topicSub);
 
-    _config.topicLastWill = String(_config.channelPrefix) + String("/") +
-    String(_config.clientId) + lwtChannel;
+    _config.topicLastWill = String(_config.channelPrefix) +
+      String(_config.clientId) + lwtChannel;
 
     (*info)["client_id"] = _config.clientId;
     (*info)["device_id"] = _config.clientId;
@@ -329,8 +327,11 @@ void MqttConnector::doPublish(bool force)
         unsigned long __dif = (millis() - _msg_arrived_ms);
         // MQTT_DEBUG_PRINTf("DIFF == %lu \r\n", __dif);
         if (__dif <= 1000)  {
+          // MQTT_DEBUG_PRINTLN("PUBLICATION SKIPPED.");
           return;
         }
+
+        MQTT_DEBUG_PRINTLN("PUBLICATION PASSED.");
 
         _timer_set(&_publish_timer, _publish_interval);
         _prepare_data_hook();
@@ -346,27 +347,25 @@ void MqttConnector::doPublish(bool force)
 
         strcpy(jsonStrbuffer, "");
         root->printTo(jsonStrbuffer, sizeof(jsonStrbuffer));
+        // dataPtr = jsonStrbuffer;
         prev_millis = millis();
 
         MQTT_DEBUG_PRINTLN("PUBLISH: ");
-        MQTT_DEBUG_PRINT("  TOPIC: -->");
+        MQTT_DEBUG_PRINT("______________ TOPIC: -->");
         MQTT_DEBUG_PRINT(_config.topicPub);
         MQTT_DEBUG_PRINTLN();
-        MQTT_DEBUG_PRINT("  CONTENT: -->");
+
+        MQTT_DEBUG_PRINT("______________ CONTENT: -->");
         #ifdef MQTT_DEBUG_LEVEL_VERBOSE
         MQTT_DEBUG_PRINT(jsonStrbuffer);
         #endif
         MQTT_DEBUG_PRINTLN();
 
-        // if (_user_hook_publish_data != NULL)
-        // {
-        //     _user_hook_publish_data(dataPtr);
-        // }
-
         MQTT::Publish newpub(_config.topicPub, (uint8_t*)jsonStrbuffer, strlen(jsonStrbuffer));
+        if (_config.retainPublishMessage) {
+            newpub.set_retain(true) ;
+        }
 
-        bool shouldRetainMessage = _config.retainPublishMessage;
-        newpub.set_retain(shouldRetainMessage);
         if(!_config.client->publish(newpub)) {
             MQTT_DEBUG_PRINTLN();
             MQTT_DEBUG_PRINTLN("PUBLISHED FAILED!");
@@ -378,14 +377,16 @@ void MqttConnector::doPublish(bool force)
             if (_user_on_after_publish) {
                 _user_on_after_publish(newpub);
             }
-
         }
+
+        MQTT_DEBUG_PRINTLN("====================================");
         MQTT_DEBUG_PRINTLN("====================================");
     }
 }
 
 void MqttConnector::_connect()
 {
+    // _config.client->set_max_retries(150);
     bool flag = true;
 
     uint16_t times = 0;
@@ -423,11 +424,10 @@ void MqttConnector::_connect()
 
     MQTT_DEBUG_PRINTLN("CONNECTED");
     MQTT_DEBUG_PRINTLN("====================================");
+    MQTT_DEBUG_PRINTLN("====================================");
 
     if (_config.mode == MODE_PUB_ONLY) {
-        // if (_user_hook_subscribe) {
-        //    delete _user_hook_subscribe;
-        // }
+       // delete _user_hook_subscribe;
        _user_hook_subscribe = NULL;
     }
 
@@ -435,11 +435,8 @@ void MqttConnector::_connect()
       delete _subscribe_object;
       _subscribe_object = NULL;
       _subscription_counter=0;
-      _subscribe_object = new MQTT::Subscribe();
     }
-    else {
-      _subscribe_object = new MQTT::Subscribe();
-    }
+    _subscribe_object = new MQTT::Subscribe();
 
     /*
     * BEGIN SUBSCRIBE LOGIC
@@ -475,6 +472,12 @@ void MqttConnector::_connect()
 }
 
 // HOOKS
+// void MqttConnector::connecting_hook(int count, bool *flag) {
+//     if (_user_hook_connecting != NULL) {
+//         _user_hook_connecting(count, flag);
+//     }
+// }
+
 void MqttConnector::on_prepare_configuration(cmmc_config_t func)
 {
     _user_hook_config = func;
@@ -534,6 +537,7 @@ void MqttConnector::_after_prepare_data_hook()
         MQTT_DEBUG_PRINTLN("__user_hook_after_prepare_data()");
         _user_hook_after_prepare_data(root);
     }
+    // MQTT_DEBUG_PRINTLN("BEFORE PUBLISH");
 }
 
 
