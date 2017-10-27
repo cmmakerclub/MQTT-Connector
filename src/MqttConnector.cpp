@@ -300,6 +300,23 @@ void MqttConnector::sync_pub(String payload)
     _config.client->publish(newpub);
 }
 
+void MqttConnector::sync_advpub(String prefix, String topic, String payload, bool retain)
+{
+    //prefix is actually not yet usable
+    if (prefix != ""){
+      topic=String(_config.channelPrefix) + String("/") + String(_config.clientId)+topic;
+    }
+
+    MQTT_DEBUG_PRINT("SYNC PUB TO CHANNEL ");
+    MQTT_DEBUG_PRINT(topic.c_str());
+    MQTT_DEBUG_PRINT(".... -> ");
+    MQTT_DEBUG_PRINTLN(payload.c_str());
+
+    MQTT::Publish newpub(topic, (uint8_t*)payload.c_str(), payload.length());
+    newpub.set_retain(retain);
+    _config.client->publish(newpub);
+}
+
 void MqttConnector::loop()
 {
     if (_config.client->connected())

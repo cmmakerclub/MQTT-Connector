@@ -114,6 +114,7 @@ public:
     void loop();
     void init_config(const char*, uint16_t);
     void sync_pub(String payload);
+    void sync_advpub(String prefix, String topic, String payload, bool retain);
     void clear_last_will(String payload);
     void connect();
     void publish(MQTT::Publish p) {
