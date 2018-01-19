@@ -261,7 +261,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    String _version = "0.1.0";
+    String _version = "0.100.0";
     bool _pub_lock = false;
 
 };
