@@ -2,8 +2,6 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
-#include <DHT.h>
-
 
 #include "init_mqtt.h"
 #include "_publish.h"
@@ -12,21 +10,21 @@
 MqttConnector *mqtt;
 
 /* WIFI INFO */
-String WIFI_SSID        = "Banoffee Coffee 2.4G";
-String WIFI_PASSWORD    = "0952341436";
+String WIFI_SSID        = "ampere";
+String WIFI_PASSWORD    = "espertap";
 
-String MQTT_HOST        = "mqtt.cmmc.io";
+String MQTT_HOST        = "192.168.12.1";
 String MQTT_USERNAME    = "";
 String MQTT_PASSWORD    = "";
 String MQTT_CLIENT_ID   = "";
-String MQTT_PREFIX      = "MARU/";
+String MQTT_PREFIX      = "CMMC/";
 int    MQTT_PORT        = 1883;
-int PUBLISH_EVERY       = 1000;
+int PUBLISH_EVERY       = 5000;
 int MQTT_CONNECT_TIMEOUT= 5000;
 
-String DEVICE_NAME      = "CMMC-001"; 
+String DEVICE_NAME      = "LATTE-001"; 
 
-int relayPinState;
+int relayPinState = HIGH;
 int relayPin            = 15; 
 char myName[40];
 
@@ -35,8 +33,9 @@ void init_hardware()
   pinMode(relayPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
 
+  digitalWrite(relayPin, relayPinState);;
   // serial port initialization
-  Serial.begin(115200);
+  Serial.begin(57600);
   delay(10);
   Serial.println();
   Serial.println("Starting...");

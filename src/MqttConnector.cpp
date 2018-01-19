@@ -57,7 +57,7 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
         }
 
         if (_user_on_after_message_arrived != NULL) {
-            int prefix_len = _config.channelPrefix.length()+1;
+            int prefix_len = _config.channelPrefix.length();
             String topic = pub.topic();
             String p_topic = topic.substring(prefix_len);
 
@@ -128,7 +128,9 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    static String willText = String("{\"status\":1,\"id\":\"") + String(_config.clientId) + "\"}";
+    static String willText = String("{\"status\":0") 
+    + String(",\"id\":\"") + String(_config.clientId) 
+    + "\"}";
     MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
     newpub.set_retain(true);
     _config.client->publish(newpub);
