@@ -205,13 +205,13 @@ void MqttConnector::_hook_config()
 
     // subscribe
     if (_config.topicSub.length() == 0) {
-      _config.topicSub = String(_config.channelPrefix) +
+      _config.topicSub = String(_config.channelPrefix) + "/" +
         String(_config.clientId) + commandChannel;
     }
 
     // publish
     if (_config.topicPub.length() == 0) {
-      _config.topicPub = String(_config.channelPrefix) +
+      _config.topicPub = String(_config.channelPrefix) + "/" +
       String(_config.clientId) + statusChannel;
     }
 
@@ -220,7 +220,7 @@ void MqttConnector::_hook_config()
     MQTT_DEBUG_PRINT("TOPIC PUB = ");
     MQTT_DEBUG_PRINTLN(_config.topicSub);
 
-    _config.topicLastWill = String(_config.channelPrefix) +
+    _config.topicLastWill = String(_config.channelPrefix) + "/" +
       String(_config.clientId) + lwtChannel;
 
     (*info)["id"] = _config.clientId;
