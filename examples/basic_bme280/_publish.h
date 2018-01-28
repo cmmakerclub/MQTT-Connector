@@ -53,7 +53,7 @@ static void readSensor() {
     Serial.println("read bme280 failed... try again..");
   }
   else {
-    Serial.printf("Temperature: %f, Humidity: %f, Sensor Pressure = %f\r\n", t, h, p); 
+    Serial.printf("Temperature: %.2f, Humidity: %.2f, Sensor Pressure = %.2f\r\n", t, h, p); 
   } 
 
 }

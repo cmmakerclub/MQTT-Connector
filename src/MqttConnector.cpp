@@ -107,14 +107,16 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     this->d = &dd;
     static struct station_config conf;
     wifi_station_get_config(&conf);
-    const char* ssid = reinterpret_cast<const char*>(conf.ssid);
-
+    const char* ssid = reinterpret_cast<const char*>(conf.ssid); 
+    String mac = String(WiFi.macAddress());
+    mac.toLowerCase();
+    Serial.println(mac);
     info["ssid"] =  String(ssid);
     info["flash_size"] = ESP.getFlashChipSize();
     info["flash_id"] = String(ESP.getFlashChipId(), HEX);
     info["chip_id"] = String(ESP.getChipId(), HEX);
     info["sdk"] = String(system_get_sdk_version());
-    info["mac"] = WiFi.macAddress();
+    info["mac"] = mac;
 }
 
 MqttConnector::MqttConnector(const char* host, uint16_t port, cmmc_config_t config_hook)

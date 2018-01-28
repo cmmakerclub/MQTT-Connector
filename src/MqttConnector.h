@@ -5,6 +5,7 @@
 #include "ESP8266WiFi.h"
 #include <functional>
 #include <ArduinoJson.h>
+#include "version.h"
 
 #ifdef ESP8266
 extern "C" {
@@ -261,7 +262,7 @@ private:
     JsonObject *d;
     JsonObject *info;
 
-    String _version = "1.0.0a";
+    String _version = APP_VERSION;
     bool _pub_lock = false;
 
 };
