@@ -12,6 +12,7 @@ static void readSensor();
 extern String DEVICE_NAME;
 extern int PUBLISH_EVERY;
 extern Adafruit_BME280 bme;
+float t,h,p;
 
 void register_publish_hooks() {
   strcpy(myName, DEVICE_NAME.c_str());
@@ -29,6 +30,9 @@ void register_publish_hooks() {
     data["myName"] = myName;
     data["millis"] = millis();
     data["state"] = relayPinState;
+    data["temperature"] = t;
+    data["humidity"] = h;
+    data["pressure"] = p;
   }, PUBLISH_EVERY);
 
   mqtt->on_after_prepare_data([&](JsonObject * root) {
@@ -41,17 +45,15 @@ void register_publish_hooks() {
 }
 
 static void readSensor() {
-  float t = bme.readTemperature();
-  float h = bme.readHumidity(); 
-  float p_raw = bme.readPressure(); 
+  t = String(bme.readTemperature()).toFloat();
+  h = String(bme.readHumidity()).toFloat(); 
+  p = String(bme.readPressure()).toFloat(); 
 
   if ((isnan(h) || h == 0)  ||  (isnan(t) || t == 0)) {
     Serial.println("read bme280 failed... try again..");
   }
   else {
-    String tStr = String(t);
-    String hStr = String(h);
-    Serial.printf("Temperature: %s, Humidity: %s\r\n", tStr.c_str(), hStr.c_str());
+    Serial.printf("Temperature: %f, Humidity: %f, Sensor Pressure = %f\r\n", t, h, p); 
   } 
 
 }

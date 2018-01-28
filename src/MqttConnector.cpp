@@ -183,7 +183,7 @@ void MqttConnector::_hook_config()
     }
 
     if (_config.clientId == "") {
-      _config.clientId = String(ESP.getChipId());
+      _config.clientId = String(ESP.getChipId(), HEX);
     }
 
     String commandChannel = "/$/command";
@@ -225,7 +225,7 @@ void MqttConnector::_hook_config()
 
     (*info)["id"] = _config.clientId;
     (*info)["client_id"] = _config.clientId;
-    (*info)["device_id"] = _config.clientId;
+    (*info)["device_id"] = String(ESP.getChipId(), HEX);
     (*info)["prefix"] = _config.channelPrefix;
     (*info)["ip"] = c_ipStr;
 
