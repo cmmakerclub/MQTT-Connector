@@ -1,9 +1,13 @@
-/* WIFI INFO */
+#include <Wire.h>
+#include <SPI.h>
+
+/* WIFI INFO */ 
 String DEVICE_NAME      = "LATTE-001"; 
 
 String WIFI_SSID        = "ampere";
 String WIFI_PASSWORD    = "espertap";
 
+/* MQTT INFO */ 
 String MQTT_HOST        = "192.168.12.1";
 String MQTT_USERNAME    = "";
 String MQTT_PASSWORD    = "";
