@@ -9,30 +9,11 @@
 #include "init_mqtt.h"
 #include "_publish.h" 
 #include "_receive.h"
+#include "_config.h"
 
 MqttConnector *mqtt;
-
-/* WIFI INFO */
-String WIFI_SSID        = "ampere";
-String WIFI_PASSWORD    = "espertap";
-
-String MQTT_HOST        = "192.168.12.1";
-String MQTT_USERNAME    = "";
-String MQTT_PASSWORD    = "";
-String MQTT_CLIENT_ID   = "";
-String MQTT_PREFIX      = "CMMC/";
-int    MQTT_PORT        = 1883;
-int PUBLISH_EVERY       = 5000;
-int MQTT_CONNECT_TIMEOUT= 5000;
-
-String DEVICE_NAME      = "LATTE-001"; 
-
-int relayPinState = HIGH;
-int relayPin            = 15; 
-char myName[40];
-
-
 Adafruit_BME280 bme;
+char myName[40];
 
 void init_hardware()
 {

@@ -8,26 +8,10 @@
 #include "init_mqtt.h"
 #include "_publish.h"
 #include "_receive.h"
+#include "_config.h"
 
-MqttConnector *mqtt;
-
-/* WIFI INFO */
-String WIFI_SSID        = "Banoffee Coffee 2.4G";
-String WIFI_PASSWORD    = "0952341436";
-
-String MQTT_HOST        = "mqtt.cmmc.io";
-String MQTT_USERNAME    = "";
-String MQTT_PASSWORD    = "";
-String MQTT_CLIENT_ID   = "";
-String MQTT_PREFIX      = "MARU/";
-int    MQTT_PORT        = 1883;
-int PUBLISH_EVERY       = 1000;
-int MQTT_CONNECT_TIMEOUT= 5000;
-
-String DEVICE_NAME      = "CMMC-001"; 
-
-int relayPinState;
-int relayPin            = 15; 
+MqttConnector *mqtt; 
+Adafruit_BME280 bme;
 char myName[40];
 
 void init_hardware()
