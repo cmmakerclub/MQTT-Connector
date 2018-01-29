@@ -1,4 +1,4 @@
-# CMMC Mqtt Connector
+# CMMC MQTT Connector [![Build Status](https://travis-ci.org/cmmakerclub/MQTT-Connector.svg?branch=master)](https://travis-ci.org/cmmakerclub/MQTT-Connector)
 an esp8266 mqtt wrapper for chiang mai maker club
 
 ## Dependencies (provided)
