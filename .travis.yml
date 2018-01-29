@@ -8,6 +8,6 @@ env:
     - PLATFORMIO_CI_SRC=examples/basic_dht
 install:
     - pip install -U platformio
-    - platformio lib -g install 31 64 19 39 268 28
+    - platformio lib -g install 31 18 64 19 39 268 28
 script:
     - platformio ci --lib="." --board=espresso_lite_v2
