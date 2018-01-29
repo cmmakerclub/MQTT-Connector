@@ -1,6 +1,6 @@
 {
-    "name": "MqttConnector",
-    "keywords": "mqtt, connectivity, iot, internet of things",
+    "name": "CMMC MQTT Connector",
+    "keywords": "esp8266, mqtt, connectivity, iot",
     "description": "ESP8266 MQTT Connector library.",
     "authors":
     [
