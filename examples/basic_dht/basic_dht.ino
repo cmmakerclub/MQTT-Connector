@@ -11,7 +11,6 @@
 #include "_config.h"
 
 MqttConnector *mqtt; 
-Adafruit_BME280 bme;
 char myName[40];
 
 void init_hardware()

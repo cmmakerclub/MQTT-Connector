@@ -1,9 +1,12 @@
 #include <Wire.h>
 #include <SPI.h>
 
-/* WIFI INFO */ 
+/* BOARD INFO */
 String DEVICE_NAME      = "LATTE-001"; 
+int relayPinState       = HIGH;
+int relayPin            = 15; 
 
+/* WIFI INFO */ 
 String WIFI_SSID        = "ampere";
 String WIFI_PASSWORD    = "espertap";
 
@@ -15,8 +18,4 @@ String MQTT_CLIENT_ID   = "";
 String MQTT_PREFIX      = "CMMC/";
 int    MQTT_PORT        = 1883;
 int PUBLISH_EVERY       = 5000;
-int MQTT_CONNECT_TIMEOUT= 5000;
-
-
-int relayPinState 		= HIGH;
-int relayPin            = 15; 
+int MQTT_CONNECT_TIMEOUT= 5000; 
