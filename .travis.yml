@@ -8,8 +8,10 @@ env:
     - PLATFORMIO_CI_SRC=examples/basic_dht
 install: 
     - wget https://github.com/adafruit/Adafruit_Sensor/archive/master.zip -O /tmp/adafruit_sensor.zip
+    - wget https://github.com/adafruit/DHT-sensor-library/archive/master.zip -O /tmp/DHT-sensor-library.zip
     - unzip /tmp/adafruit_sensor.zip -d /tmp
+    - unzip /tmp/DHT-sensor-library.zip -d /tmp
     - pip install -U platformio 
     - platformio lib -g install 31 18 64 19 39 268 28
 script:
-    - platformio ci --lib="/tmp/Adafruit_Sensor-master" --lib="." --board=espresso_lite_v2 
+    - platformio ci --lib="/tmp/Adafruit_Sensor-master" --lib="/tmp/Adafruit_Sensor-master" --lib="." --board=espresso_lite_v2 
