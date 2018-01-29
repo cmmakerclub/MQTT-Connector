@@ -1,5 +1,4 @@
-#include <Wire.h>
-#include <SPI.h>
+#include <Arduino.h> 
 
 /* BOARD INFO */
 String DEVICE_NAME      = "LATTE-001"; 

@@ -1,5 +1,4 @@
-#include <Wire.h>
-#include <SPI.h>
+#include <Arduino.h>
 
 /* BOARD INFO */
 String DEVICE_NAME      = "LATTE-001"; 
@@ -19,3 +18,4 @@ String MQTT_PREFIX      = "CMMC/";
 int    MQTT_PORT        = 1883;
 int PUBLISH_EVERY       = 5000;
 int MQTT_CONNECT_TIMEOUT= 5000; 
+
