@@ -4,6 +4,7 @@
 #include <MqttConnector.h>
 #include <Wire.h>
 #include <SPI.h>
+#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
 #include "init_mqtt.h"
