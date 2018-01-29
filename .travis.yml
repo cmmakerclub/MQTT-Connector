@@ -12,6 +12,6 @@ install:
     - unzip /tmp/adafruit_sensor.zip -d /tmp
     - unzip /tmp/DHT-sensor-library.zip -d /tmp
     - pip install -U platformio 
-    - platformio lib -g install 31 64 39 268 28
+    - platformio lib -g install 31 64 39 268 28 166
 script:
     - platformio ci --lib="/tmp/Adafruit_Sensor-master" --lib="/tmp/Adafruit_Sensor-master" --lib="." --board=espresso_lite_v2 
