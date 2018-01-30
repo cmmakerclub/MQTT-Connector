@@ -33,6 +33,7 @@ void register_publish_hooks() {
     data["temperature"] = t;
     data["humidity"] = h;
     data["pressure"] = p;
+    data["A0"] = analogRead(A0);
   }, PUBLISH_EVERY);
 
   mqtt->on_after_prepare_data([&](JsonObject * root) {
