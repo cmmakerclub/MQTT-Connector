@@ -29,10 +29,11 @@ void register_publish_hooks() {
     JsonObject& info = (*root)["info"];
     data["myName"] = myName;
     data["millis"] = millis();
-    data["state"] = relayPinState;
     data["temperature"] = t;
     data["humidity"] = h;
     data["pressure"] = p;
+    data["relayState"] = relayPinState;
+    data["updateInterval"] = PUBLISH_EVERY;
     data["A0"] = analogRead(A0);
   }, PUBLISH_EVERY);
 

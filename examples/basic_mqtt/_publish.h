@@ -25,9 +25,9 @@ void register_publish_hooks() {
     JsonObject& info = (*root)["info"];
     data["myName"] = myName;
     data["millis"] = millis();
-    data["state"] = relayPinState;
+    data["relayState"] = relayPinState;
+    data["updateInterval"] = PUBLISH_EVERY;
   }, PUBLISH_EVERY);
-
   mqtt->on_after_prepare_data([&](JsonObject * root) {
     /**************
       JsonObject& data = (*root)["d"];
