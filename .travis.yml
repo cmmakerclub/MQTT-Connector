@@ -6,6 +6,7 @@ cache:
         - "~/.platformio"
 env:
     - PLATFORMIO_CI_SRC=examples/basic_bme280
+    - PLATFORMIO_CI_SRC=examples/basic_mqtt
     - PLATFORMIO_CI_SRC=examples/basic_dht
 install: 
     - wget https://github.com/adafruit/Adafruit_Sensor/archive/master.zip -O /tmp/adafruit_sensor.zip
