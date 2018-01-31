@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <MqttConnector.h>
 #include <DHT.h>
 
@@ -5,13 +6,13 @@ extern int relayPinState;
 extern MqttConnector* mqtt;
 extern int relayPin;
 extern char myName[];
+extern DHT dht;
 
 static void readSensor();
 
 // sensor
-float temperature_c, humidity_percent_rh = 0;
-DHT dht(12, DHT22);
-
+float temperature = 0; 
+float humidity = 0; 
 
 extern String DEVICE_NAME;
 extern int PUBLISH_EVERY;
@@ -32,9 +33,8 @@ void register_publish_hooks() {
     JsonObject& info = (*root)["info"];
     data["myName"] = myName;
     data["millis"] = millis();
-    data["temperature"] = t;
-    data["humidity"] = h;
-    data["pressure"] = p;
+    data["temperature"] = temperature;
+    data["humidity"] = humidity;
     data["relayState"] = relayPinState;
     data["updateInterval"] = PUBLISH_EVERY;
     data["A0"] = analogRead(A0);
@@ -63,12 +63,12 @@ static void readSensor() {
     return;
   }
   else {
-    temperature_c = t;
-    humidity_percent_rh = h;
+    temperature = t;
+    humidity = h;
     Serial.print("Temp: ");
-    Serial.println(temperature_c);
+    Serial.println(temperature);
     Serial.print("Humid: ");
-    Serial.println(humidity_percent_rh);
+    Serial.println(humidity);
   }
 
 }

@@ -3,6 +3,8 @@
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
 #include <DHT.h>
+#include <Wire.h>
+#include <SPI.h>
 
 
 #include "init_mqtt.h"
@@ -11,6 +13,8 @@
 #include "_config.h"
 
 MqttConnector *mqtt; 
+DHT dht(12, DHT22);
+
 char myName[40];
 
 void init_hardware()
