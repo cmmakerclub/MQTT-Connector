@@ -13,6 +13,8 @@
 #include "_config.h"
 
 MqttConnector *mqtt; 
+Adafruit_BME280 bme;
+
 
 int relayPinState       = HIGH;
 int relayPin            = 15; 
