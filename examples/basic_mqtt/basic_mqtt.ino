@@ -9,6 +9,9 @@
 #include "_config.h"
 
 MqttConnector *mqtt; 
+
+int relayPin = 15; 
+int relayPinState = HIGH;
 char myName[40];
 
 void init_hardware()

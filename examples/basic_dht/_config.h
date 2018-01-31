@@ -2,8 +2,6 @@
 
 /* BOARD INFO */
 String DEVICE_NAME      = "LATTE-001"; 
-int relayPinState       = HIGH;
-int relayPin            = 15; 
 
 /* WIFI INFO */ 
 String WIFI_SSID        = "ampere";
