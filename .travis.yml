@@ -14,4 +14,4 @@ install:
     - pip install -U platformio
     - platformio lib -g install 31 64 39 166 19 31
 script:
-    - platformio ci --project-option="lib_ldf_mode=2" --lib="/tmp/Adafruit_Sensor-master" --lib="." --board=espresso_lite_v2 
+    - platformio ci --project-option="lib_ldf_mode=2" --lib="." --board=espresso_lite_v2 
