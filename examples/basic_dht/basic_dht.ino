@@ -12,15 +12,18 @@
 #include "_receive.h"
 #include "_config.h"
 
+#define DHT_PIN 12
 MqttConnector *mqtt; 
-DHT dht(12, DHT22);
+DHT dht(DHT_PIN, DHT11);
 
 char myName[40];
 
 void init_hardware()
-{
+{ 
   pinMode(relayPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(DHT_PIN, INPUT_PULLUP);  
+  dht.begin();
 
   // serial port initialization
   Serial.begin(115200);

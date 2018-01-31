@@ -21,7 +21,6 @@ void register_publish_hooks() {
   strcpy(myName, DEVICE_NAME.c_str());
   mqtt->on_prepare_data_once([&](void) {
     Serial.println("initializing sensor...");
-    dht.begin();
   });
 
   mqtt->on_before_prepare_data([&](void) {
