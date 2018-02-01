@@ -130,7 +130,7 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    static String willText = String("{\"status\":0") 
+    static String willText = String("{\"status\":1") 
     + String(",\"id\":\"") + String(_config.clientId) 
     + "\"}";
     MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
