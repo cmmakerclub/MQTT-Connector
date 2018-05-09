@@ -15,7 +15,7 @@ define release
 		require('fs').writeFileSync('./library.json', s);"
 	@git commit -am "Update meta version code for V$1"
 	echo "/* Generated file, do not edit. */" > src/version.h
-	echo "#define APP_VERSION \"`git-semver.sh`\"" >> src/version.h
+	echo "#define APP_VERSION \"$1\"" >> src/version.h
 	echo "#define APP_VERSION_DATE \"`git log -n 1 --format=%ai`\"" >> src/version.h
 	@git commit -am "Update library version for V$1"
 	git tag -a "v$(1)" -m "release $(1)"
