@@ -52,11 +52,11 @@ void init_mqtt()
     // FORMAT
     // d:quickstart:<type-id>:<device-id>
     //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
-    config->topicPub  = MQTT_PREFIX + String(myName) + "/status";
+    config->topicPub  = MQTT_PREFIX + String(myName) + String("/status");
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
-    String humanTopic = MQTT_PREFIX + myName + "/$/+";
+    String humanTopic = MQTT_PREFIX + myName + String("/$/+");
     Serial.printf("[USER] HOST = %s\r\n", config.mqttHost.c_str());
     Serial.printf("[USER] PORT = %d\r\n", config.mqttPort);
     Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());

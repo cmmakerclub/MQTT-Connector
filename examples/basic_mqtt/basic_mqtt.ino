@@ -2,6 +2,8 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
+#include <Wire.h>
+#include <SPI.h>
 
 #include "init_mqtt.h"
 #include "_publish.h"
