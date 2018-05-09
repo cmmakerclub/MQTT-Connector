@@ -2,8 +2,7 @@
     "name": "CMMC MQTT Connector",
     "keywords": "esp8266, mqtt, connectivity, iot",
     "description": "ESP8266 MQTT Connector library.",
-    "authors":
-    [
+    "authors": [
         {
             "name": "Nat Weerawan",
             "email": "nat@cmmc.io",
@@ -11,12 +10,11 @@
             "maintainer": true
         }
     ],
-    "repository":
-    {
-      "type": "git",
-      "url": "https://github.com/cmmakerclub/MQTT-Connector.git"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/cmmakerclub/MQTT-Connector.git"
     },
-    "version": "1.0.4",
+    "version": "1.0.5",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "espressif",
