@@ -10,26 +10,26 @@
 # Methods and Functions (KEYWORD2)
 #######################################
 
-begin 					KEYWORD2
+begin	KEYWORD2
 prepare_data	KEYWORD2
 set_configuration_hook	KEYWORD2
 
-before_prepare_data_once_t  KEYWORD2
-before_prepare_data_hook_t  KEYWORD2
-prepare_data_hook_t         KEYWORD2
-after_prepare_data_hook_t  KEYWORD2
+before_prepare_data_once_t	KEYWORD2
+before_prepare_data_hook_t	KEYWORD2
+prepare_data_hook_t	KEYWORD2
+after_prepare_data_hook_t	KEYWORD2
 
-sync_pub				KEYWORD2
-init_config				KEYWORD2
-connect 				KEYWORD2
-loop 					KEYWORD2
+sync_pub	KEYWORD2
+init_config	KEYWORD2
+connect	KEYWORD2
+loop	KEYWORD2
 
 prepare_configuration	KEYWORD2
-on_connecting			KEYWORD2
-subscribe		KEYWORD2
-after_prepare_data		KEYWORD2
-on_message				KEYWORD2
-on_published			KEYWORD2
+on_connecting	KEYWORD2
+subscribe	KEYWORD2
+after_prepare_data	KEYWORD2
+on_message	KEYWORD2
+on_published	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
@@ -39,6 +39,6 @@ on_published			KEYWORD2
 # Constants (LITERAL1)
 #######################################
 
-MODE_BOTH             LITERAL1
-MODE_PUB_ONLY         LITERAL1
-MODE_PUB_ONLY         LITERAL1
+MODE_BOTH	LITERAL1
+MODE_PUB_ONLY	LITERAL1
+MODE_PUB_ONLY	LITERAL1
