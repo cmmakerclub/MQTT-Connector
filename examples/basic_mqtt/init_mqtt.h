@@ -19,10 +19,7 @@ extern void register_receive_hooks();
 // MQTT INITIALIZER
 void init_mqtt()
 {
-Serial.println("[1]");
-  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
-
-Serial.println("[2]");
+  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT); 
   mqtt->on_connecting([&](int counter, bool *flag) {
     Serial.printf("[%lu] MQTT CONNECTING.. \r\n", counter);
     if (counter >= MQTT_CONNECT_TIMEOUT) {
