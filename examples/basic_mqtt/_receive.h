@@ -39,7 +39,7 @@ void register_receive_hooks() {
       }
     }
     else if (cmd == "$/reboot") {
-      ESP.reset();
+      ESP.restart();
     }
     else {
       // another message.

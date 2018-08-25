@@ -1,5 +1,11 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+
+#ifdef ESP8266 
+  #include <ESP8266WiFi.h>
+#else 
+  #include <WiFi.h>
+#endif
+
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
 #include <Wire.h>
@@ -19,11 +25,11 @@ char myName[40];
 void init_hardware()
 {
   pinMode(relayPin, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(2, OUTPUT);
 
   digitalWrite(relayPin, relayPinState);;
   // serial port initialization
-  Serial.begin(57600);
+  Serial.begin(115200);
   delay(10);
   Serial.println();
   Serial.println("Starting...");
@@ -42,7 +48,7 @@ void init_wifi() {
     delay(300);
   }
   Serial.println("WiFi Connected.");
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(2, HIGH);
 }
 
 void setup()

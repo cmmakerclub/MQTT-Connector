@@ -2,7 +2,13 @@
 #define MQTT_WRAPPER_H
 
 #include <PubSubClient.h>
-#include "ESP8266WiFi.h"
+#ifdef ESP8266 
+  #include <ESP8266WiFi.h>
+#else 
+  #include <WiFi.h>
+ #include <esp_wifi.h>
+#endif
+
 #include <functional>
 #include <ArduinoJson.h>
 #include "version.h"
@@ -163,25 +169,7 @@ public:
 
 
 protected:
-    void _set_default_client_id()
-    {
-        MQTT_DEBUG_PRINTLN("SET_DEFAULT_MQTT_CLIENT_ID");
-        _config.clientId = ESP.getChipId();
-        uint8_t mac[6];
-        String result = WiFi.macAddress();
-        result.toLowerCase();
-
-        MQTT_DEBUG_PRINT("MAC ADDR: ");
-        MQTT_DEBUG_PRINT(result);
-        MQTT_DEBUG_PRINT("\n");
-
-        _config.channelPrefix = "esp8266";
-        _mac = result;
-
-        MQTT_DEBUG_PRINTLN("/* END SET_DEFAULT_MQTT_CLIENT_ID */");
-
-    }
-
+    void _set_default_client_id(); 
     void doPublish(bool force = false);
 
 

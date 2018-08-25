@@ -1,6 +1,6 @@
 /*
 
-Copyright Nat Weerawan 2015-2016
+Copyright Nat Weerawan 2017-2020
 MIT License
 
 The MIT License (MIT)
@@ -60,7 +60,6 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
             int prefix_len = _config.channelPrefix.length();
             String topic = pub.topic();
             String p_topic = topic.substring(prefix_len);
-
             const char *p = p_topic.c_str();
             int fc = 0;
             while(*p++ != '/') { fc++; }
@@ -73,7 +72,7 @@ MqttConnector::MqttConnector(const char* host, uint16_t port)
     MQTT_DEBUG_PRINTLN("----------- Wrapper CONSTRUCTOR ---------");
     MQTT_DEBUG_PRINT(_mqtt_host);
     MQTT_DEBUG_PRINT(" - ");
-    MQTT_DEBUG_PRINT(_mqtt_port);
+    MQTT_DEBUG_PRINTLN(_mqtt_port);
     MQTT_DEBUG_PRINTLN("---------- /Wrapper CONSTRUCTOR ---------");
 }
 
@@ -105,17 +104,30 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     r["d"] = dd;
     // this->d = &((JsonObject)r["d"]);
     this->d = &dd;
-    static struct station_config conf;
-    wifi_station_get_config(&conf);
-    const char* ssid = reinterpret_cast<const char*>(conf.ssid); 
+
+    #ifdef ESP8266 
+        static struct station_config conf;
+        wifi_station_get_config(&conf);
+        const char* ssid = reinterpret_cast<const char*>(conf.ssid); 
+        info["ssid"] =  String(ssid);
+        info["flash_id"] = String(ESP.getFlashChipId(), HEX);
+        info["chip_id"] = String(ESP.getChipId(), HEX);
+    #else
+        // wifi_config_t conf;
+        // esp_wifi_get_config(WIFI_IF_STA, &conf);
+        wifi_config_t conf;
+        esp_wifi_get_config(WIFI_IF_STA, &conf);
+        info["ssid"] =  String(reinterpret_cast<const char*>(conf.sta.ssid));
+        info["chip_id"] = WiFi.macAddress();
+        // info["chip_id"] = String(ESP.getChipId(), HEX);
+    #endif
+
     String mac = String(WiFi.macAddress());
-    mac.toLowerCase();
-    Serial.println(mac);
-    info["ssid"] =  String(ssid);
-    info["flash_size"] = ESP.getFlashChipSize();
-    info["flash_id"] = String(ESP.getFlashChipId(), HEX);
-    info["chip_id"] = String(ESP.getChipId(), HEX);
+    mac.toLowerCase(); 
+    // info["flash_id"] = ESP.getEfuseMac
+
     info["sdk"] = String(system_get_sdk_version());
+    info["flash_size"] = ESP.getFlashChipSize();
     info["mac"] = mac;
 }
 
@@ -170,9 +182,11 @@ void MqttConnector::on_after_publish(after_publish_hook_t callback) {
 void MqttConnector::connect()
 {
     MQTT_DEBUG_PRINTLN("BEGIN CMMC_MQTT_CONNECTOR");
-    _set_default_client_id();
-    _hook_config();
-    _hook_after_config();
+    _set_default_client_id(); 
+    _hook_config(); 
+    MQTT_DEBUG_PRINTLN("_hook_after_config");
+    _hook_after_config(); 
+    MQTT_DEBUG_PRINTLN("_connect");
     _connect();
 }
 
@@ -185,7 +199,7 @@ void MqttConnector::_hook_config()
     }
 
     if (_config.clientId == "") {
-      _config.clientId = String(ESP.getChipId(), HEX);
+      _config.clientId = WiFi.macAddress();
     }
 
     String commandChannel = "/$/command";
@@ -227,7 +241,7 @@ void MqttConnector::_hook_config()
 
     (*info)["id"] = _config.clientId;
     (*info)["client_id"] = _config.clientId;
-    (*info)["device_id"] = String(ESP.getChipId(), HEX);
+    (*info)["device_id"] = WiFi.macAddress();
     (*info)["prefix"] = _config.channelPrefix;
     (*info)["ip"] = c_ipStr;
 
@@ -340,6 +354,22 @@ void MqttConnector::loop()
         _connect();
     }
 }
+
+void MqttConnector::_set_default_client_id() {
+        MQTT_DEBUG_PRINTLN("SET_DEFAULT_MQTT_CLIENT_ID");
+        String result = WiFi.macAddress();
+        result.toLowerCase();
+        _config.clientId = result;
+
+        // MQTT_DEBUG_PRINT("MAC ADDR: ");
+        // MQTT_DEBUG_PRINT(result);
+        // MQTT_DEBUG_PRINT("\n");
+
+        _config.channelPrefix = "esp8266"; 
+        MQTT_DEBUG_PRINTLN("[1] /* END SET_DEFAULT_MQTT_CLIENT_ID */");
+        MQTT_DEBUG_PRINTLN("[2] /* END SET_DEFAULT_MQTT_CLIENT_ID */");
+
+    }
 
 void MqttConnector::doPublish(bool force)
 {

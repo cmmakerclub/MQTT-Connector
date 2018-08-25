@@ -14,7 +14,7 @@
         "type": "git",
         "url": "https://github.com/cmmakerclub/MQTT-Connector.git"
     },
-    "version": "1.0.5",
+    "version": "1.1.0",
     "license": "MIT",
     "frameworks": "arduino",
     "platforms": "espressif",
