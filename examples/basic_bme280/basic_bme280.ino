@@ -1,14 +1,18 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+
+#ifdef ESP8266 
+  #include <ESP8266WiFi.h>
+#else 
+  #include <WiFi.h>
+#endif
+
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
 #include <Wire.h>
 #include <SPI.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
 
 #include "init_mqtt.h"
-#include "_publish.h" 
+#include "_publish.h"
 #include "_receive.h"
 #include "_config.h"
 

@@ -1,20 +1,24 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
+
+#ifdef ESP8266 
+  #include <ESP8266WiFi.h>
+#else 
+  #include <WiFi.h>
+#endif
+
 #include <ArduinoJson.h>
 #include <MqttConnector.h>
-#include <DHT.h>
 #include <Wire.h>
 #include <SPI.h>
-
 
 #include "init_mqtt.h"
 #include "_publish.h"
 #include "_receive.h"
 #include "_config.h"
 
+MqttConnector *mqtt;  
 #define DHT_PIN 12
 
-MqttConnector *mqtt; 
 DHT dht(DHT_PIN, DHT11);
 
 int relayPinState       = HIGH;

@@ -19,18 +19,17 @@ extern void register_receive_hooks();
 // MQTT INITIALIZER
 void init_mqtt()
 {
-  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
-
+  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT); 
   mqtt->on_connecting([&](int counter, bool *flag) {
     Serial.printf("[%lu] MQTT CONNECTING.. \r\n", counter);
     if (counter >= MQTT_CONNECT_TIMEOUT) {
-      ESP.reset();
+      ESP.restart();
     }
     delay(1000);
   });
 
   mqtt->on_prepare_configuration([&](MqttConnector::Config *config) -> void {
-    MQTT_CLIENT_ID = ESP.getChipId();
+    MQTT_CLIENT_ID = String(WiFi.macAddress());
     config->clientId  = MQTT_CLIENT_ID;
     config->channelPrefix = MQTT_PREFIX;
     config->enableLastWill = true;

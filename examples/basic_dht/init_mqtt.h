@@ -19,18 +19,17 @@ extern void register_receive_hooks();
 // MQTT INITIALIZER
 void init_mqtt()
 {
-  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT);
-
+  mqtt = new MqttConnector(MQTT_HOST.c_str(), MQTT_PORT); 
   mqtt->on_connecting([&](int counter, bool *flag) {
     Serial.printf("[%lu] MQTT CONNECTING.. \r\n", counter);
     if (counter >= MQTT_CONNECT_TIMEOUT) {
-      ESP.reset();
+      ESP.restart();
     }
     delay(1000);
   });
 
   mqtt->on_prepare_configuration([&](MqttConnector::Config *config) -> void {
-    MQTT_CLIENT_ID = ESP.getChipId();
+    MQTT_CLIENT_ID = String(WiFi.macAddress());
     config->clientId  = MQTT_CLIENT_ID;
     config->channelPrefix = MQTT_PREFIX;
     config->enableLastWill = true;
@@ -52,11 +51,11 @@ void init_mqtt()
     // FORMAT
     // d:quickstart:<type-id>:<device-id>
     //config->clientId  = String("d:quickstart:esp8266meetup:") + macAddr;
-    config->topicPub  = MQTT_PREFIX + String(myName) + "/status";
+    config->topicPub  = MQTT_PREFIX + String(myName) + String("/status");
   });
 
   mqtt->on_after_prepare_configuration([&](MqttConnector::Config config) -> void {
-    String humanTopic = MQTT_PREFIX + myName + "/$/+";
+    String humanTopic = MQTT_PREFIX + myName + String("/$/+");
     Serial.printf("[USER] HOST = %s\r\n", config.mqttHost.c_str());
     Serial.printf("[USER] PORT = %d\r\n", config.mqttPort);
     Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());
