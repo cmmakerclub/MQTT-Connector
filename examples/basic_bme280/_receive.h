@@ -11,6 +11,7 @@ extern int relayPin;
 extern int relayPinState;
 extern char myName[];
 
+#define LED_BUILTIN 16
 
 void register_receive_hooks() {
   mqtt->on_subscribe([&](MQTT::Subscribe *sub) -> void {

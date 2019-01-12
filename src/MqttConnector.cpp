@@ -105,10 +105,10 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     // this->d = &((JsonObject)r["d"]);
     this->d = &dd;
 
-    #ifdef ESP8266 
+    #ifdef ESP8266
         static struct station_config conf;
         wifi_station_get_config(&conf);
-        const char* ssid = reinterpret_cast<const char*>(conf.ssid); 
+        const char* ssid = reinterpret_cast<const char*>(conf.ssid);
         info["ssid"] =  String(ssid);
         info["flash_id"] = String(ESP.getFlashChipId(), HEX);
         info["chip_id"] = String(ESP.getChipId(), HEX);
@@ -123,10 +123,10 @@ void MqttConnector::init_config(const char* host, uint16_t port)
     #endif
 
     String mac = String(WiFi.macAddress());
-    mac.toLowerCase(); 
+    mac.toLowerCase();
     // info["flash_id"] = ESP.getEfuseMac
 
-    info["sdk"] = String(system_get_sdk_version());
+    // info["sdk"] = String(system_get_sdk_version());
     info["flash_size"] = ESP.getFlashChipSize();
     info["mac"] = mac;
 }
@@ -142,8 +142,8 @@ void MqttConnector::_clear_last_will() {
     MQTT_DEBUG_PRINT("WILL TOPIC: ");
     MQTT_DEBUG_PRINTLN(_config.topicLastWill);
 
-    static String willText = String("{\"status\":1") 
-    + String(",\"id\":\"") + String(_config.clientId) 
+    static String willText = String("{\"status\":1")
+    + String(",\"id\":\"") + String(_config.clientId)
     + "\"}";
     MQTT::Publish newpub(_config.topicLastWill, (uint8_t*) willText.c_str(), willText.length());
     newpub.set_retain(true);
@@ -182,10 +182,10 @@ void MqttConnector::on_after_publish(after_publish_hook_t callback) {
 void MqttConnector::connect()
 {
     MQTT_DEBUG_PRINTLN("BEGIN CMMC_MQTT_CONNECTOR");
-    _set_default_client_id(); 
-    _hook_config(); 
+    _set_default_client_id();
+    _hook_config();
     MQTT_DEBUG_PRINTLN("_hook_after_config");
-    _hook_after_config(); 
+    _hook_after_config();
     MQTT_DEBUG_PRINTLN("_connect");
     _connect();
 }
@@ -365,7 +365,7 @@ void MqttConnector::_set_default_client_id() {
         // MQTT_DEBUG_PRINT(result);
         // MQTT_DEBUG_PRINT("\n");
 
-        _config.channelPrefix = "esp8266"; 
+        _config.channelPrefix = "esp8266";
         MQTT_DEBUG_PRINTLN("[1] /* END SET_DEFAULT_MQTT_CLIENT_ID */");
         MQTT_DEBUG_PRINTLN("[2] /* END SET_DEFAULT_MQTT_CLIENT_ID */");
 

@@ -2,9 +2,9 @@
 #define MQTT_WRAPPER_H
 
 #include <PubSubClient.h>
-#ifdef ESP8266 
+#ifdef ESP8266
   #include <ESP8266WiFi.h>
-#else 
+#else
   #include <WiFi.h>
  #include <esp_wifi.h>
 #endif
@@ -169,7 +169,7 @@ public:
 
 
 protected:
-    void _set_default_client_id(); 
+    void _set_default_client_id();
     void doPublish(bool force = false);
 
 
