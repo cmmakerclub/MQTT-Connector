@@ -5,8 +5,8 @@ VERSION=$(shell node -pe "require('./library.json').version")
 
 define release
 	test -n "$(1)" 
-	git-semver.sh 
-	@sed -i 's/version=.*/version=$1/' library.properties
+	# git semver get
+	sed -i '' 's/version=.*/version=$1/' library.properties
 	echo "CURRENT_VERSION=${VERSION}" 
 	node -e "\
 		var j = require('./library.json');\
