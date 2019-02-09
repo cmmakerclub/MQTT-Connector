@@ -1,3 +1,3 @@
 /* Generated file, do not edit. */
-#define APP_VERSION "1.1.0"
-#define APP_VERSION_DATE "2018-08-25 21:17:51 +0700"
+#define APP_VERSION "1.3.3"
+#define APP_VERSION_DATE "2019-02-09 14:59:12 +0700"
