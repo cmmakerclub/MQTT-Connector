@@ -30,3 +30,11 @@ Provided examples use 3 files:
 
 **Warning:**  
 It **not** asynchronous, so it will only return afer sending the payload. It can take some time on very loaded networks and prevent your main loop() from running smoothly.
+
+
+# Development
+
+## Releasing
+
+  $ make release V=1.3.3
+  $ make version
