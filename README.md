@@ -35,6 +35,7 @@ It **not** asynchronous, so it will only return afer sending the payload. It can
 # Development
 
 ## Releasing
-
+```
   $ make release V=1.3.3
   $ make version
+```
