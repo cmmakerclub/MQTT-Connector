@@ -15,3 +15,4 @@ install:
     - platformio lib -g install 31 166 19 31
 script:
     - platformio ci --project-option="lib_ldf_mode=2" --lib="." --board=espresso_lite_v2 
+    - platformio ci --project-option="lib_ldf_mode=2" --lib="." --board=nano32
