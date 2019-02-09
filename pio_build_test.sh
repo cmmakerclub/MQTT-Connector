@@ -1,6 +1,6 @@
 
 pip install --user platformio
-platformio lib -g install 31 64 166 19 31
+platformio lib -g install 31 166 19 31
 BOARD=espresso_lite_v2
 
 rm -r test

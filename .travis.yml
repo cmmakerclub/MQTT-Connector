@@ -12,6 +12,6 @@ install:
     - wget https://github.com/adafruit/Adafruit_Sensor/archive/master.zip -O /tmp/adafruit_sensor.zip
     - unzip /tmp/adafruit_sensor.zip -d /tmp
     - pip install -U platformio
-    - platformio lib -g install 31 64 166 19 31
+    - platformio lib -g install 31 166 19 31
 script:
     - platformio ci --project-option="lib_ldf_mode=2" --lib="." --board=espresso_lite_v2 
