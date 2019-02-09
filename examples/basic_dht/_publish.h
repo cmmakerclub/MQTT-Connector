@@ -4,7 +4,10 @@
 
 extern int relayPinState;
 extern MqttConnector* mqtt;
+
 extern int relayPin;
+extern int LED_PIN;
+
 extern char myName[];
 extern DHT dht;
 

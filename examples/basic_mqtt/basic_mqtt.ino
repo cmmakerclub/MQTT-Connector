@@ -20,12 +20,15 @@ MqttConnector *mqtt;
 
 int relayPin = 15; 
 int relayPinState = HIGH;
+int LED_PIN = 2;
+
+
 char myName[40];
 
 void init_hardware()
 {
   pinMode(relayPin, OUTPUT);
-  pinMode(2, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
 
   digitalWrite(relayPin, relayPinState);;
   // serial port initialization

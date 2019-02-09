@@ -22,14 +22,15 @@ MqttConnector *mqtt;
 DHT dht(DHT_PIN, DHT11);
 
 int relayPinState       = HIGH;
-int relayPin            = 15; 
+int relayPin            = 15;
+int LED_PIN             = 2;
 
 char myName[40];
 
 void init_hardware()
 { 
   pinMode(relayPin, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
   pinMode(DHT_PIN, INPUT_PULLUP);
   digitalWrite(relayPin, relayPinState);
 
@@ -55,7 +56,7 @@ void init_wifi() {
     delay(300);
   }
   Serial.println("WiFi Connected.");
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_PIN, HIGH);
 }
 
 void setup()

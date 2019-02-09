@@ -7,10 +7,9 @@ extern String MQTT_CLIENT_ID;
 extern String MQTT_PREFIX;
 
 extern int relayPin;
+extern int LED_PIN;
 extern int relayPinState;
 extern char myName[];
-
-#define LED_BUILTIN 16
 
 void register_receive_hooks() {
   mqtt->on_subscribe([&](MQTT::Subscribe *sub) -> void {
@@ -30,12 +29,12 @@ void register_receive_hooks() {
     if (cmd == "$/command") {
       if (payload == "ON") {
         digitalWrite(relayPin, HIGH);
-        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(LED_PIN, LOW);
         relayPinState = 1;
       }
       else if (payload == "OFF") {
         digitalWrite(relayPin, LOW);
-        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(LED_PIN, HIGH);
         relayPinState = 0;
       }
     }
