@@ -47,6 +47,10 @@ void register_publish_hooks() {
       data.remove("subscription");
     **************/
   });
+
+  mqtt->on_published([&](const MQTT::Publish & pub) {
+      Serial.println("Published.");
+  });
 }
 
 static void readSensor() {

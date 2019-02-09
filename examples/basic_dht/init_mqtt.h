@@ -58,9 +58,16 @@ void init_mqtt()
     String humanTopic = MQTT_PREFIX + myName + String("/$/+");
     Serial.printf("[USER] HOST = %s\r\n", config.mqttHost.c_str());
     Serial.printf("[USER] PORT = %d\r\n", config.mqttPort);
+    Serial.printf("[USER] USER = %s\r\n", config.username.c_str());
+    Serial.printf("[USER] PASS  = %s\r\n", config.password.c_str());
     Serial.printf("[USER] PUB  = %s\r\n", config.topicPub.c_str());
     Serial.printf("[USER] SUB  = %s\r\n", config.topicSub.c_str());
     Serial.printf("[USER] SUB  = %s\r\n", humanTopic.c_str());
+    Serial.printf("[USER] RETAIN = %d\r\n", config.retainPublishMessage);
+    Serial.printf("[USER] ENABLE LWT = %d\r\n", config.enableLastWill);
+    Serial.printf("[USER] PUBLISH_EVERY = %dms\r\n", PUBLISH_EVERY);
+
+
     // sub->add_topic(MQTT_PREFIX + "/" + myName + "/$/+");
     // sub->add_topic(MQTT_PREFIX + "/" + MQTT_CLIENT_ID + "/$/+");
   });
@@ -70,3 +77,4 @@ void init_mqtt()
 
   mqtt->connect();
 }
+  
