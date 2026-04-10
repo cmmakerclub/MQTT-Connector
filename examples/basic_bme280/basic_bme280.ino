@@ -12,9 +12,9 @@
 #include <SPI.h>
 
 #include "init_mqtt.h"
-#include "_publish.h"
-#include "_receive.h"
-#include "_config.h"
+#include "publish.h"
+#include "receive.h"
+#include "config.h"
 
 MqttConnector *mqtt; 
 Adafruit_BME280 bme;

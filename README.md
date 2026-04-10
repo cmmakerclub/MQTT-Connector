@@ -20,8 +20,8 @@ Provided examples use 3 files:
 
  - main arduino file	: define your connection details and the usual setup() loop() Arduino stuffs.
  - init_mqtt.h	: specify some protocol settings, subscriptions and implement you own connection event handlers 
- - _publish.h	: implementation of your publish hooks (periodic procedures relative to **outgoing** data: sensor read, data formatting...)  Data is sent to a default topic.
- - _receive.h	: implemention of your subscribe hooks (message handlers)  
+ - publish.h	: implementation of your publish hooks (periodic procedures relative to **outgoing** data: sensor read, data formatting...)  Data is sent to a default topic.
+ - receive.h	: implemention of your subscribe hooks (message handlers)  
  
 
 @DoNcK also added the option to send data **spontaneously**, not periodically, on a specified topic, using:  
